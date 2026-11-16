@@ -1,0 +1,6 @@
+resource "terraform_data" "ciclo" {
+  input = "revision necesaria"
+  lifecycle {
+# TODO: completa la configuración aquí
+  }
+}

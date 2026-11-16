@@ -1,0 +1,2 @@
+# Ficción de revisión: pipeline.sh · locking
+terraform apply -lock=false -auto-approve

@@ -1,0 +1,7 @@
+# Recomendación ilustrativa, revisar con expertos
+# Pausar writers y abrir incidente
+# Verificar versión, backups y cloud
+# Aprobar restore/unlock con doble control
+
+# Por qué
+Restaurar una versión vieja sin reconciliar objetos puede crear más problemas.

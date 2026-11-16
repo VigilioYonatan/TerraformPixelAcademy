@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "case_id": "S16",
+  "training_type": "SYNTHETIC_SCENARIO",
+  "question": "Terraform administra un recurso que también reconcilia Helm/GitOps.",
+  "options": [
+    "Permitir que ambos editen el mismo objeto",
+    "Definir un solo controlador por campo/recurso y contrato de handoff"
+  ],
+  "correct_choice": 1,
+  "expected_safe_reasoning": "Se clarifica ownership, límites IaC/GitOps y las interfaces de entrega.",
+  "unsafe_pattern": "NO-GO: dos reconciliadores generan drift y conflictos continuos.",
+  "evidence_to_request": "Matriz de ownership, recursos y campos controlados, flujo de handoff",
+  "no_real_execution": true
+}

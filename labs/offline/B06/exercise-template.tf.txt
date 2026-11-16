@@ -1,0 +1,10 @@
+variable "proyecto" {
+  type = string
+  default = "academy"
+}
+locals {
+# TODO: completa la configuración aquí
+}
+output "nombre" {
+  value = local.nombre
+}

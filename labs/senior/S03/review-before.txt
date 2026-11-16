@@ -1,0 +1,3 @@
+# Ficción de revisión: plan.fixture · drift
+~ tags.Owner: "team-a" => "unknown"
+# Cloud cambió fuera de banda

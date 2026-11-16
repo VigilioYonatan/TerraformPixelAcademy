@@ -1,0 +1,7 @@
+# Recomendación ilustrativa, revisar con expertos
+# La red exporta network_id
+# compute consume network_id
+# No hay referencia circular
+
+# Por qué
+Rompe ciclos con interfaces y ownership; depends_on no puede ordenar una dependencia circular.

@@ -1,0 +1,7 @@
+# Recomendación ilustrativa, revisar con expertos
+# Esperar/investigar lock real
+terraform plan -lock-timeout=5m
+# Revisión y aprobación antes de apply
+
+# Por qué
+No deshabilites locking de forma permanente. Usa información de ownership y eventos del backend.

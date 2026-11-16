@@ -1,0 +1,29 @@
+{
+  "id": "S14",
+  "title": "Aumento de costos sin control",
+  "subtitle": "Contexto: un PR cambia tamaño/ubicación de recursos y eleva el costo proyectado de cloud por encima de presupuesto.",
+  "mission": "identificar drivers, rechazar cambios sin Owner/CostCenter, escoger alternativa con trade-off de rendimiento/fiabilidad.",
+  "artifacts": "comparación Infracost **ficticia**, tags, presupuesto y alternativas.",
+  "negative": "optimizar costo poniendo datos primarios en capacidad interrumpible falla; confundir estimación con factura real falla.",
+  "evidence": "decisión de FinOps, ahorro estimado etiquetado, riesgos y validación futura.",
+  "mode": "CostReviewPanel + ADR.",
+  "severity": "Alto",
+  "pillar": "FinOps",
+  "choices": [
+    "Revisar driver de costo, presupuesto, etiquetas y alternativas seguras",
+    "Cambiar todo a spot sin SLA",
+    "Asumir que la estimación será la factura exacta"
+  ],
+  "correct": 0,
+  "explanation": "FinOps evalúa costo, fiabilidad y riesgo, no solo minimiza números.",
+  "checklist": [
+    "Verifiqué unidad, supuestos y procedencia de la estimación ficticia",
+    "Evalué efecto de escalado en capacidad, resiliencia y SLA",
+    "Establecí presupuesto, umbrales y control de cambios FinOps",
+    "Definí owner y reversiones si métricas reales invalidan el ahorro"
+  ],
+  "xp": 300,
+  "provenance": "SYNTHETIC_FIXTURE",
+  "terraform_cli_run": false,
+  "external_cloud_run": false
+}

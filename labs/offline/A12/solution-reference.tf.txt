@@ -1,0 +1,13 @@
+variable "environment" {
+  type = string
+  default = "staging"
+}
+resource "terraform_data" "deployment" {
+  input = "${var.environment}-reviewed"
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+output "id" {
+  value = terraform_data.deployment.id
+}

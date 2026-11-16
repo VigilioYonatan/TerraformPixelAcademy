@@ -1,0 +1,29 @@
+{
+  "id": "S05",
+  "title": "Migración de backend de estado",
+  "subtitle": "Contexto: se migrará state local o remoto legacy a S3 versionado con bloqueo nativo; existe riesgo de duplicar o perder ownership.",
+  "mission": "preparar respaldo, congelar writers, verificar destino y explicar `init -migrate-state` en contexto autorizado.",
+  "artifacts": "dos topologías, inventario de states, plantilla `backend \"s3\"` ilustrativa, checklist de migración.",
+  "negative": "migración sin backup o con escrituras concurrentes debe bloquearse; no asumir éxito por solo cambiar HCL.",
+  "evidence": "runbook, responsables, preflight, verificación de state y rollback.",
+  "mode": "laboratorio de decisiones; integración real únicamente en sandbox autorizado.",
+  "severity": "Crítico",
+  "pillar": "State",
+  "choices": [
+    "Migrar sin respaldo",
+    "Congelar escritores, respaldar, validar destino y verificar migración",
+    "Cambiar la key y suponer éxito"
+  ],
+  "correct": 1,
+  "explanation": "Una migración necesita un runbook reversible, inventario y verificación.",
+  "checklist": [
+    "Congelé escritores y enumeré estados/workspaces sujetos a migración",
+    "Verifiqué versión y recuperación de backups antes de init -migrate-state",
+    "Comparé estado previo y nuevo sin exponer secretos y registré NOT_RUN donde corresponde",
+    "Escribí rollback de backend, permiso, locking y responsables"
+  ],
+  "xp": 300,
+  "provenance": "SYNTHETIC_FIXTURE",
+  "terraform_cli_run": false,
+  "external_cloud_run": false
+}

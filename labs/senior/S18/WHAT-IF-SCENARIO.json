@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "case_id": "S18",
+  "training_type": "SYNTHETIC_SCENARIO",
+  "question": "El capstone tiene módulos, pero no define estados separados ni respuesta a incidentes.",
+  "options": [
+    "Entregar tal cual porque compila",
+    "Separar responsabilidades, documentar ocho hitos y evidencias con rollback"
+  ],
+  "correct_choice": 1,
+  "expected_safe_reasoning": "Preparación Senior: evidencias diferenciadas por hito y límites de arquitectura claros.",
+  "unsafe_pattern": "NO-GO: un capstone sin ownership, estados ni recuperación no está operativo.",
+  "evidence_to_request": "Ocho entregables con estado real, ADR, pruebas y plan de rollback",
+  "no_real_execution": true
+}

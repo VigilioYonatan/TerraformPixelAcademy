@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "case_id": "S01",
+  "training_type": "SYNTHETIC_SCENARIO",
+  "question": "El plan muestra destroy/create tras renombrar una clave for_each. ¿Qué revisión autorizas?",
+  "options": [
+    "Revisar moved + direcciones, bloquear destroy y comparar planes",
+    "Aplicar y confiar en que el sistema se recuperará"
+  ],
+  "correct_choice": 0,
+  "expected_safe_reasoning": "GO condicionado: registrar moved y confirmar un plan sin reemplazos inesperados.",
+  "unsafe_pattern": "NO-GO: el cambio de claves altera direcciones Terraform; la continuidad no está garantizada.",
+  "evidence_to_request": "Mapa de direcciones old/new, plan previo y posterior, revisión de owner",
+  "no_real_execution": true
+}

@@ -1,0 +1,7 @@
+variable "owner" {
+  type = string
+  validation {
+    condition = length(trimspace(var.owner)) > 0
+    error_message = "Owner obligatorio"
+  }
+}

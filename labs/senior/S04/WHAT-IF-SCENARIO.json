@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "case_id": "S04",
+  "training_type": "SYNTHETIC_SCENARIO",
+  "question": "Un plan intenta eliminar un recurso de datos de producción sin backup verificado.",
+  "options": [
+    "Aprobar si terraform validate termina sin errores",
+    "Bloquear, clasificar datos y exigir recuperación probada"
+  ],
+  "correct_choice": 1,
+  "expected_safe_reasoning": "NO-GO hasta demostrar backup/restore, dependencia, ventana y aprobación del owner.",
+  "unsafe_pattern": "NO-GO: validate revisa estructura, no riesgos de disponibilidad ni pérdida de datos.",
+  "evidence_to_request": "Plan firmado/identificado, aprobación del propietario y evidencia de restauración",
+  "no_real_execution": true
+}

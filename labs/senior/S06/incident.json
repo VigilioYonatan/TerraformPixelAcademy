@@ -1,0 +1,29 @@
+{
+  "id": "S06",
+  "title": "Filtración de secretos en state, plan o logs",
+  "subtitle": "Contexto: el equipo incluye un secreto en una variable y descubre que aparece en un plan guardado o state.",
+  "mission": "localizar vías de exposición, separar ocultar output de excluir del estado, diseñar contención/rotación y políticas.",
+  "artifacts": "ejemplo totalmente ficticio de output enmascarado, plan/state **sintéticos**, guía `sensitive` vs `ephemeral`.",
+  "negative": "marcar solo `sensitive = true` sin remediar state falla; registrar secretos en una captura/evidencia falla.",
+  "evidence": "matriz de exposición, pasos de contención y control de acceso a artefactos.",
+  "mode": "policy hunt + incidente; **nunca usar secretos reales**.",
+  "severity": "Crítico",
+  "pillar": "Seguridad",
+  "choices": [
+    "Marcar sensitive=true y concluir el incidente",
+    "Borrar el archivo de plan y no avisar",
+    "Contener acceso, rotar secreto, revisar state/logs y evitar persistencia"
+  ],
+  "correct": 2,
+  "explanation": "Sensitive es redacción, no eliminación de secretos del estado.",
+  "checklist": [
+    "Identifiqué la exposición en outputs, logs, planes y state sensible",
+    "Exigí rotación/revocación de credenciales y contención del artefacto",
+    "Diferencié sensitive de ephemeral y validé compatibilidad de versión",
+    "Definí análisis de accesos, limpieza de logs y seguimiento del incidente"
+  ],
+  "xp": 300,
+  "provenance": "SYNTHETIC_FIXTURE",
+  "terraform_cli_run": false,
+  "external_cloud_run": false
+}

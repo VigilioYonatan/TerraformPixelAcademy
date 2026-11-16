@@ -1,0 +1,7 @@
+variable "owner" {
+  type = string
+  default = "gitops"
+}
+resource "terraform_data" "handoff" {
+# TODO: completa la configuración aquí
+}

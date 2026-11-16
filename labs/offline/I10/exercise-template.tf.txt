@@ -1,0 +1,7 @@
+variable "owner" {
+  type = string
+  validation {
+# TODO: completa la configuración aquí
+    error_message = "Owner obligatorio"
+  }
+}

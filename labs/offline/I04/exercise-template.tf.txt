@@ -1,0 +1,7 @@
+resource "terraform_data" "nuevo" {
+  input = "estable"
+}
+moved {
+  from = terraform_data.viejo
+# TODO: completa la configuración aquí
+}

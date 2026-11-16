@@ -1,0 +1,3 @@
+# Ficción de revisión: modules.tf · dependency
+module "network" { depends_on = [module.compute] }
+module "compute" { depends_on = [module.network] }

@@ -1,0 +1,7 @@
+variable "cost_center" {
+  type = string
+  validation {
+# TODO: completa la configuración aquí
+    error_message = "CostCenter requerido"
+  }
+}

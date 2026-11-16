@@ -1,0 +1,5 @@
+# Ficción de revisión: review.md · architecture
+state: single-global
+review: optional
+rollback: none
+owner: nobody

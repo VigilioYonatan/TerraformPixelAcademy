@@ -1,0 +1,27 @@
+name: Terraform offline labs (37 CLI checks)
+on:
+  pull_request:
+    paths: ['labs/offline/**', 'labs/senior/S18/capstone/**', 'scripts/verify-terraform-labs.sh', '.github/workflows/terraform-labs.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  local-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.10.5'
+      - name: Run 36 offline labs and local capstone
+        shell: bash
+        run: bash scripts/verify-terraform-labs.sh
+      - name: Upload CLI verification evidence (even on failure)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-cli-evidence
+          path: terraform-verification-results/
+          if-no-files-found: warn
+          retention-days: 7

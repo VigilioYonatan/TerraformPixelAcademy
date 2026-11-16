@@ -1,0 +1,28 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.10.5",
+  "resource_changes": [
+    {
+      "address": "terraform_data.edge",
+      "provider_name": "terraform.io/builtin/terraform",
+      "change": { "actions": ["create"], "before_sensitive": false, "after_sensitive": false }
+    },
+    {
+      "address": "terraform_data.stateful",
+      "provider_name": "terraform.io/builtin/terraform",
+      "change": { "actions": ["delete", "create"], "before_sensitive": { "input": true }, "after_sensitive": { "input": true } }
+    },
+    {
+      "address": "terraform_data.deprecated",
+      "provider_name": "terraform.io/builtin/terraform",
+      "change": { "actions": ["delete"], "before_sensitive": false, "after_sensitive": false }
+    }
+  ],
+  "resource_drift": [
+    {
+      "address": "terraform_data.drifted",
+      "provider_name": "terraform.io/builtin/terraform",
+      "change": { "actions": ["update"], "before_sensitive": false, "after_sensitive": false }
+    }
+  ]
+}

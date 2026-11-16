@@ -1,0 +1,5 @@
+variable "token_temporal" {
+  type = string
+  sensitive = true
+# TODO: completa la configuración aquí
+}

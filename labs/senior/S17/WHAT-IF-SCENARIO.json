@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "case_id": "S17",
+  "training_type": "SYNTHETIC_SCENARIO",
+  "question": "En revisión de plataforma faltan rollback, pruebas y owners aunque el HCL compile.",
+  "options": [
+    "Bloquear aprobación hasta documentar riesgos, pruebas y responsables",
+    "Aprobar con el argumento de que el código es legible"
+  ],
+  "correct_choice": 0,
+  "expected_safe_reasoning": "Review gate exige evidencia, ownership, política y operación, no solo sintaxis.",
+  "unsafe_pattern": "NO-GO: compilación y estilo no prueban seguridad operacional.",
+  "evidence_to_request": "Checklist de revisión, ADR, testing, plan, costos y matriz de owners",
+  "no_real_execution": true
+}

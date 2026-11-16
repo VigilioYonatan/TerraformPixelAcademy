@@ -1,0 +1,29 @@
+{
+  "id": "S12",
+  "title": "Tests con mocks vs integración",
+  "subtitle": "Contexto: un módulo tiene `terraform test` verde con `mock_provider`, pero nunca se comprobó contra la API cloud real.",
+  "mission": "clasificar qué demuestra cada test y proponer sandbox de integración proporcional al riesgo.",
+  "artifacts": "`.tftest.hcl` con mock, supuestos del provider, escenarios de integración pendientes.",
+  "negative": "«mock PASS = producción PASS» falla; tests con `apply` cloud no se corren como unitarios públicos.",
+  "evidence": "pirámide de pruebas, `NOT_RUN` explícito y plan de pruebas de integración.",
+  "mode": "lectura de tests + diseño experimental.",
+  "severity": "Alto",
+  "pillar": "Testing",
+  "choices": [
+    "Declarar producción probada por mocks",
+    "Omitir todas las pruebas",
+    "Distinguir mock PASS de integración NOT_RUN y añadir plan de sandbox"
+  ],
+  "correct": 2,
+  "explanation": "Un mock puede ocultar diferencias entre simulación y la API cloud.",
+  "checklist": [
+    "Separé cobertura de mocks de pruebas reales del proveedor cloud",
+    "Definí aserciones negativas y casos de error que un mock no reproduce",
+    "Registré terraform test con origen y estado NOT_RUN si no hubo CLI",
+    "Establecí sandbox, cuotas, limpieza y barrera para promoción a prod"
+  ],
+  "xp": 300,
+  "provenance": "SYNTHETIC_FIXTURE",
+  "terraform_cli_run": false,
+  "external_cloud_run": false
+}

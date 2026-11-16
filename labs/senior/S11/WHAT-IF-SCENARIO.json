@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "case_id": "S11",
+  "training_type": "SYNTHETIC_SCENARIO",
+  "question": "Se aprobó el plan del commit A, pero el pipeline aplica el commit B.",
+  "options": [
+    "Rechazar el apply y verificar digest, commit y entorno del plan aprobado",
+    "Aplicar porque ambos commits están en la misma rama"
+  ],
+  "correct_choice": 0,
+  "expected_safe_reasoning": "Cadena plan-aprobación-apply vinculada a un único artefacto inmutable.",
+  "unsafe_pattern": "NO-GO: una rama mutable no identifica el artefacto aprobado.",
+  "evidence_to_request": "SHA-256 del plan, commit, entorno, aprobaciones y logs del runner",
+  "no_real_execution": true
+}

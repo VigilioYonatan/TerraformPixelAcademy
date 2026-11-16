@@ -1,0 +1,29 @@
+{
+  "id": "S07",
+  "title": "Upgrade de provider incompatible",
+  "subtitle": "Contexto: actualización mayor del provider cambia schema/comportamiento y un plan anuncia reemplazos inesperados.",
+  "mission": "analizar compatibilidad, proponer versión fijada, pruebas de regresión y rollout gradual.",
+  "artifacts": "lockfile ficticio, changelog resumido, planes antes/después y tests rotos.",
+  "negative": "`terraform init -upgrade` sin plan de revisión falla; actualizar producción directa falla.",
+  "evidence": "matriz versión/impacto, estrategia revertible y checklist de aprobación.",
+  "mode": "revisión técnica + comparación de fixtures.",
+  "severity": "Alto",
+  "pillar": "Providers",
+  "choices": [
+    "Pinnear/planificar upgrade, revisar changelog y ejecutar regresiones",
+    "Ejecutar init -upgrade en prod directo",
+    "Ignorar cambios del provider"
+  ],
+  "correct": 0,
+  "explanation": "Las actualizaciones incompatibles requieren matrices y rollout seguro.",
+  "checklist": [
+    "Inventarié versiones de provider, lockfile y dependencias de módulos",
+    "Elegí rango versionado compatible con changelog y runtime fijado",
+    "Propuse test de plan y regresión en sandbox, con evidencia NO EJECUTADA si aplica",
+    "Definí rollback del lockfile y política de actualización segura"
+  ],
+  "xp": 300,
+  "provenance": "SYNTHETIC_FIXTURE",
+  "terraform_cli_run": false,
+  "external_cloud_run": false
+}

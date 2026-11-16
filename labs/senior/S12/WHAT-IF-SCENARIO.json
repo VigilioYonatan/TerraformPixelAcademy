@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "case_id": "S12",
+  "training_type": "SYNTHETIC_SCENARIO",
+  "question": "Un módulo pasó terraform test con mock_provider, pero no se validó una API real.",
+  "options": [
+    "Declarar integración cloud PASS automáticamente",
+    "Mantener mocks como evidencia unitaria y exigir prueba aislada real aparte"
+  ],
+  "correct_choice": 1,
+  "expected_safe_reasoning": "Se distinguen niveles de prueba y se mantiene NOT_RUN para integración.",
+  "unsafe_pattern": "NO-GO: mocks no demuestran permisos, cuotas, latencias o errores del proveedor.",
+  "evidence_to_request": "Resultados test mock y evidencia separada de test de integración real",
+  "no_real_execution": true
+}

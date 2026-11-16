@@ -1,0 +1,9 @@
+# Ejemplo ilustrativo de backend nuevo
+terraform {
+  backend "s3" {
+    bucket = "REEMPLAZAR-estado-versionado"
+    key = "prod/app/terraform.tfstate"
+    region = "us-east-1"
+    use_lockfile = true
+  }
+}

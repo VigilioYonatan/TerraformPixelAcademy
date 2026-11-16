@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "case_id": "S06",
+  "training_type": "SYNTHETIC_SCENARIO",
+  "question": "Un secreto aparece en un plan guardado en CI. ¿Cuál es el primer control?",
+  "options": [
+    "Declarar la variable sensitive y dejar el artefacto público",
+    "Restringir/eliminar exposición y rotar secreto antes de reintentar"
+  ],
+  "correct_choice": 1,
+  "expected_safe_reasoning": "Contención, rotación, revisión de accesos y prevención de reexposición.",
+  "unsafe_pattern": "NO-GO: sensitive puede ocultar salida, pero no elimina todo el secreto de state/plan.",
+  "evidence_to_request": "Registro de contención, rotación, retención y controles de acceso",
+  "no_real_execution": true
+}

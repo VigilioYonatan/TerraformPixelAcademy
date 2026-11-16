@@ -1,0 +1,7 @@
+locals {
+  entornos = toset(["dev", "staging"])
+}
+resource "terraform_data" "entorno" {
+# TODO: completa la configuración aquí
+  input = each.key
+}

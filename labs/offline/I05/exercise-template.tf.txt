@@ -1,0 +1,6 @@
+resource "terraform_data" "critico" {
+  input = "persistencia"
+  lifecycle {
+# TODO: completa la configuración aquí
+  }
+}

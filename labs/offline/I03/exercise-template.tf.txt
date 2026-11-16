@@ -1,0 +1,6 @@
+resource "terraform_data" "origen" {
+  input = "api"
+}
+resource "terraform_data" "consulta" {
+# TODO: completa la configuración aquí
+}

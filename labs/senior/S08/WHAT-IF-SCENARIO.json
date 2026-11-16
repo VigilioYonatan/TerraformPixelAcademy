@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "case_id": "S08",
+  "training_type": "SYNTHETIC_SCENARIO",
+  "question": "Dos módulos se necesitan mutuamente y Terraform detecta un ciclo.",
+  "options": [
+    "Agregar depends_on entre ambos módulos",
+    "Rediseñar el contrato y extraer una dependencia común desacoplada"
+  ],
+  "correct_choice": 1,
+  "expected_safe_reasoning": "Se rompe el ciclo haciendo explícito el contrato unidireccional de dependencias.",
+  "unsafe_pattern": "NO-GO: más depends_on no resuelve un grafo con dependencias circulares.",
+  "evidence_to_request": "Grafo antes/después, inputs/outputs y pruebas de módulos",
+  "no_real_execution": true
+}

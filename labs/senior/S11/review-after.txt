@@ -1,0 +1,8 @@
+# Recomendación ilustrativa, revisar con expertos
+plan: terraform plan -out=plan-final
+approval: verificar commit + entorno + state
+apply: terraform apply plan-final
+# Proteger el binario sensible
+
+# Por qué
+Nunca aplicar sin comparar exactamente el plan final autorizado. El hash es integridad, no firma ni autorización.

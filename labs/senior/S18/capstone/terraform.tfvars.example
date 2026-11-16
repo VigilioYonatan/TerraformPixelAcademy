@@ -1,0 +1,3 @@
+# Ejemplo solo de valores no sensibles. Copiar y revisar antes de usar.
+project     = "terra-academy"
+environment = "dev"

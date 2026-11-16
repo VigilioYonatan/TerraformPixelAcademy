@@ -1,0 +1,29 @@
+{
+  "id": "S04",
+  "title": "Destrucción de recurso crítico",
+  "subtitle": "Contexto: un cambio de módulo produce eliminación de un bucket o componente de datos asociado a producción.",
+  "mission": "clasificar criticidad, bloquear el apply, investigar dependencias, proponer mitigación.",
+  "artifacts": "plan fixture crítico, etiquetas de entorno y clase de datos, política de backups.",
+  "negative": "«aprobar porque el HCL compila» falla; ignorar state y backups falla.",
+  "evidence": "decisión «NO GO», protecciones, aprobación formal y plan de rollback/recovery.",
+  "mode": "plan review + control de cambios.",
+  "severity": "Crítico",
+  "pillar": "Seguridad",
+  "choices": [
+    "Borrar y reconstruir ahora",
+    "Ignorar cualquier delete en plan",
+    "Bloquear el despliegue, evaluar impacto, backup y estrategia de cambio"
+  ],
+  "correct": 2,
+  "explanation": "Los cambios destructivos de recursos críticos requieren un control de disponibilidad.",
+  "checklist": [
+    "Clasifiqué criticidad del recurso y volumen de datos potencialmente eliminado",
+    "Bloqueé cambios destroy/replace hasta acreditar dependencias y recuperación",
+    "Exigí backup/snapshot verificable y prueba de restore documentada",
+    "Definí aprobación, punto de parada y runbook de recuperación"
+  ],
+  "xp": 300,
+  "provenance": "SYNTHETIC_FIXTURE",
+  "terraform_cli_run": false,
+  "external_cloud_run": false
+}

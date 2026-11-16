@@ -1,0 +1,6 @@
+# Recomendación ilustrativa, revisar con expertos
+# Detener promoción, investigar cambio y autor
+# Elegir actualización de HCL o reversión autorizada
+
+# Por qué
+Reconciliar no siempre significa aplicar inmediatamente: primero determina la fuente de verdad.

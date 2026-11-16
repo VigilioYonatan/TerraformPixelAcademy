@@ -1,0 +1,10 @@
+# Recomendación ilustrativa, revisar con expertos
+variable "token" {
+  type = string
+  sensitive = true
+  ephemeral = true
+}
+# Contención y rotación obligatorias
+
+# Por qué
+sensitive por sí solo no borra material persistido; ephemeral tiene restricciones y requiere versión compatible.

@@ -1,0 +1,9 @@
+variable "nombre" {
+  type = string
+}
+resource "terraform_data" "modulo" {
+# TODO: completa la configuración aquí
+}
+output "id" {
+  value = terraform_data.modulo.id
+}

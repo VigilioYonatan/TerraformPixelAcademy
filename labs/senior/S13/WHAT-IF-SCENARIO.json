@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "case_id": "S13",
+  "training_type": "SYNTHETIC_SCENARIO",
+  "question": "Una política deniega exposición pública y un equipo solicita excepción.",
+  "options": [
+    "Registrar excepción temporal, owner, TTL, compensación y aprobación",
+    "Deshabilitar la política global para desbloquear la release"
+  ],
+  "correct_choice": 0,
+  "expected_safe_reasoning": "La excepción queda limitada, auditada, reversible y con vencimiento.",
+  "unsafe_pattern": "NO-GO: desactivar política global suprime el guardrail de todos los equipos.",
+  "evidence_to_request": "Policy evaluation, excepción firmada, TTL y controles compensatorios",
+  "no_real_execution": true
+}

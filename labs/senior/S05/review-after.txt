@@ -1,0 +1,7 @@
+# Recomendación ilustrativa, revisar con expertos
+# Congelar escritores + verificar backup
+# Validar permisos de nuevo backend
+# Ejecución controlada: init -migrate-state
+
+# Por qué
+La ruta de migración requiere recuperación y verificación posterior.

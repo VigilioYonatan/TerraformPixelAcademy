@@ -1,0 +1,8 @@
+variable "replicas" {
+  type = number
+  default = 2
+  validation {
+# TODO: completa la configuración aquí
+    error_message = "Replicas fuera de presupuesto"
+  }
+}

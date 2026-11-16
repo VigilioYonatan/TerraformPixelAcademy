@@ -1,0 +1,29 @@
+{
+  "id": "S10",
+  "title": "IAM mínimo en GitHub Actions + OIDC",
+  "subtitle": "Contexto: workflow pide permisos amplios, depende de claves estáticas y puede aplicarse desde una rama no protegida.",
+  "mission": "proponer federación OIDC, permisos limitados por job/entorno, approval gate y roles separados.",
+  "artifacts": "workflow YAML de ejemplo vulnerable, trust policy simplificada, roles ficticios.",
+  "negative": "`id-token: write` global + admin wildcard falla; `pull_request` no confiable con secretos falla.",
+  "evidence": "amenazas, trust conditions, matriz roles/jobs, decisiones de promoción.",
+  "mode": "code review/policy hunt; no entregar claves reales.",
+  "severity": "Crítico",
+  "pillar": "IAM",
+  "choices": [
+    "Diseñar trust OIDC limitada y roles mínimos por job/entorno",
+    "Compartir claves estáticas de administrador",
+    "Conceder permisos * a cualquier PR"
+  ],
+  "correct": 0,
+  "explanation": "OIDC sin restricciones de audience, subject y env no es mínimo privilegio.",
+  "checklist": [
+    "Revisé permisos del workflow y alcance de trust policy del rol OIDC",
+    "Eliminé llaves estáticas y acoté subject, repo, branch y entorno",
+    "Comprobé accesos mínimos y pruebas negativas de identidades no autorizadas",
+    "Definí revocación, rotación y respuesta a fallos de federación"
+  ],
+  "xp": 300,
+  "provenance": "SYNTHETIC_FIXTURE",
+  "terraform_cli_run": false,
+  "external_cloud_run": false
+}

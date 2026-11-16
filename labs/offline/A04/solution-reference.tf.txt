@@ -1,0 +1,7 @@
+variable "entorno_autorizado" {
+  type = string
+  validation {
+    condition = contains(["staging", "prod"], var.entorno_autorizado)
+    error_message = "Entorno no autorizado"
+  }
+}

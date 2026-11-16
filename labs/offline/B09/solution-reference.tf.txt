@@ -1,0 +1,6 @@
+resource "terraform_data" "ciclo" {
+  input = "revision necesaria"
+  lifecycle {
+    prevent_destroy = true
+  }
+}

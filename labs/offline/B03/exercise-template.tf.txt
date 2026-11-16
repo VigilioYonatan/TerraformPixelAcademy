@@ -1,0 +1,8 @@
+# HCL usa bloques y argumentos
+locals {
+# TODO: completa la configuración aquí
+  equipo = "plataforma"
+}
+output "region" {
+  value = local.region
+}

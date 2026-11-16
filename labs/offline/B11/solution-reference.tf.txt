@@ -1,0 +1,7 @@
+locals {
+  entornos = toset(["dev", "staging"])
+}
+resource "terraform_data" "entorno" {
+  for_each = local.entornos
+  input = each.key
+}

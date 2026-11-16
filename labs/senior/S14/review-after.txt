@@ -1,0 +1,8 @@
+# Recomendación ilustrativa, revisar con expertos
+instance_count: 3
+monthly_estimate_usd: 183
+owner: team-platform
+# Ficticio: comprobar SLA antes de aplicar
+
+# Por qué
+Los valores son estimados y sintéticos; una reducción puede sacrificar capacidad y fiabilidad.

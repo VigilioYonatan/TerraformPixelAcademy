@@ -1,0 +1,4 @@
+# Ficción de revisión: pipeline.yml · plan integrity
+plan: terraform plan -out=planA
+review: approve(planA)
+apply: terraform plan -out=planB && terraform apply planB

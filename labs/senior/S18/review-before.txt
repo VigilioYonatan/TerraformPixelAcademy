@@ -1,0 +1,4 @@
+# Ficción de revisión: platform/blueprint.md
+dev + prod -> one shared state
+CI: shared admin key
+apply: no approval

@@ -1,0 +1,29 @@
+{
+  "id": "S16",
+  "title": "Límite Terraform vs Helm/GitOps",
+  "subtitle": "Contexto: Terraform y Argo CD/Helm intentan administrar los mismos objetos Kubernetes, generando drift y guerras de reconciliación.",
+  "mission": "declarar quién crea clúster, addons, namespaces, workloads y políticas; reducir controladores concurrentes.",
+  "artifacts": "matriz de ownership, diagrama cluster/infra/workloads, recursos duplicados de ejemplo.",
+  "negative": "dos herramientas dueñas del mismo recurso fallan; «arreglar» drift con `apply` repetitivos sin ownership falla.",
+  "evidence": "ADR, árbol de ownership y estrategia de transición segura.",
+  "mode": "design review + grafo.",
+  "severity": "Alto",
+  "pillar": "Kubernetes",
+  "choices": [
+    "Permitir Terraform y Argo CD sobre los mismos objetos",
+    "Definir ownership y traspasos claros entre Terraform y GitOps",
+    "Ejecutar apply cada minuto para ganar la carrera"
+  ],
+  "correct": 1,
+  "explanation": "El ownership único reduce guerras de reconciliación.",
+  "checklist": [
+    "Identifiqué exactamente qué recursos comparten Terraform y GitOps",
+    "Asigné un único reconciliador por entidad y límites de ownership",
+    "Diseñé handoff declarativo sin bucles de drift entre controladores",
+    "Documenté observabilidad, tolerancia a fallos y reversión de ownership"
+  ],
+  "xp": 300,
+  "provenance": "SYNTHETIC_FIXTURE",
+  "terraform_cli_run": false,
+  "external_cloud_run": false
+}

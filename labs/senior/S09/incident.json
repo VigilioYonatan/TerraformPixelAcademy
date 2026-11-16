@@ -1,0 +1,29 @@
+{
+  "id": "S09",
+  "title": "CIDR solapados entre entornos",
+  "subtitle": "Contexto: dos VPC/redes propuestas se superponen; una red de clúster consumiría inventarios inconsistentes.",
+  "mission": "detectar solapamiento par-a-par, rechazar topología inválida y revisar contrato/digest del stack de red.",
+  "artifacts": "mapa de redes con CIDR ficticios, contratos de variables y matriz de ambientes.",
+  "negative": "considerar válido un bloque solapado por pertenecer a otro módulo falla; usar inventario de ejemplo como real falla.",
+  "evidence": "CIDR corregidos, test de contrato y límites de red.",
+  "mode": "validador local de rangos con pruebas unitarias, sin afirmar haber probado en VPC real.",
+  "severity": "Alto",
+  "pillar": "Networking",
+  "choices": [
+    "Aceptar solapamiento entre entornos",
+    "Crear VPC antes de descubrir IPAM",
+    "Detectar superposiciones, ajustar CIDR y probar la topología"
+  ],
+  "correct": 2,
+  "explanation": "Rangos superpuestos crean conflicto de rutas, aunque se declaren en módulos distintos.",
+  "checklist": [
+    "Comprobé matemáticamente el solapamiento de CIDR y el blast radius",
+    "Contrasté nueva propuesta con la asignación IPAM y conexiones existentes",
+    "Definí evidencia de routing/conectividad y marcada NOT_RUN cuando no se probó",
+    "Planifiqué migración de IPs, ventana autorizada y rollback de rutas"
+  ],
+  "xp": 300,
+  "provenance": "SYNTHETIC_FIXTURE",
+  "terraform_cli_run": false,
+  "external_cloud_run": false
+}

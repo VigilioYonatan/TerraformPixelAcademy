@@ -1,0 +1,29 @@
+{
+  "id": "S13",
+  "title": "Policy as Code y excepciones",
+  "subtitle": "Contexto: un recurso incumple cifrado, tags obligatorios o reglas de red; el equipo pide ignorar el scanner por una urgencia.",
+  "mission": "corregir política o configuración, documentar excepción temporal justificada y dueño del riesgo.",
+  "artifacts": "findings JSON saneados, política OPA/Conftest y propuesta de excepción con caducidad.",
+  "negative": "ignorar `HIGH/CRITICAL` sin justificación falla; excepciones permanentes no revisables fallan.",
+  "evidence": "policy diff, pruebas negativas, owner, expiración, aprobación y resultado esperado.",
+  "mode": "laboratorio de reglas.",
+  "severity": "Alto",
+  "pillar": "Policy",
+  "choices": [
+    "Deshabilitar scanner en CI",
+    "Corregir finding o excepción temporal con owner y expiración",
+    "Añadir ignore para todo el repositorio"
+  ],
+  "correct": 1,
+  "explanation": "Las excepciones deben tener riesgo, propietario, vencimiento y aprobación.",
+  "checklist": [
+    "Localicé el bypass allow-all y el impacto en recursos críticos",
+    "Definí deny-by-default y tests de políticas positivos y negativos",
+    "Diseñé excepciones acotadas con ticket, propietario y expiración",
+    "Registré auditoría, prueba de expiración y reversión de la excepción"
+  ],
+  "xp": 300,
+  "provenance": "SYNTHETIC_FIXTURE",
+  "terraform_cli_run": false,
+  "external_cloud_run": false
+}

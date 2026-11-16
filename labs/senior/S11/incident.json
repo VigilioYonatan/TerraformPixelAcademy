@@ -1,0 +1,29 @@
+{
+  "id": "S11",
+  "title": "El plan aprobado no es el plan aplicado",
+  "subtitle": "Contexto: un job de PR muestra un plan; tras merge, el pipeline vuelve a hacer `plan` y aplica un resultado potencialmente distinto por cambio de estado o código.",
+  "mission": "explicar la ruptura de integridad, diseñar procedencia y validación de plan de despliegue asociada al commit/estado/entorno aprobados, con protección de artefactos sensibles.",
+  "artifacts": "dos commits ficticios, hashes de ejemplo, workflow inseguro, dos fixtures con diferencias.",
+  "negative": "aprobar plan A y aplicar B falla; descargar un plan arbitrario desde un PR externo falla; un plan obsoleto no se aplica silenciosamente.",
+  "evidence": "diagrama seguro PR→aprobación→merge/entorno→plan final→aprobación/aplicación, control de hash y protección de artefactos.",
+  "mode": "pipeline simulator + ADR; sin `apply` real.",
+  "severity": "Crítico",
+  "pillar": "CI/CD",
+  "choices": [
+    "Aprobar plan A y aplicar plan B sin comparar",
+    "Autorizar y aplicar exactamente el plan final protegido o bloquear ante drift",
+    "Compartir el binario de plan en comentarios públicos"
+  ],
+  "correct": 1,
+  "explanation": "La trazabilidad de commit, estado, entorno y artefacto debe preservarse.",
+  "checklist": [
+    "Vinculé commit, environment, state y digest del artefacto autorizado",
+    "Evité regenerar otro plan entre la revisión y terraform apply",
+    "Distinguí checksum de firma/autorización y controlé almacenamiento sensible",
+    "Diseñé gates ante divergencia, expiración de plan y rollback"
+  ],
+  "xp": 300,
+  "provenance": "SYNTHETIC_FIXTURE",
+  "terraform_cli_run": false,
+  "external_cloud_run": false
+}

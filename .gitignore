@@ -1,0 +1,23 @@
+node_modules/
+dist/
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+!*.tfvars.example
+.env
+.env.*
+!.env.example
+.DS_Store
+playwright-report/
+test-results/
+
+# Generated when running real Terraform CLI locally; never distribute state/credentials.
+.terraform/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfplan.*
+terraform-verification-results/

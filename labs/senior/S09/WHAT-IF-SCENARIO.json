@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "case_id": "S09",
+  "training_type": "SYNTHETIC_SCENARIO",
+  "question": "Development y producción tienen CIDR solapados y necesitan conectividad.",
+  "options": [
+    "Bloquear peering y rediseñar direcciones mediante IPAM",
+    "Crear rutas más específicas y esperar que no existan conflictos"
+  ],
+  "correct_choice": 0,
+  "expected_safe_reasoning": "Conflicto detectado; planificación IPAM requerida antes de conectar.",
+  "unsafe_pattern": "NO-GO: rutas más específicas no garantizan direccionamiento único entre redes.",
+  "evidence_to_request": "CIDR calculados, inventario IPAM, rutas y plan de renumeración",
+  "no_real_execution": true
+}

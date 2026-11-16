@@ -1,0 +1,8 @@
+# Recomendación ilustrativa, revisar con expertos
+required_providers {
+  aws = { source = "hashicorp/aws" version = "~> 5.0" }
+}
+# Ejemplo de pin; versión real según compatibilidad
+
+# Por qué
+Revisa changelog, lockfile y el plan de upgrade con sandbox autorizado.

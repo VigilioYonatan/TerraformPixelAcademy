@@ -1,0 +1,7 @@
+resource "terraform_data" "red" {
+  input = "vpc-demo"
+}
+output "network_id" {
+  value = terraform_data.red.id
+  description = "Identificador de ejemplo de red"
+}

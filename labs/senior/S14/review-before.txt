@@ -1,0 +1,4 @@
+# Ficción de revisión: cost-diff.fixture
+instance_count: 12
+monthly_estimate_usd: 732
+owner: absent

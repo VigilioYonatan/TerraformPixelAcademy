@@ -1,0 +1,4 @@
+# Ficción de revisión: versions.tf · provider upgrade
+required_providers {
+  aws = { source = "hashicorp/aws" version = ">= 0.0.0" }
+}

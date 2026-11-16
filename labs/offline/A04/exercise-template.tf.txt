@@ -1,0 +1,7 @@
+variable "entorno_autorizado" {
+  type = string
+  validation {
+# TODO: completa la configuración aquí
+    error_message = "Entorno no autorizado"
+  }
+}

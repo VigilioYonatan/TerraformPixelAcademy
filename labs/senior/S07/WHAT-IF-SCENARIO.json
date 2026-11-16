@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "case_id": "S07",
+  "training_type": "SYNTHETIC_SCENARIO",
+  "question": "Una actualización de provider cambia el schema y propone reemplazos.",
+  "options": [
+    "Fijar versiones, revisar notas, plan en entorno aislado y estrategia de rollback",
+    "Actualizar todos los providers en producción sin lockfile"
+  ],
+  "correct_choice": 0,
+  "expected_safe_reasoning": "Upgrade con lockfile, matriz de compatibilidad y evidencia de cambios esperados.",
+  "unsafe_pattern": "NO-GO: sin lockfile ni plan reproducible no se conoce el impacto del upgrade.",
+  "evidence_to_request": "Versiones antes/después, .terraform.lock.hcl, plan y pruebas de regresión",
+  "no_real_execution": true
+}

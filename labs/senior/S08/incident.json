@@ -1,0 +1,29 @@
+{
+  "id": "S08",
+  "title": "Dependencias circulares y módulos acoplados",
+  "subtitle": "Contexto: network, compute y security se referencian mutuamente; Terraform no puede ordenar el grafo y el equipo tiene estados excesivamente acoplados.",
+  "mission": "romper ciclo con interfaces claras, separar ownership y evitar una capa monolítica innecesaria.",
+  "artifacts": "diagrama de grafo circular, interfaces de módulos y errores de planificación de ejemplo.",
+  "negative": "mover `depends_on` sin resolver la dependencia lógica no gana; copiar outputs sensibles entre stacks falla.",
+  "evidence": "grafo antes/después, razones de estratificación y trade-offs.",
+  "mode": "grafo interactivo + ADR.",
+  "severity": "Alto",
+  "pillar": "Arquitectura",
+  "choices": [
+    "Añadir depends_on a todos los módulos",
+    "Romper el ciclo mediante contratos y ownership claros",
+    "Copiar todos los outputs en un archivo"
+  ],
+  "correct": 1,
+  "explanation": "Un grafo circular requiere rediseño de interfaces y ownership.",
+  "checklist": [
+    "Dibujé el ciclo de dependencias entre módulos y recursos concretos",
+    "Definí interfaces output/input que rompen el acoplamiento bidireccional",
+    "Revisé cómo terraform graph representaría el orden tras el cambio",
+    "Escribí plan de migración incremental con owner y retorno"
+  ],
+  "xp": 300,
+  "provenance": "SYNTHETIC_FIXTURE",
+  "terraform_cli_run": false,
+  "external_cloud_run": false
+}

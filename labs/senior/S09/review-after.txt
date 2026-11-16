@@ -1,0 +1,7 @@
+# Recomendación ilustrativa, revisar con expertos
+dev_cidr  = "10.40.0.0/16"
+prod_cidr = "10.41.0.0/16"
+# Validar contra inventario IPAM real
+
+# Por qué
+Los dos CIDR iniciales se superponen; el cambio debe contrastarse con toda la red existente.

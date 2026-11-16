@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "case_id": "S02",
+  "training_type": "SYNTHETIC_SCENARIO",
+  "question": "Un writer mantiene el lock y un segundo job no puede aplicar. ¿Qué harías?",
+  "options": [
+    "Quitar lock con -lock=false y continuar",
+    "Identificar job propietario, esperar/cancelar y replanificar"
+  ],
+  "correct_choice": 1,
+  "expected_safe_reasoning": "Espera controlada y verificación de ownership; force-unlock solo con investigación y aprobación.",
+  "unsafe_pattern": "NO-GO: desactivar lock permite carreras y corrupción potencial del estado.",
+  "evidence_to_request": "Job ID, propietario del lock, timestamps y estado del primer writer",
+  "no_real_execution": true
+}

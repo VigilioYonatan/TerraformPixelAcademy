@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "case_id": "S05",
+  "training_type": "SYNTHETIC_SCENARIO",
+  "question": "Vas a mover un backend local a S3 con bloqueo. ¿Qué secuencia es defendible?",
+  "options": [
+    "Congelar escritores, backup, verificar destino, migrar y contrastar estado",
+    "Cambiar bucket/key y asumir que el state seguirá intacto"
+  ],
+  "correct_choice": 0,
+  "expected_safe_reasoning": "Migración condicionada a backup, ownership, bloqueo y verificación de estado posterior.",
+  "unsafe_pattern": "NO-GO: cambiar el backend sin preflight puede dividir el ownership o perder estado.",
+  "evidence_to_request": "Inventario de workspaces, versión del backup, bloqueo y comparación pre/post",
+  "no_real_execution": true
+}

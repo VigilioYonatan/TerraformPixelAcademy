@@ -1,0 +1,3 @@
+# Ficción de revisión: network.tf · CIDR
+dev_cidr  = "10.40.0.0/16"
+prod_cidr = "10.40.8.0/21"

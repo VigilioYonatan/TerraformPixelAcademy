@@ -1,0 +1,40 @@
+name: DevSecOps and Biome
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: devsecops-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # npm ci must replace this after a verified package-lock.json is committed.
+      - name: Install dependencies (lockfile unavailable in offline authoring environment)
+        run: npm install --no-audit --no-fund
+      - name: TypeScript and unit/integration tests
+        run: npm run qa
+      - name: Local DevSecOps file and secret gate
+        run: npm run security:local
+      - name: Biome (actual CLI)
+        run: npm run lint:biome
+      - name: Dependency vulnerabilities, high and critical
+        run: npm audit --audit-level=high
+      - name: Static release and offline build
+        run: npm run release:gate
+      - name: Upload build for manual review
+        uses: actions/upload-artifact@v4
+        with:
+          name: terrapixel-dist
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7

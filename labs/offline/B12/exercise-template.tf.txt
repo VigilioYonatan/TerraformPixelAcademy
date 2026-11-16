@@ -1,0 +1,10 @@
+variable "equipo" {
+  type = string
+  default = "vigilio"
+}
+resource "terraform_data" "proyecto" {
+# TODO: completa la configuración aquí
+}
+output "equipo" {
+  value = terraform_data.proyecto.output
+}

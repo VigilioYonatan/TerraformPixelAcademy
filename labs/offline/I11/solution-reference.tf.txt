@@ -1,0 +1,7 @@
+variable "approved" {
+  type = bool
+  default = false
+}
+resource "terraform_data" "release" {
+  input = var.approved ? "autorizado" : "bloqueado"
+}

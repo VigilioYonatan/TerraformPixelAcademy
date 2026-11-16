@@ -1,0 +1,8 @@
+# Recomendación ilustrativa, revisar con expertos
+development/staging/production: isolated states
+CI: environment-bound OIDC
+review: approved plan + rollback
+tests: fmt/validate/mocks/integration-status
+
+# Por qué
+El capstone exige contratos, pruebas de cada nivel, operación y un handoff revisable.

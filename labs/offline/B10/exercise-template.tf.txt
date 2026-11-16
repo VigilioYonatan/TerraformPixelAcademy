@@ -1,0 +1,8 @@
+variable "etiqueta" {
+  type = string
+# TODO: completa la configuración aquí
+  default = "demo-sin-secretos"
+}
+resource "terraform_data" "state_demo" {
+  input = var.etiqueta
+}

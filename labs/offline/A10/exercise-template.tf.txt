@@ -1,0 +1,10 @@
+variable "entorno" {
+  type = string
+  validation {
+    condition = contains(["dev", "staging", "prod"], var.entorno)
+    error_message = "Entorno desconocido"
+  }
+}
+locals {
+# TODO: completa la configuración aquí
+}

@@ -1,0 +1,9 @@
+# Recomendación ilustrativa, revisar con expertos
+moved {
+  from = terraform_data.node["old_key"]
+  to   = terraform_data.node["new_key"]
+}
+# Revisar plan antes de aplicar
+
+# Por qué
+El bloque moved se debe usar con origen, destino y estado correctos. No es un reemplazo universal ni suprime una revisión.

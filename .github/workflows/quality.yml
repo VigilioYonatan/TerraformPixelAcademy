@@ -1,0 +1,23 @@
+name: Academy quality
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # Build and tests use vendored TypeScript; no npm install/network needed.
+      - run: node tools/typescript/bin/tsc --version
+      - run: npm run qa
+      - run: npm run verify:preservation
+      - run: python3 scripts/release-audit.py
+      - run: npm run build
+      - name: Confirm generated artifacts
+        run: test -f dist/index.html && test -f dist/assets/terra/hola.png

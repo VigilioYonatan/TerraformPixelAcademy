@@ -1,0 +1,29 @@
+{
+  "id": "S18",
+  "title": "Capstone de Platform Engineering con Terraform",
+  "subtitle": "Contexto: diseñar una plataforma con red, servicios y datos en development/staging/production, respaldada por estados aislados, CI/CD, seguridad, costos y respuesta a incidentes.",
+  "mission": "presentar solución y operar decisiones ante cambios destructivos, drift, bloqueo concurrente, IAM insuficiente y costo excesivo.",
+  "artifacts": "blueprint, módulos, entornos, políticas, escenarios de cambios y tests descargables; sin depender obligatoriamente de AWS real para la evaluación conceptual.",
+  "negative": "state monolítico, plan no aprobado, claves estáticas, CIDR solapado, secretos en artefactos y ausencia de rollback deben impedir aprobar el diseño.",
+  "evidence": "ADR final, diagrama y ownership, carpeta de módulos/entornos, resultados `fmt/validate/test` si ejecutados, revisión de plan, policy findings, análisis de costos y runbook.",
+  "mode": "proyecto de varias etapas, con gates por hito y revisión manual reconocida.",
+  "severity": "Crítico",
+  "pillar": "Capstone",
+  "choices": [
+    "Desplegar producción primero y documentar después",
+    "Usar un state y una llave admin para todo",
+    "Diseñar capas, controles, pruebas y capstone multiambiente con evidencia"
+  ],
+  "correct": 2,
+  "explanation": "La competencia final demuestra un diseño revisable, no certificación oficial.",
+  "checklist": [
+    "Justifiqué separación de estados, módulos, entornos y owners",
+    "Definí pipeline con plan autorizado, OIDC, policies y rollback",
+    "Cubrí los ocho hitos y anoté fmt/validate/test como NOT_RUN si aplica",
+    "Escribí handoff operativo con costos, drift, incidentes y recuperación"
+  ],
+  "xp": 800,
+  "provenance": "SYNTHETIC_FIXTURE",
+  "terraform_cli_run": false,
+  "external_cloud_run": false
+}

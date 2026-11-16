@@ -1,0 +1,8 @@
+# Recomendación ilustrativa, revisar con expertos
+state: per-owner-and-environment
+review: protected-gates
+rollback: documented
+owner: platform-team
+
+# Por qué
+Prioriza riesgos P0 antes de proponer una refactorización mayor.

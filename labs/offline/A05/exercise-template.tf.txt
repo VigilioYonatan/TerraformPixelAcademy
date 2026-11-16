@@ -1,0 +1,8 @@
+variable "red" {
+  type = string
+  default = "10.42.0.0/16"
+}
+locals {
+  subred_publica = cidrsubnet(var.red, 8, 0)
+# TODO: completa la configuración aquí
+}

@@ -1,0 +1,6 @@
+resource "terraform_data" "test_demo" {
+  input = "seguro"
+}
+output "valor" {
+  value = terraform_data.test_demo.output
+}

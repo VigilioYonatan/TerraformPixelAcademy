@@ -1,0 +1,7 @@
+variable "owner" {
+  type = string
+  default = "gitops"
+}
+resource "terraform_data" "handoff" {
+  input = "workloads-managed-by-${var.owner}"
+}

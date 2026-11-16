@@ -1,0 +1,7 @@
+# B01 · tu primera declaración local
+resource "terraform_data" "idea" {
+# TODO: completa la configuración aquí
+}
+output "concepto" {
+  value = terraform_data.idea.output
+}

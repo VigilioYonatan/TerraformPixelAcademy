@@ -1,0 +1,3 @@
+# Ficción de revisión: restore.sh · disaster recovery
+terraform force-unlock -force LOCK_ID
+cp state-old.json state.json

@@ -1,0 +1,8 @@
+# Recomendación ilustrativa, revisar con expertos
+permissions:
+  contents: read
+  id-token: write
+# AssumeRole OIDC con subject y entorno acotados
+
+# Por qué
+No basta con id-token: write; hay que restringir trust policy, rol y permisos por job.

@@ -1,0 +1,29 @@
+{
+  "id": "S01",
+  "title": "Reemplazo destructivo por refactor de `for_each`",
+  "subtitle": "Contexto: un equipo cambia claves usadas en `for_each`; el diff propone destruir y recrear objetos críticos. El alumno debe reconocer que la configuración aparentemente equivalente puede alterar direcciones Terraform.",
+  "mission": "señalar recursos afectados, bloquear el apply, evaluar `moved` y documentar un procedimiento de migración de direcciones.",
+  "artifacts": "`main-before.tf`, `main-after.tf`, fixture de plan con `delete/create`, mapa de recursos y restricciones de disponibilidad.",
+  "negative": "alternativa «aplicar y recrear» falla por requisito de continuidad; `moved` incorrecto no debe aprobar.",
+  "evidence": "lista de direcciones afectadas, decisión de bloquear, plan de cambios sin destrucción no aprobada, ADR corto.",
+  "mode": "grafo + plan simulado + laboratorio descargable opcional con `moved`.",
+  "severity": "Crítico",
+  "pillar": "State",
+  "choices": [
+    "Aplicar con -auto-approve",
+    "Inspeccionar direcciones, declarar moved cuando corresponda y revisar plan",
+    "Borrar todo el estado"
+  ],
+  "correct": 1,
+  "explanation": "La identidad de recursos y el plan deben revisarse antes de cualquier cambio destructivo.",
+  "checklist": [
+    "Identifiqué las direcciones old_key/new_key y los recursos que podrían reemplazarse",
+    "Comprobé cuándo moved conserva identidad y cuándo la migración no es segura",
+    "Exigí revisar plan sin delete/create inesperados y registrar NOT_RUN si no se ejecutó",
+    "Definí ventana de cambio, owner de state y reversión antes del apply"
+  ],
+  "xp": 300,
+  "provenance": "SYNTHETIC_FIXTURE",
+  "terraform_cli_run": false,
+  "external_cloud_run": false
+}

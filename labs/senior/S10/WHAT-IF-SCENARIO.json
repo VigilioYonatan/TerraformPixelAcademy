@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "case_id": "S10",
+  "training_type": "SYNTHETIC_SCENARIO",
+  "question": "Un workflow GitHub Actions usa una access key de AWS de larga duración.",
+  "options": [
+    "Guardar la misma clave en otro secreto del repositorio",
+    "Federar OIDC y restringir trust policy, audiencia y permisos IAM"
+  ],
+  "correct_choice": 1,
+  "expected_safe_reasoning": "Credenciales efímeras y autorización mínima por repositorio/rama/entorno.",
+  "unsafe_pattern": "NO-GO: mover la misma clave no elimina el riesgo de credenciales persistentes.",
+  "evidence_to_request": "Trust policy OIDC, permissions id-token y prueba de acceso limitado",
+  "no_real_execution": true
+}

@@ -1,0 +1,3 @@
+# Ficción de revisión: secrets.tf · exposure
+output "token" { value = var.token }
+# terraform.tfstate almacenado públicamente

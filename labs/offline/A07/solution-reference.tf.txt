@@ -1,0 +1,6 @@
+resource "terraform_data" "web" {
+  input = "v2"
+  lifecycle {
+    create_before_destroy = true
+  }
+}

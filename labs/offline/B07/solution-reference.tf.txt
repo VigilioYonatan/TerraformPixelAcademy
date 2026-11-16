@@ -1,0 +1,6 @@
+resource "terraform_data" "source" {
+  input = "primero"
+}
+resource "terraform_data" "consumer" {
+  input = terraform_data.source.output
+}

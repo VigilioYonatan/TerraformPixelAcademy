@@ -1,0 +1,6 @@
+# Ficción de revisión: main.tf · for_each diff
+resource "terraform_data" "node" {
+  for_each = { new_key = "service" }
+  input = each.value
+}
+# Antes: clave old_key; plan mostrará delete/create

@@ -1,0 +1,3 @@
+# Ficción de revisión: plan.fixture · delete
+- aws_db_instance.production
+# backup: no comprobado

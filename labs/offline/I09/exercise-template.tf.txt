@@ -1,0 +1,6 @@
+resource "terraform_data" "test_demo" {
+# TODO: completa la configuración aquí
+}
+output "valor" {
+  value = terraform_data.test_demo.output
+}

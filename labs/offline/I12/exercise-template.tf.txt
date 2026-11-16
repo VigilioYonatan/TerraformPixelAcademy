@@ -1,0 +1,10 @@
+variable "service" {
+  type = string
+  default = "web"
+}
+resource "terraform_data" "service" {
+# TODO: completa la configuración aquí
+}
+output "service_name" {
+  value = terraform_data.service.output
+}

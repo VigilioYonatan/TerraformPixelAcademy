@@ -1,0 +1,6 @@
+resource "terraform_data" "source" {
+  input = "primero"
+}
+resource "terraform_data" "consumer" {
+# TODO: completa la configuración aquí
+}

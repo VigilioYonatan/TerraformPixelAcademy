@@ -1,0 +1,9 @@
+# REFERENCIA ILUSTRATIVA — NO EJECUTAR SIN REVISIÓN Y AUTORIZACIÓN
+# Ejemplo ilustrativo: requiere un recurso existente real
+import {
+  to = aws_s3_bucket.existente
+  id = "bucket-real-existente"
+}
+resource "aws_s3_bucket" "existente" {
+  bucket = "bucket-real-existente"
+}

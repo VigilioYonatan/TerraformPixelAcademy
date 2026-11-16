@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "case_id": "S14",
+  "training_type": "SYNTHETIC_SCENARIO",
+  "question": "El plan aumenta capacidad y el costo previsto supera el umbral.",
+  "options": [
+    "Aplicar y revisar factura al mes siguiente",
+    "Exigir estimación, SLA, owner de presupuesto y cambio aprobado"
+  ],
+  "correct_choice": 1,
+  "expected_safe_reasoning": "Decisión FinOps antes de apply con presupuesto y trade-off explícito.",
+  "unsafe_pattern": "NO-GO: el impacto financiero debe revisarse antes del despliegue.",
+  "evidence_to_request": "Estimación de costo, baseline, SLA, cuota y aprobación financiera",
+  "no_real_execution": true
+}

@@ -1,0 +1,29 @@
+{
+  "id": "S15",
+  "title": "Recuperación de state / desbloqueo de emergencia",
+  "subtitle": "Contexto: un estado remoto parece corrupto o bloqueado después de un incidente. Existe una versión anterior, pero la realidad cloud puede haber cambiado.",
+  "mission": "pausar writers, investigar, verificar backup, diseñar restore **sin inferir que una copia vieja refleja la nube actual**, requerir revisión dual para `force-unlock`.",
+  "artifacts": "inventario de versiones ficticias de S3, timeline, último plan y responsables.",
+  "negative": "restaurar de inmediato sin reconciliar recursos falla; ejecutar `force-unlock` a ciegas falla.",
+  "evidence": "plan de recuperación, checklist de seguridad, responsabilidades y pruebas posteriores.",
+  "mode": "incidente/DR con simulación.",
+  "severity": "Crítico",
+  "pillar": "DR",
+  "choices": [
+    "Hacer force-unlock a ciegas",
+    "Reemplazar state por la versión más antigua",
+    "Pausar escritores, auditar versions/backups y reconciliar antes del restore"
+  ],
+  "correct": 2,
+  "explanation": "Recuperar state es un incidente coordinado, con aprobación dual.",
+  "checklist": [
+    "Paré escritores y conservé versiones y metadatos de recuperación",
+    "Evité force-unlock sin identificar propietario y estado de operación",
+    "Diseñé restore ensayado con comparación de drift y observación cloud",
+    "Definí doble aprobación, RTO/RPO y verificación post-recuperación"
+  ],
+  "xp": 300,
+  "provenance": "SYNTHETIC_FIXTURE",
+  "terraform_cli_run": false,
+  "external_cloud_run": false
+}

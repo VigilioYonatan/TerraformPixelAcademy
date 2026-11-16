@@ -1,0 +1,10 @@
+variable "proyecto" {
+  type = string
+  default = "academy"
+}
+locals {
+  nombre = "${var.proyecto}-dev"
+}
+output "nombre" {
+  value = local.nombre
+}

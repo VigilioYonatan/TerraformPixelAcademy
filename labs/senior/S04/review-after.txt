@@ -1,0 +1,6 @@
+# Recomendación ilustrativa, revisar con expertos
+# Gate bloqueante: snapshot + backup probado
+# Análisis de RPO/RTO + aprobación dual
+
+# Por qué
+Destruir datos de producción sin controles es un incidente grave.

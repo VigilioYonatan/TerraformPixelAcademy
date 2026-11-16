@@ -1,0 +1,7 @@
+# Recomendación ilustrativa, revisar con expertos
+mock_provider "aws" {}
+# Registrar cobertura de mocks
+# Integración API real: NOT_RUN hasta sandbox
+
+# Por qué
+Un mock evita comprobar las restricciones/efectos reales de una API remota.

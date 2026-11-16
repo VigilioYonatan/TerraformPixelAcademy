@@ -1,0 +1,6 @@
+resource "terraform_data" "baseline" {
+  input = "controlado-en-git"
+  lifecycle {
+# TODO: completa la configuración aquí
+  }
+}

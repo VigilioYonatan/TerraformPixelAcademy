@@ -1,0 +1,3 @@
+# Ficción de revisión: policy.rego · exception
+allow { true }
+# ignora cualquier finding HIGH

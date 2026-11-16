@@ -1,0 +1,3 @@
+# Ficción de revisión: sample.tftest.hcl
+mock_provider "aws" {}
+# Asumir test verde => producción probada

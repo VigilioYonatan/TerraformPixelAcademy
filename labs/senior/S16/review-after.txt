@@ -1,0 +1,8 @@
+# Recomendación ilustrativa, revisar con expertos
+cluster/network: terraform
+addons: platform-team
+deployment/api: argocd
+# Handoff documentado
+
+# Por qué
+Dos reconcilers dueños de una misma entidad provocan drift recurrente.

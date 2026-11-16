@@ -1,0 +1,29 @@
+{
+  "id": "S02",
+  "title": "Lock concurrente de state",
+  "subtitle": "Contexto: dos pipelines intentan mutar el mismo estado remoto; una ejecución queda bloqueada. Se investiga si un lock está activo, obsoleto o comprometido.",
+  "mission": "evitar ejecuciones simultáneas, decidir cuándo esperar, cancelar/replanificar o investigar un lock sospechoso.",
+  "artifacts": "timeline de jobs, IDs de operación ficticios, logs saneados de locking, topología backend.",
+  "negative": "desbloquear a la fuerza sin investigación debe fallar; segunda operación no puede considerarse segura mientras otra escribe.",
+  "evidence": "runbook de concurrencia, ownership del estado, autorización dual si se propone `force-unlock`.",
+  "mode": "simulación determinista; **nunca** ejecutar desbloqueo real desde la web.",
+  "severity": "Alto",
+  "pillar": "State",
+  "choices": [
+    "Usar -lock=false de forma habitual",
+    "Detener escritores, identificar lock activo y operar con una ventana autorizada",
+    "Copiar manualmente terraform.tfstate"
+  ],
+  "correct": 1,
+  "explanation": "Un bloqueo protege contra escrituras concurrentes; desbloquear exige prueba y owner.",
+  "checklist": [
+    "Identifiqué al escritor propietario y el lock ID sin divulgar secretos",
+    "Impedí lock=false y force-unlock prematuro ante escrituras concurrentes",
+    "Diseñé verificación del backend y timeout de espera con resultados NOT_RUN si aplica",
+    "Establecí autorización dual y recuperación si el lock resulta huérfano"
+  ],
+  "xp": 300,
+  "provenance": "SYNTHETIC_FIXTURE",
+  "terraform_cli_run": false,
+  "external_cloud_run": false
+}

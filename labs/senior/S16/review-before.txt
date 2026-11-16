@@ -1,0 +1,3 @@
+# Ficción de revisión: ownership.yml
+deployment/api:
+  owners: [terraform, argocd]

@@ -1,0 +1,6 @@
+# Recomendación ilustrativa, revisar con expertos
+# Reglas deny con tests positivos/negativos
+# Excepción: owner, ticket, vencimiento y aprobación
+
+# Por qué
+La excepción debe ser precisa y revisable, nunca un bypass permanente.

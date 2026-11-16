@@ -1,0 +1,6 @@
+terraform {
+# TODO: completa la configuración aquí
+}
+resource "terraform_data" "cli" {
+  input = "listo"
+}

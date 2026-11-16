@@ -1,0 +1,7 @@
+variable "ambiente" {
+  type = string
+  default = "dev"
+}
+resource "terraform_data" "ambiente" {
+  input = var.ambiente
+}

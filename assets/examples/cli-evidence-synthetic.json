@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "origin": "SYNTHETIC_EXAMPLE",
+  "runId": "synthetic-demo-0001",
+  "generatedAt": "2026-11-11T00:00:00.000Z",
+  "terraformVersion": "SIMULATED - NO CLI",
+  "results": [
+    {
+      "id": "B01",
+      "status": "PASS",
+      "logSha256": "3719aea8332d936c9b877e76c8eca77a57960029aebb98cc84965ce23a86f214",
+      "logBytes": 47
+    },
+    {
+      "id": "B02",
+      "status": "FAIL",
+      "logSha256": "5997a34d6fea5e72f86f21e2c8dc2e1126c847b9aafc36e462bd4cee87659217",
+      "logBytes": 51
+    },
+    {
+      "id": "S18",
+      "status": "NOT_RUN",
+      "logSha256": null,
+      "logBytes": 0
+    }
+  ]
+}

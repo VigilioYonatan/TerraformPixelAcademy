@@ -1,0 +1,3 @@
+# Ficción de revisión: .github/workflows/apply.yml
+permissions: write-all
+# AWS_ACCESS_KEY_ID: guardada en secrets globales

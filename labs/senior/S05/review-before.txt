@@ -1,0 +1,3 @@
+# Ficción de revisión: backend.tf · migration
+terraform { backend "s3" { key = "prod/main.tfstate" } }
+# Sin backup ni freeze
