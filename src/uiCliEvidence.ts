@@ -28,69 +28,100 @@ export function CliEvidenceDashboard({ manifest, error }: EvidenceProps) {
     ),
     h('div', { className: 'space24' }),
     h(
-      'section',
-      { className: 'content-panel' },
+      'div',
+      { className: 'evidence-upload-grid' },
       h(
-        'div',
-        { className: 'flex space-between' },
+        'section',
+        { className: 'content-panel' },
         h(
           'div',
-          {},
-          h('h2', {}, 'Importa tus resultados locales'),
+          { className: 'flex space-between' },
           h(
-            'p',
-            { className: 'small-note' },
-            'Usa el archivo terraform-verification-results/CLI-EVIDENCE-MANIFEST.json generado después de ejecutar el script de pruebas en tu equipo.'
+            'div',
+            {},
+            h('h2', {}, 'Importa tus resultados locales'),
+            h(
+              'p',
+              { className: 'small-note' },
+              'Usa el archivo terraform-verification-results/CLI-EVIDENCE-MANIFEST.json generado después de ejecutar el script de pruebas en tu equipo.'
+            )
+          ),
+          chip('DATOS LOCALES', 'green')
+        ),
+        h('div', { className: 'space16' }),
+        h(
+          'label',
+          { className: 'field-label', htmlFor: 'cli-manifest-file' },
+          'Seleccionar manifiesto JSON (máx. 200 KB)'
+        ),
+        h('input', {
+          id: 'cli-manifest-file',
+          type: 'file',
+          accept: '.json,application/json',
+          'aria-label': 'Cargar evidencias locales de Terraform CLI'
+        }),
+        h('div', { className: 'space16' }),
+        h(
+          'div',
+          { className: 'flex-wrap' },
+          h(
+            'button',
+            { type: 'button', className: 'btn btn-soft', 'data-action': 'clear-cli-manifest' },
+            'Olvidar resultados cargados'
+          ),
+          ...(manifest
+            ? [
+                h(
+                  'button',
+                  { type: 'button', className: 'btn btn-primary', 'data-action': 'export-cli-manifest' },
+                  '↓ Exportar índice de evidencias (.md)'
+                )
+              ]
+            : []),
+          h(
+            'a',
+            {
+              className: 'btn btn-soft',
+              href: './assets/examples/cli-evidence-synthetic.json',
+              download: 'cli-evidence-synthetic.json'
+            },
+            '↓ Ejemplo sintético'
           )
         ),
-        chip('DATOS LOCALES', 'green')
-      ),
-      h('div', { className: 'space16' }),
-      h(
-        'label',
-        { className: 'field-label', htmlFor: 'cli-manifest-file' },
-        'Seleccionar manifiesto JSON (máx. 200 KB)'
-      ),
-      h('input', {
-        id: 'cli-manifest-file',
-        type: 'file',
-        accept: '.json,application/json',
-        'aria-label': 'Cargar evidencias locales de Terraform CLI'
-      }),
-      h('div', { className: 'space16' }),
-      h(
-        'div',
-        { className: 'flex-wrap' },
+        error ? h('div', { className: 'alert mt-14', role: 'alert' }, error) : null,
         h(
-          'button',
-          { type: 'button', className: 'btn btn-soft', 'data-action': 'clear-cli-manifest' },
-          'Olvidar resultados cargados'
-        ),
-        ...(manifest
-          ? [
-              h(
-                'button',
-                { type: 'button', className: 'btn btn-primary', 'data-action': 'export-cli-manifest' },
-                '↓ Exportar índice de evidencias (.md)'
-              )
-            ]
-          : []),
-        h(
-          'a',
-          {
-            className: 'btn btn-soft',
-            href: './assets/examples/cli-evidence-synthetic.json',
-            download: 'cli-evidence-synthetic.json'
-          },
-          '↓ Ejemplo sintético'
+          'div',
+          { className: 'notice mt-18' },
+          'Importar el manifiesto NO autentica al ejecutor, no comprueba hashes frente a logs originales y nunca concede aprobación de despliegue. ',
+          'Los logs reales pueden contener información privada: no los subas a la academia.'
         )
       ),
-      error ? h('div', { className: 'alert', role: 'alert' }, error) : null,
       h(
-        'div',
-        { className: 'notice mt-18' },
-        'Importar el manifiesto NO autentica al ejecutor, no comprueba hashes frente a logs originales y nunca concede aprobación de despliegue. ',
-        'Los logs reales pueden contener información privada: no los subas a la academia.'
+        'aside',
+        { className: 'content-panel evidence-guide-card', 'aria-label': 'Guía rápida de evidencias CLI' },
+        h('div', { className: 'eyebrow' }, 'FLUJO EN TU EQUIPO'),
+        h('h3', { className: 'mt-8' }, 'Cómo generar evidencias reales'),
+        h(
+          'div',
+          { className: 'side-step mt-12' },
+          h('strong', {}, '1. Ejecuta el runner aislado: '),
+          h('code', {}, 'npm run verify:terraform:local')
+        ),
+        h(
+          'div',
+          { className: 'side-step' },
+          h('strong', {}, '2. Obtén hashes SHA-256: '),
+          'Cada uno de los 37 escenarios registra exit code y hash verificable sin mutar ',
+          h('code', {}, 'labs/')
+        ),
+        h(
+          'div',
+          { className: 'side-step' },
+          h('strong', {}, '3. Carga el manifiesto: '),
+          'Revisa los estados ',
+          h('code', {}, 'PASS / FAIL / NOT_RUN'),
+          ' y exporta el índice Markdown.'
+        )
       )
     ),
     manifest && stats
