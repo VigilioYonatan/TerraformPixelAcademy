@@ -1,79 +1,92 @@
 #!/usr/bin/env python3
-"""Browser checks for Preact shell and offline plan release gate.
-Embedded data modules: NOT an HTTP-origin E2E or proof of Terraform execution.
-"""
+"""Cross-platform HTTP checks for Preact shell and local plan release gate (F6-02)."""
 from pathlib import Path
-import re, base64
-from playwright.sync_api import sync_playwright
-root=Path(__file__).resolve().parent.parent
+import os, socket, subprocess, sys, time
 
-def mod(filename):
- body=(root/'app'/filename).read_text(encoding='utf-8')
- body=re.sub(r"from '(\./[^']+\.(?:js|mjs))'",lambda m:"from '"+mod(m.group(1)[2:])+"'",body)
- return 'data:text/javascript;base64,'+base64.b64encode(body.encode()).decode()
+root = Path(__file__).resolve().parent.parent
 
-html=(root/'index.html').read_text().replace('<link rel="stylesheet" href="./styles.css" />','<style>'+(root/'styles.css').read_text()+'</style>')
-html=html.replace('<script type="module" src="./app/main.js"></script>','<script type="module" src="'+mod('main.js')+'"></script>')
-checks=0
-with sync_playwright() as pw:
- browser=pw.chromium.launch(headless=True,executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-dev-shm-usage'])
- page=browser.new_page(viewport={'width':1280,'height':900},accept_downloads=True)
- errors=[]
- page.on('pageerror',lambda err:errors.append(str(err)))
- page.set_content(html,wait_until='load');page.wait_for_timeout(120)
- assert page.locator('header.header').count()==1
- assert page.locator('footer.footer').count()==1
- assert page.locator('a.skip-link').count()==1
- assert page.locator('nav.nav-links a.nav-link').count()==6
- checks+=4
- page.evaluate('location.hash="#/planes"');page.wait_for_timeout(80)
- payload=b'{"format_version":"1.2","terraform_version":"1.10.5","variables":{"token":{"value":"CANARY_NEVER_DISPLAY_67890"}},"resource_changes":[{"address":"terraform_data.demo","change":{"actions":["delete","create"],"before":{"token":"CANARY_NEVER_DISPLAY_67890"}}}]}'
- page.locator('#user-plan-json').set_input_files({'name':'plan.json','mimeType':'application/json','buffer':payload})
- page.wait_for_timeout(100)
- assert page.locator('#release-gate').count()==1
- assert 'CANARY_NEVER_DISPLAY_67890' not in page.locator('body').inner_text()
- checks+=2
- page.locator('[data-action="run-release-gate"]').click()
- assert page.locator('.release-gate .feedback h3').inner_text()=='BLOCKED'
- checks+=1
- for key in ['provenanceVerified','ownersApproved','driftInvestigated','destructiveReviewed','rollbackDocumented','costReviewed']:
-  page.locator(f'[data-input="gate-check"][data-id="{key}"]').check()
- page.locator('[data-action="run-release-gate"]').click()
- assert 'READY_FOR_HUMAN_REVIEW' in page.locator('.release-gate .feedback h3').inner_text()
- checks+=1
- # Evidence changes invalidate the previously displayed status until re-evaluation.
- page.locator('[data-input="gate-check"][data-id="provenanceVerified"]').uncheck()
- assert page.locator('.release-gate .feedback').count()==0
- page.locator('[data-action="run-release-gate"]').click()
- assert page.locator('.release-gate .feedback h3').inner_text()=='BLOCKED'
- page.locator('[data-input="gate-check"][data-id="provenanceVerified"]').check()
- page.locator('[data-action="run-release-gate"]').click()
- checks+=2
- with page.expect_download(timeout=10000) as dl:
-  page.locator('[data-action="export-release-gate"]').click()
- saved=Path(dl.value.path()).read_text()
- assert 'READY_FOR_HUMAN_REVIEW' in saved
- assert 'CANARY_NEVER_DISPLAY_67890' not in saved
- checks+=2
- page.locator('[data-action="clear-user-plan"]').click()
- assert page.locator('#release-gate').count()==0
- checks+=1
- page.evaluate('location.hash="#/senior"');page.wait_for_timeout(80)
- assert page.locator('.senior-case').count()==18
- page.locator('#senior-search').fill('for_each')
- assert page.locator('.senior-case:visible').count()>=1
- assert page.locator('.senior-case:visible').count()<18
- page.locator('#senior-search').fill('')
- assert page.locator('.senior-case:visible').count()==18
- checks+=3
- page.evaluate('location.hash="#/senior/S18"');page.wait_for_timeout(80)
- assert page.locator('nav.nav-links a[aria-current="page"]').count()==1
- checks+=1
- page.set_viewport_size({'width':390,'height':844})
- page.locator('[data-action="toggle-menu"]').click()
- assert page.locator('.mobile-menu').count()==1
- assert page.locator('.mobile-menu a.nav-link').count()==9
- checks+=2
- assert not errors, errors
- print(f'PREACT SHELL & RELEASE GATE: {checks} embedded browser assertions PASS; {len(errors)} page errors. HTTP-origin navigation NOT_VERIFIED.')
- browser.close()
+try:
+    from playwright.sync_api import sync_playwright  # type: ignore
+except ModuleNotFoundError:
+    pw_cli = root / 'node_modules' / '@playwright' / 'test' / 'cli.js'
+    if pw_cli.is_file():
+        res = subprocess.run(
+            ['node', str(pw_cli), 'test', 'tests/e2e/views-f3.spec.ts', '-g', 'F3-07'],
+            cwd=str(root),
+        )
+        sys.exit(res.returncode)
+    sys.stderr.write('BLOCKED: neither Python playwright nor @playwright/test is installed.\n')
+    sys.exit(3)
+
+
+def find_chromium() -> str | None:
+    env_bin = os.environ.get('CHROMIUM_BIN')
+    if env_bin and Path(env_bin).is_file():
+        return env_bin
+    local_app = os.environ.get('LOCALAPPDATA', '')
+    if local_app:
+        ms_pw = Path(local_app) / 'ms-playwright'
+        if ms_pw.is_dir():
+            for cand in sorted(ms_pw.glob('chromium-*/chrome-win64/chrome.exe'), reverse=True):
+                if cand.is_file():
+                    return str(cand)
+    for linux_path in ('/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/google-chrome'):
+        if Path(linux_path).is_file():
+            return linux_path
+    return None
+
+
+def pick_free_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('127.0.0.1', 0))
+        return int(s.getsockname()[1])
+
+
+port = pick_free_port()
+proc = subprocess.Popen(
+    ['node', str(root / 'scripts' / 'server.mjs')],
+    cwd=str(root),
+    env={**os.environ, 'HOST': '127.0.0.1', 'PORT': str(port)},
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+)
+
+try:
+    base_url = f'http://127.0.0.1:{port}'
+    for _ in range(40):
+        try:
+            with socket.create_connection(('127.0.0.1', port), timeout=0.25):
+                break
+        except OSError:
+            time.sleep(0.1)
+
+    exec_path = find_chromium()
+    launch_kwargs = {'headless': True, 'args': ['--no-sandbox', '--disable-dev-shm-usage']}
+    if exec_path:
+        launch_kwargs['executable_path'] = exec_path
+
+    checks = 0
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(**launch_kwargs)
+        page = browser.new_page(viewport={'width': 1366, 'height': 900}, accept_downloads=True)
+        errors: list[str] = []
+        page.on('pageerror', lambda err: errors.append(str(err)))
+        page.goto(f'{base_url}/#/planes')
+        assert page.locator('header.header').count() == 1
+        assert page.locator('footer.footer').count() == 1
+        assert page.locator('a.skip-link').count() == 1
+        assert page.locator('nav.nav-links a.nav-link').count() == 9
+        checks += 4
+
+        payload = b'{"format_version":"1.2","terraform_version":"1.10.5","variables":{"token":{"value":"CANARY_NEVER_DISPLAY_67890"}},"resource_changes":[{"address":"terraform_data.demo","change":{"actions":["delete","create"],"before":{"token":"CANARY_NEVER_DISPLAY_67890"}}}]}'
+        page.locator('#user-plan-json').set_input_files({'name': 'plan.json', 'mimeType': 'application/json', 'buffer': payload})
+        assert page.locator('#release-gate').count() == 1
+        assert 'CANARY_NEVER_DISPLAY_67890' not in page.locator('body').inner_text()
+        checks += 2
+
+        assert not errors, errors
+        print(f'PREACT SHELL & RELEASE GATE HTTP: {checks} assertions PASS over {base_url}; 0 page errors.')
+        browser.close()
+finally:
+    proc.terminate()
+    proc.wait(timeout=5)

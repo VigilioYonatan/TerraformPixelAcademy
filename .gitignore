@@ -5,6 +5,7 @@ node_modules/
 # Generated build and test artifacts
 dist/
 .vite/
+.vitest/
 coverage/
 playwright-report/
 test-results/

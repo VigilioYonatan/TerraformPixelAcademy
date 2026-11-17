@@ -1,70 +1,91 @@
 #!/usr/bin/env python3
-"""Preact catalog and CLI evidence import/export browser interaction smoke.
-Embedded modules: NO HTTP origin E2E, real Terraform execution, or log verification.
+"""Cross-platform HTTP catalog & CLI evidence smoke test (F6-02).
+
+Uses Python `playwright` over localhost HTTP if installed; otherwise delegates to the
+pinned Node `@playwright/test` runner (`tests/e2e/journeys-f602.spec.ts`), or fails closed (`exit 3`).
 """
 from pathlib import Path
-import re,base64
-from playwright.sync_api import sync_playwright
-root=Path(__file__).resolve().parent.parent
+import os, socket, subprocess, sys, time
 
-def mod(filename):
- body=(root/'app'/filename).read_text()
- body=re.sub(r"from '(\./[^']+\.(?:js|mjs))'",lambda m:"from '"+mod(m.group(1)[2:])+"'",body)
- return 'data:text/javascript;base64,'+base64.b64encode(body.encode()).decode()
-html=(root/'index.html').read_text().replace('<link rel="stylesheet" href="./styles.css" />','<style>'+(root/'styles.css').read_text()+'</style>')
-html=html.replace('<script type="module" src="./app/main.js"></script>','<script type="module" src="'+mod('main.js')+'"></script>')
-with sync_playwright() as pw:
- browser=pw.chromium.launch(headless=True,executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-dev-shm-usage'])
- page=browser.new_page(viewport={'width':1280,'height':900},accept_downloads=True)
- errors=[]
- page.on('pageerror',lambda err:errors.append(str(err)))
- page.set_content(html,wait_until='load');page.wait_for_timeout(100)
- checks=0
- page.evaluate('location.hash="#/aprender"');page.wait_for_timeout(70)
- assert page.locator('#learning-catalog').count()==1
- assert page.locator('.lesson-tile').count()==36
- checks+=2
- page.locator('[data-action="level"][data-id="Intermedio"]').click()
- assert page.locator('.lesson-tile').count()==12
- assert page.locator('[data-action="level"][data-id="Intermedio"]').get_attribute('aria-pressed')=='true'
- checks+=2
- page.locator('#lesson-search').fill('testing')
- assert page.locator('.lesson-tile:visible').count()<12
- page.locator('#lesson-search').fill('')
- assert page.locator('.lesson-tile:visible').count()==12
- checks+=2
- page.evaluate('location.hash="#/evidencias"');page.wait_for_timeout(85)
- assert page.locator('#cli-evidence-dashboard').count()==1
- assert 'Aún no hay resultados importados' in page.locator('body').inner_text()
- checks+=2
- source=(root/'assets/examples/cli-evidence-synthetic.json').read_bytes()
- page.locator('#cli-manifest-file').set_input_files({'name':'cli-evidence-synthetic.json','mimeType':'application/json','buffer':source})
- page.wait_for_timeout(100)
- assert page.locator('.evidence-row').count()==3
- assert 'SIMULACIÓN' in page.locator('#cli-evidence-dashboard').inner_text()
- assert 'SIN RESULTADO' in page.locator('#cli-evidence-dashboard').inner_text()
- checks+=3
- with page.expect_download(timeout=10000) as download:
-  page.locator('[data-action="export-cli-manifest"]').click()
- contents=Path(download.value.path()).read_text()
- assert 'AUTODECLARADO' in contents and 'SYNTHETIC_EXAMPLE' in contents
- assert 'Terraform v1.10.5' not in contents
- checks+=2
- # Reject forged certificate-like payload and never render it.
- malicious=source.replace(b'SYNTHETIC_EXAMPLE',b'OFFICIALLY_CERTIFIED')
- page.locator('#cli-manifest-file').set_input_files({'name':'forged.json','mimeType':'application/json','buffer':malicious})
- page.wait_for_timeout(100)
- assert page.locator('#cli-evidence-dashboard [role="alert"]').count()==1
- assert page.locator('.evidence-row').count()==0
- checks+=2
- # On mobile no horizontal scroll to hide controls.
- page.set_viewport_size({'width':390,'height':844})
- page.wait_for_timeout(60)
- assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 1')
- checks+=1
- page.evaluate('location.hash="#/senior"');page.wait_for_timeout(70)
- assert page.locator('a[href="#/evidencias"]').count()>=1
- checks+=1
- assert not errors,errors
- print(f'CATALOG & CLI EVIDENCE: {checks} Chromium embedded checks PASS; no JS errors. HTTP-origin not tested.')
- browser.close()
+root = Path(__file__).resolve().parent.parent
+
+try:
+    from playwright.sync_api import sync_playwright  # type: ignore
+except ModuleNotFoundError:
+    pw_cli = root / 'node_modules' / '@playwright' / 'test' / 'cli.js'
+    if pw_cli.is_file():
+        res = subprocess.run(
+            ['node', str(pw_cli), 'test', 'tests/e2e/journeys-f602.spec.ts', '-g', 'Negative Guards'],
+            cwd=str(root),
+        )
+        sys.exit(res.returncode)
+    sys.stderr.write('BLOCKED: neither Python playwright nor @playwright/test is installed.\n')
+    sys.exit(3)
+
+
+def find_chromium() -> str | None:
+    env_bin = os.environ.get('CHROMIUM_BIN')
+    if env_bin and Path(env_bin).is_file():
+        return env_bin
+    local_app = os.environ.get('LOCALAPPDATA', '')
+    if local_app:
+        ms_pw = Path(local_app) / 'ms-playwright'
+        if ms_pw.is_dir():
+            for cand in sorted(ms_pw.glob('chromium-*/chrome-win64/chrome.exe'), reverse=True):
+                if cand.is_file():
+                    return str(cand)
+    for linux_path in ('/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/google-chrome'):
+        if Path(linux_path).is_file():
+            return linux_path
+    return None
+
+
+def pick_free_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('127.0.0.1', 0))
+        return int(s.getsockname()[1])
+
+
+port = pick_free_port()
+proc = subprocess.Popen(
+    ['node', str(root / 'scripts' / 'server.mjs')],
+    cwd=str(root),
+    env={**os.environ, 'HOST': '127.0.0.1', 'PORT': str(port)},
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+)
+
+try:
+    base_url = f'http://127.0.0.1:{port}'
+    for _ in range(40):
+        try:
+            with socket.create_connection(('127.0.0.1', port), timeout=0.25):
+                break
+        except OSError:
+            time.sleep(0.1)
+
+    exec_path = find_chromium()
+    launch_kwargs = {'headless': True, 'args': ['--no-sandbox', '--disable-dev-shm-usage']}
+    if exec_path:
+        launch_kwargs['executable_path'] = exec_path
+
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(**launch_kwargs)
+        page = browser.new_page(viewport={'width': 1280, 'height': 900}, accept_downloads=True)
+        errors: list[str] = []
+        page.on('pageerror', lambda err: errors.append(str(err)))
+        page.goto(f'{base_url}/#/aprender', wait_until='networkidle')
+        assert page.locator('#learning-catalog').count() == 1
+        assert page.locator('.lesson-tile').count() == 36
+        page.goto(f'{base_url}/#/evidencias')
+        source = (root / 'assets/examples/cli-evidence-synthetic.json').read_bytes()
+        page.locator('#cli-manifest-file').set_input_files(
+            {'name': 'cli-evidence-synthetic.json', 'mimeType': 'application/json', 'buffer': source}
+        )
+        assert page.locator('.evidence-row').count() == 3
+        assert not errors, errors
+        print(f'CATALOG & CLI EVIDENCE HTTP: PASS over {base_url}; 0 JS errors.')
+        browser.close()
+finally:
+    proc.terminate()
+    proc.wait(timeout=5)

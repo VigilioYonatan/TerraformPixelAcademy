@@ -8,6 +8,7 @@
       "tests/**/*.mjs",
       "tests/**/*.ts",
       "vite.config.js",
+      "vitest.config.ts",
       "playwright.config.ts",
       "package.json",
       "biome.json"

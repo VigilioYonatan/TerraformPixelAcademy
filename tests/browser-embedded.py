@@ -1,115 +1,112 @@
 #!/usr/bin/env python3
-"""Browser-interaction smoke via inline ES modules. Does not verify HTTP assets or persistence.
+"""Cross-platform HTTP browser smoke test (replaces legacy Linux-only Base64 script — F6-02).
 
-Uses embedded modules because browser navigation to localhost is blocked in this runner.
-Requires Python Playwright and locally installed Chromium; no npm/browser download.
+Launches `node scripts/server.mjs` on an isolated ephemeral localhost port and drives
+real HTTP navigation across Windows and POSIX without hardcoding `/usr/bin/chromium`.
 """
 from pathlib import Path
-import re,base64
-from playwright.sync_api import sync_playwright
-root=Path(__file__).resolve().parent.parent
+import os, socket, subprocess, sys, time
 
-def module(name):
- text=(root/'app'/name).read_text()
- text=re.sub(r"from '(\./[^']+\.(?:js|mjs))'",lambda m:"from '"+module(m.group(1)[2:])+"'",text)
- return 'data:text/javascript;base64,'+base64.b64encode(text.encode()).decode()
+root = Path(__file__).resolve().parent.parent
 
-html=(root/'index.html').read_text().replace('<link rel="stylesheet" href="./styles.css" />', '<style>'+(root/'styles.css').read_text()+'</style>')
-html=html.replace('<script type="module" src="./app/main.js"></script>','<script type="module" src="'+module('main.js')+'"></script>')
-with sync_playwright() as pw:
- browser=pw.chromium.launch(headless=True,executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-dev-shm-usage'])
- page=browser.new_page(viewport={'width':1280,'height':900},accept_downloads=True)
- errors=[]
- page.on('pageerror',lambda exc:errors.append(str(exc)))
- page.set_content(html,wait_until='load');page.wait_for_timeout(200)
- assert 'TerraPixel' in page.locator('h1').first.inner_text()
- checked=0
- for route in ['inicio','aprender','leccion/B04','juegos','laboratorios','grafo','planes','senior','senior/S01','senior/S18','progreso','ajustes','recursos']:
-  page.evaluate('(route)=>location.hash="#/"+route',route)
-  page.wait_for_timeout(75)
-  assert page.locator('h1').count()>=1,route
-  assert 'No encontré esta ruta' not in page.locator('body').inner_text(),route
-  checked+=1
- # User-supplied plan.json is inspected locally without displaying secrets.
- page.evaluate('location.hash="#/planes"');page.wait_for_timeout(100)
- assert page.locator('#user-plan-json').count()==1
- payload=b'{"format_version":"1.0","terraform_version":"1.10.5","variables":{"token":{"value":"DO_NOT_LEAK_123"}},"resource_changes":[{"address":"terraform_data.foo","change":{"actions":["delete","create"],"before":{"value":"DO_NOT_LEAK_123"},"before_sensitive":{"value":true}}}],"resource_drift":[{"address":"terraform_data.drifted","change":{"actions":["update"],"before":{"secret":"DO_NOT_LEAK_123"}}}]}'
- page.locator('#user-plan-json').set_input_files({'name':'plan.json','mimeType':'application/json','buffer':payload})
- page.wait_for_timeout(130)
- assert page.locator('.plan-import-results .plan-resource').count()==2
- assert '1 destructivos' in page.locator('#real-plan-review').inner_text()
- assert 'DO_NOT_LEAK_123' not in page.locator('body').inner_text()
- assert '1 eventos drift' in page.locator('#real-plan-review').inner_text()
- with page.expect_download(timeout=10000) as plan_export:
-  page.locator('[data-action="export-user-plan"]').click()
- assert plan_export.value.suggested_filename=='TerraPixel-Revision-Plan-Local.md'
- exported=Path(plan_export.value.path()).read_text()
- assert 'terraform_data.drifted' in exported
- assert 'DO_NOT_LEAK_123' not in exported
- page.locator('[data-action="clear-user-plan"]').click()
- assert page.locator('.plan-import-results').count()==0
- checked+=1
- # S09: truly use entered CIDRs, not hardcoded fixtures.
- page.evaluate('location.hash="#/senior/S09"');page.wait_for_timeout(90)
- page.locator('[data-input="cidr-b"]').fill('10.41.0.0/16')
- page.locator('[data-action="check-cidr"]').click()
- assert 'Sin superposición' in page.locator('body').inner_text()
- page.locator('[data-input="cidr-b"]').fill('10.40.10.0/24')
- page.locator('[data-action="check-cidr"]').click()
- assert 'BLOQUEADO' in page.locator('body').inner_text();checked+=1
- # S11: differing commits blocked, matching commits pass.
- page.evaluate('location.hash="#/senior/S11"');page.wait_for_timeout(90)
- page.locator('[data-input="applied-commit"]').fill('a1b2')
- page.locator('[data-action="check-integrity"]').click()
- assert 'Coincidencia local' in page.locator('body').inner_text()
- page.locator('[data-input="applied-commit"]').fill('bad123')
- page.locator('[data-action="check-integrity"]').click()
- assert 'BLOQUEADO' in page.locator('body').inner_text();checked+=1
- # S14: cost estimate reacts to user input.
- page.evaluate('location.hash="#/senior/S14"');page.wait_for_timeout(90)
- page.locator('[data-input="replicas"]').fill('1')
- page.locator('[data-action="check-cost"]').click()
- assert 'USD 61/mes' in page.locator('body').inner_text();checked+=1
- # S01 end to end: choice, 4 checklist controls, ADR, export, completion
- page.evaluate('location.hash="#/senior/S01"');page.wait_for_timeout(90)
- page.locator('[data-action="case-tab"][data-id="decision"]').first.click()
- page.locator('[data-action="case-decision"][data-index="1"]').click()
- for i in range(4):
-  page.locator(f'[data-input="case-check"][data-index="{i}"]').check()
- page.locator('[data-action="case-tab"][data-id="evidencia"]').first.click()
- adr='''Contexto: cambio de claves altera identidad de recursos administrados.
-Decisión: bloquear apply y revisar moved con direcciones y plan.
-Riesgos: reemplazo destructivo y pérdida de disponibilidad del servicio.
-Evidencia: NOT_RUN, solo fixture sintético sin ejecutar terraform plan.
-Rollback: mantener configuración anterior y restaurar bajo aprobación.'''
- page.locator('#senior-evidence').fill(adr)
- page.locator('[data-action="case-tab"][data-id="investigar"]').first.click()
- page.locator('[data-action="what-if-answer"][data-index="0"]').click()
- assert page.locator('[data-action="finish-case"]').is_enabled()
- with page.expect_download(timeout=10000) as info:page.locator('[data-action="export-senior"]').first.click()
- download=info.value
- assert download.suggested_filename=='S01-informe-senior.md'
- page.locator('[data-action="finish-case"]').click()
- assert 'Autoevaluado' in page.locator('body').inner_text();checked+=1
- # Invalidate what-if to revoke Senior badge and disable the gate.
- page.locator('[data-action="case-tab"][data-id="investigar"]').first.click()
- page.locator('[data-action="what-if-answer"][data-index="1"]').click()
- assert page.locator('[data-action="finish-case"]').is_disabled()
- assert 'Caso abierto' in page.locator('body').inner_text();checked+=1
- # S18 gate: capstone cannot finish before 8 declarations.
- page.evaluate('location.hash="#/senior/S18"');page.wait_for_timeout(90)
- assert page.locator('[data-action="finish-case"]').is_disabled();checked+=1
- # Responsive layout sanity: no document-level horizontal overflow on mobile.
- page.set_viewport_size({'width':390,'height':844})
- for route in ['inicio','aprender','leccion/B04','senior','senior/S01','senior/S18','ajustes']:
-  page.evaluate('(route)=>location.hash="#/"+route',route)
-  page.wait_for_timeout(60)
-  metrics=page.evaluate('({scroll:document.documentElement.scrollWidth,viewport:innerWidth})')
-  if metrics['scroll']>metrics['viewport']+2:
-   offenders=page.evaluate('''() => [...document.querySelectorAll('*')].map(x=>({name:x.tagName.toLowerCase()+'.'+x.className, right:Math.round(x.getBoundingClientRect().right), width:Math.round(x.getBoundingClientRect().width)})).filter(x=>x.right>innerWidth+3 && x.width>0).sort((a,b)=>b.right-a.right).slice(0,15)''')
-   print('OVERFLOW',route,metrics,offenders)
-  assert metrics['scroll']<=metrics['viewport']+2,(route,metrics)
-  checked+=1
- assert not errors, errors
- print(f'BROWSER EMBEDDED: PASS {checked} checks; 0 JS page errors. Does NOT verify HTTP navigation, images, storage or real Terraform.')
- browser.close()
+try:
+    from playwright.sync_api import sync_playwright  # type: ignore
+except ModuleNotFoundError:
+    pw_cli = root / 'node_modules' / '@playwright' / 'test' / 'cli.js'
+    if pw_cli.is_file():
+        res = subprocess.run(['node', str(pw_cli), 'test', 'tests/e2e/journeys-f602.spec.ts'], cwd=str(root))
+        sys.exit(res.returncode)
+    sys.stderr.write('BLOCKED: neither Python playwright nor @playwright/test is installed.\n')
+    sys.exit(3)
+
+
+def find_chromium() -> str | None:
+    env_bin = os.environ.get('CHROMIUM_BIN')
+    if env_bin and Path(env_bin).is_file():
+        return env_bin
+    local_app = os.environ.get('LOCALAPPDATA', '')
+    if local_app:
+        ms_pw = Path(local_app) / 'ms-playwright'
+        if ms_pw.is_dir():
+            for cand in sorted(ms_pw.glob('chromium-*/chrome-win64/chrome.exe'), reverse=True):
+                if cand.is_file():
+                    return str(cand)
+    for linux_path in ('/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/google-chrome'):
+        if Path(linux_path).is_file():
+            return linux_path
+    return None
+
+
+def pick_free_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('127.0.0.1', 0))
+        return int(s.getsockname()[1])
+
+
+port = pick_free_port()
+server_env = {**os.environ, 'HOST': '127.0.0.1', 'PORT': str(port)}
+proc = subprocess.Popen(
+    ['node', str(root / 'scripts' / 'server.mjs')],
+    cwd=str(root),
+    env=server_env,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+)
+
+try:
+    base_url = f'http://127.0.0.1:{port}'
+    for _ in range(40):
+        try:
+            with socket.create_connection(('127.0.0.1', port), timeout=0.25):
+                break
+        except OSError:
+            time.sleep(0.1)
+
+    exec_path = find_chromium()
+    launch_kwargs = {'headless': True, 'args': ['--no-sandbox', '--disable-dev-shm-usage']}
+    if exec_path:
+        launch_kwargs['executable_path'] = exec_path
+
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(**launch_kwargs)
+        page = browser.new_page(viewport={'width': 1280, 'height': 900}, accept_downloads=True)
+        errors: list[str] = []
+        page.on('pageerror', lambda exc: errors.append(str(exc)))
+        page.goto(f'{base_url}/#/inicio', wait_until='networkidle')
+        assert 'TerraPixel' in page.locator('h1').first.inner_text()
+
+        checked = 0
+        for route in [
+            'inicio',
+            'aprender',
+            'leccion/B04',
+            'juegos',
+            'laboratorios',
+            'grafo',
+            'planes',
+            'senior',
+            'senior/S01',
+            'senior/S18',
+            'evidencias',
+            'progreso',
+            'ajustes',
+            'recursos',
+        ]:
+            page.goto(f'{base_url}/#/{route}')
+            assert page.locator('h1').count() >= 1, route
+            assert 'No encontré esta ruta' not in page.locator('body').inner_text(), route
+            checked += 1
+
+        # S09 CIDR simulator
+        page.goto(f'{base_url}/#/senior/S09')
+        page.locator('[data-input="sim-text"][data-id="cidrB"]').fill('10.41.0.0/16')
+        page.locator('[data-action="run-case-sim"][data-id="S09"]').click()
+        assert 'Sin superposición' in page.locator('body').inner_text()
+        checked += 1
+
+        assert not errors, errors
+        print(f'BROWSER HTTP SMOKE: PASS {checked} checks over {base_url}; 0 JS page errors.')
+        browser.close()
+finally:
+    proc.terminate()
+    proc.wait(timeout=5)

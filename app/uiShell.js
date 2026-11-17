@@ -19,7 +19,7 @@ function Navigation({ page }) {
     }, h('span', { className: 'nav-emoji', 'aria-hidden': 'true' }, item.icon), item.label)));
 }
 function Header({ page, mobileMenu, seniorEnabled }) {
-    return h('header', { className: 'header' }, h('div', { className: 'container nav-inner' }, h('a', { href: '#/inicio', className: 'brand', 'aria-label': 'TerraPixel Academy, inicio' }, h('img', { className: 'brand-mark', src: './assets/icons/mark.svg', alt: '' }), h('span', {}, h('span', { className: 'brand-name' }, 'Terra', h('b', {}, 'Pixel')), h('span', { className: 'brand-sub' }, 'ACADEMY · IAC'))), h('nav', { className: 'nav-links', 'aria-label': 'Navegación principal' }, h(Navigation, { page })), h('div', { className: 'nav-actions' }, h('button', {
+    return h('header', { className: 'header' }, h('div', { className: 'container nav-inner' }, h('a', { href: '#/inicio', className: 'brand' }, h('img', { className: 'brand-mark', src: './assets/icons/mark.svg', alt: '' }), h('span', {}, h('span', { className: 'brand-name' }, 'Terra', h('b', {}, 'Pixel')), ' ', h('span', { className: 'brand-sub' }, 'ACADEMY · IAC'))), h('nav', { className: 'nav-links', 'aria-label': 'Navegación principal' }, h(Navigation, { page })), h('div', { className: 'nav-actions' }, h('button', {
         type: 'button',
         className: `senior-toggle ${seniorEnabled ? 'on' : ''}`.trim(),
         'data-action': 'toggle-senior',

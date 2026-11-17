@@ -1,16 +1,16 @@
 # Gates DevSecOps del capstone S18
 
-Estos gates son un procedimiento para una máquina con Terraform CLI: **ningún resultado aparece como PASS en el ZIP**.
+Registro honesto de controles ejecutados sobre el paquete multi-módulo offline (`terraform_data`) frente a controles que siguen requiriendo sandbox cloud o aprobación humana:
 
-| Gate | Comando o evidencia | Estado del paquete |
+| Gate | Comando o evidencia | Estado verificado |
 |---|---|---|
-| Formato HCL | `terraform fmt -check -recursive` | NOT_RUN |
-| Inicialización local | `terraform init -backend=false -input=false` | NOT_RUN |
-| Validación | `terraform validate -no-color` | NOT_RUN |
-| Test unitario | `terraform test -no-color` | NOT_RUN |
-| Plan | `terraform plan -input=false -no-color` | NOT_RUN |
-| CI y suministro | PR revisada, controles Biome, SAST y lockfile | NOT_RUN |
-| Identidad cloud | Principio de privilegio mínimo y OIDC documentados, sin ejecutar aquí | NOT_RUN |
-| Riesgos operativos | ADR, 8 evidencias, rollback, drift y FinOps | NOT_RUN |
+| Formato HCL | `terraform fmt -check -recursive` (`Terraform v1.10.5`) | PASS (`2026-11-16`, copia temporal aislada) |
+| Inicialización local | `terraform init -backend=false -input=false` (`Terraform v1.10.5`) | PASS (`2026-11-16`, copia temporal aislada) |
+| Validación | `terraform validate -no-color` (`Terraform v1.10.5`) | PASS (`2026-11-16`, copia temporal aislada) |
+| Test unitario HCL | `terraform test -no-color` (`tests/capstone.tftest.hcl`) | PASS (`2026-11-16`, copia temporal aislada) |
+| Linter y seguridad IaC | `tflint --recursive` (`v0.66.0`), `trivy config` (`v0.76.2`), `conftest verify/test` (`v0.71.1`) | PASS (`0` hallazgos HIGH/CRITICAL) |
+| Plan autenticado cloud | `terraform plan` contra cuenta sandbox cloud | NOT_RUN |
+| Identidad cloud real | Federación OIDC IAM en cuenta AWS real | NOT_RUN |
+| Aprobación humana de ADR | Revisión de arquitectura y los 8 hitos por pares/owners | NOT_RUN |
 
 No colocar tokens ni salidas que contengan secretos en los documentos de evidencia. El módulo usa `terraform_data` y no intenta conectar con proveedores cloud.

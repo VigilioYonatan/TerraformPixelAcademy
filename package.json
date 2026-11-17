@@ -12,23 +12,27 @@
     "build:offline": "node tools/typescript/bin/tsc -p tsconfig.json",
     "typecheck": "node tools/typescript/bin/tsc -p tsconfig.json --noEmit",
     "test": "node --test tests/*.test.mjs",
+    "test:components": "vitest run",
     "test:e2e": "playwright test",
-    "qa": "npm run typecheck && npm run test && npm run security:local",
+    "qa": "npm run typecheck && npm run test && npm run test:components && npm run security:local",
     "build:vite": "node tools/typescript/bin/tsc -p tsconfig.json && vite build && node scripts/copy-static.mjs && node scripts/check-bundle-budget.mjs",
     "bundle:budget": "node scripts/check-bundle-budget.mjs",
     "preview:vite": "vite preview",
-    "verify:browser:embedded": "python3 tests/browser-embedded.py",
-    "verify:browser:senior": "python3 tests/browser-senior-v13.py",
+    "verify:browser:embedded": "node scripts/run-python.mjs tests/browser-embedded.py",
+    "verify:browser:senior": "node scripts/run-python.mjs tests/browser-senior-v13.py",
     "setup:terraform": "node scripts/ensure-terraform.mjs",
     "verify:terraform:local": "node scripts/run-terraform-labs.mjs --use-local-tools",
+    "setup:scanners": "node scripts/ensure-iac-scanners.mjs",
+    "verify:iac:scanners": "node scripts/run-iac-scanners.mjs --use-local-tools",
     "lint:biome": "biome ci .",
     "security:local": "node scripts/devsecops-audit.mjs",
-    "release:gate": "npm run typecheck && npm run test && npm run security:local && python3 scripts/release-audit.py && npm run verify:preservation && npm run build",
+    "release:gate": "npm run typecheck && npm run test && npm run security:local && node scripts/run-python.mjs scripts/release-audit.py && npm run verify:preservation && npm run build",
     "test:coverage": "node --experimental-test-coverage --test tests/*.test.mjs",
     "verify:preservation": "node scripts/verify-preservation.mjs",
-    "verify:browser:gate": "python3 tests/browser-release-gate.py"
+    "verify:browser:gate": "node scripts/run-python.mjs tests/browser-release-gate.py"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@biomejs/biome": "2.6.8",
     "@codemirror/autocomplete": "6.20.4",
     "@codemirror/commands": "6.11.1",
@@ -37,8 +41,12 @@
     "@codemirror/view": "6.43.15",
     "@lezer/highlight": "1.2.5",
     "@playwright/test": "1.64.1",
+    "@testing-library/preact": "3.2.6",
+    "jsdom": "31.0.1",
+    "preact": "10.29.8",
     "typescript": "5.8.3",
-    "vite": "8.3.8"
+    "vite": "8.3.8",
+    "vitest": "5.1.0"
   },
   "engines": {
     "node": ">=20.19.0"

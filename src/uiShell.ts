@@ -54,12 +54,13 @@ function Header({ page, mobileMenu, seniorEnabled }: Omit<ShellProps, 'view' | '
       { className: 'container nav-inner' },
       h(
         'a',
-        { href: '#/inicio', className: 'brand', 'aria-label': 'TerraPixel Academy, inicio' },
+        { href: '#/inicio', className: 'brand' },
         h('img', { className: 'brand-mark', src: './assets/icons/mark.svg', alt: '' }),
         h(
           'span',
           {},
           h('span', { className: 'brand-name' }, 'Terra', h('b', {}, 'Pixel')),
+          ' ',
           h('span', { className: 'brand-sub' }, 'ACADEMY · IAC')
         )
       ),

@@ -1,0 +1,22 @@
+{
+  "environment": "untracked-prod",
+  "monolithic_state": true,
+  "static_iam_keys": true,
+  "destructive_approved": false,
+  "resource_changes": [
+    {
+      "address": "module.data.terraform_data.data",
+      "change": {
+        "actions": ["delete", "create"]
+      }
+    }
+  ],
+  "workloads": [
+    {
+      "name": "api",
+      "tags": {
+        "owner": ""
+      }
+    }
+  ]
+}

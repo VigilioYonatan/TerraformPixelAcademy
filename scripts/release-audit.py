@@ -49,7 +49,7 @@ for num in range(1,19):
    if path in bundle.namelist():require(bundle.read(path)==file.read_bytes(),f'divergent Senior {path}')
 for file in (ROOT/'assets/terra').glob('*.png'):
  require(file.read_bytes().startswith(b'\x89PNG\r\n\x1a\n'),f'bad PNG {file}')
-IGNORED_ROOTS = {'.git', 'node_modules', 'dist', 'coverage', 'playwright-report', 'test-results', 'terraform-verification-results', '.tools'}
+IGNORED_ROOTS = {'.git', 'node_modules', 'dist', 'coverage', 'playwright-report', 'test-results', 'terraform-verification-results', '.tools', '.vitest'}
 for file in ROOT.rglob('*'):
  rel_parts = file.relative_to(ROOT).parts
  if file.is_file() and (not rel_parts or rel_parts[0] not in IGNORED_ROOTS):

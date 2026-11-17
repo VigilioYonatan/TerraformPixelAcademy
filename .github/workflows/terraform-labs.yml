@@ -1,7 +1,14 @@
-name: Terraform offline labs (37 CLI checks)
+name: Terraform offline labs & static IaC policy gates (37 CLI + TFLint/Trivy/Conftest)
 on:
   pull_request:
-    paths: ['labs/offline/**', 'labs/senior/S18/capstone/**', 'scripts/verify-terraform-labs.sh', '.github/workflows/terraform-labs.yml']
+    paths:
+      - 'labs/offline/**'
+      - 'labs/senior/S13/**'
+      - 'labs/senior/S18/**'
+      - 'scripts/verify-terraform-labs.*'
+      - 'scripts/ensure-iac-scanners.mjs'
+      - 'scripts/run-iac-scanners.mjs'
+      - '.github/workflows/terraform-labs.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -11,12 +18,22 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: '1.10.5'
-      - name: Run 36 offline labs and local capstone
+          terraform_wrapper: false
+      - name: Run 36 offline labs and local S18 capstone
         shell: bash
         run: bash scripts/verify-terraform-labs.sh
+      - name: Install and SHA-256 verify TFLint, Conftest & Trivy
+        run: node scripts/ensure-iac-scanners.mjs
+      - name: Run TFLint, Trivy Config & Conftest OPA policy suites (S13 + S18)
+        run: node scripts/run-iac-scanners.mjs --use-local-tools
       - name: Upload CLI verification evidence (even on failure)
         if: always()
         uses: actions/upload-artifact@v4

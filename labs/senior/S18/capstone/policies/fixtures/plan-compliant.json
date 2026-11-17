@@ -1,0 +1,23 @@
+{
+  "environment": "prod",
+  "monolithic_state": false,
+  "static_iam_keys": false,
+  "destructive_approved": false,
+  "resource_changes": [
+    {
+      "address": "module.workload[\"api\"].terraform_data.workload",
+      "change": {
+        "actions": ["create"]
+      }
+    }
+  ],
+  "workloads": [
+    {
+      "name": "api",
+      "tags": {
+        "owner": "platform-team",
+        "environment": "prod"
+      }
+    }
+  ]
+}

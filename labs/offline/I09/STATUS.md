@@ -1,1 +1,1 @@
-ESTADO: GENERADO Y REVISADO ESTÁTICAMENTE. Terraform CLI no disponible en este entorno; `fmt/init/validate/test` NO EJECUTADOS.
+ESTADO: VERIFICADO CON TERRAFORM CLI REAL (I09 — Terraform v1.10.5, 2026-11-16). Ejecución aislada local: terraform fmt -check = PASS · terraform init -backend=false = PASS · terraform validate = PASS · terraform test = PASS. Cloud / API real = NOT_RUN.
