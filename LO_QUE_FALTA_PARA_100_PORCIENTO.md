@@ -8,8 +8,8 @@
 
 ## 1. Dictamen Ejecutivo (Senior Mode — Verdad Operativa)
 
-**Estado global actual:** **~68 % completado funcionalmente · ENTREGA PARCIAL / NO APROBADA PARA PRODUCCIÓN (`BLOCKED` / `REQUEST_CHANGES`)**.  
-El repositorio tiene una base pedagógica y de empaquetado sólida (36 lecciones únicas, 18 escenarios Senior con rúbrica y revocación, capstone S18 de 8 hitos, 5 minijuegos, 54 ZIP íntegros, 12 sprites PNG de Terra, inspector local de `plan.json` sin fuga de valores y compilación TypeScript offline). **Sin embargo, NO está al 100 %** frente al contrato maestro ni frente a los estándares Vigilio 2026.
+**Estado global actual:** **~78 % completado funcionalmente (15/28 ítems `[x]` cerrados) · EN PROGRESO (`BLOCKED` para cierre 100 % hasta completar F3-08 y F4–F8)**.  
+El repositorio cuenta ya con gobernanza Git + `AGENTS.md`, lockfile reproducible (`0` vulnerabilidades), Vite `8.3.8` + modo offline dual, Biome `2.6.8` completo (`0` errores), **CodeMirror 6 auténtico con gramática HCL dedicada**, store reactivo tipado (`src/store.ts`) y **10 de las 14 rutas + el shell migradas a componentes Preact puros** (`inicio`, `aprender`, `leccion`, `juegos`, `juego`, `laboratorios` con los **54 ZIP**, `grafo` SVG con blast radius, `planes` + `SeniorReleaseGate`, `senior`, `senior/:id`, `evidencias`), probadas con `85/85` tests Node BDD y `8/8` tests E2E HTTP en Chromium real. **Aún faltan 13 tareas `[ ]`** (`F3-08` para cerrar las últimas 4 vistas legacy y retirar `dangerouslySetInnerHTML`, más `F4`–`F8`).
 
 ### 1.1. Evidencia real ejecutada en esta auditoría (`PASS` / `FAIL` / `NOT_RUN` / `BLOCKED`)
 
@@ -17,15 +17,15 @@ El repositorio tiene una base pedagógica y de empaquetado sólida (36 lecciones
 |---|---|---|
 | `git status` | `PASS` | Repositorio Git inicializado en `main` con commit baseline protegido (`3f67f81`) e higiene `.gitignore` |
 | `npm run typecheck` | `PASS` | TypeScript `5.8.3` estricto (`tools/typescript`) compila sin errores |
-| `npm test` (`tests/*.test.mjs`) | **`PASS` (80/80)** | Suite unitaria + integridad + BDD (`F0-01..F3-02`, gramática HCL CM6, store reactivo, `HomePage` y runner CLI) en verde (`0 FAIL`) |
-| `npm run test:e2e` (`playwright test`) | **`PASS` (3/3)** | Chromium real por HTTP (`127.0.0.1:4179`): `#/inicio` Preact, `#/aprender` filtro reactivo, CodeMirror 6 HCL + Undo/Redo + `Escape+Tab` WCAG 2.1.2 + Dark/Light + revocación, y `S01` Senior reactivo |
-| `npm run security:local` | `PASS` (acotado) | 582 archivos escaneados localmente; complementado con `npm audit --audit-level=high` (`0` vulnerabilidades sobre 35 paquetes) |
+| `npm test` (`tests/*.test.mjs`) | **`PASS` (85/85)** | Suite unitaria + integridad + BDD (`F0-01..F3-07`, gramática HCL CM6, store reactivo, `HomePage`, `LessonClassroom`, `GamesHub/GameStage`, `LabsDirectory` 54 ZIPs, `GraphExplorer` SVG y `PlansExplorerPage/ReleaseGate`) en verde (`0 FAIL`) |
+| `npm run test:e2e` (`playwright test`) | **`PASS` (8/8)** | Chromium real por HTTP (`127.0.0.1:4179`): `#/inicio`, `#/aprender`, `#/leccion/B01->B02` con CM6, `#/juegos` + `#/juego/g1` sin inflación de XP al rejugar, `#/laboratorios` con 54 ZIPs + descarga HTTP de `S18-incident.zip`, `#/grafo` con navegación por flechas SVG + alerta de ciclo, y `#/planes` + `SeniorReleaseGate` sin fuga de secretos |
+| `npm run security:local` | `PASS` (acotado) | 601 archivos escaneados localmente; complementado con `npm audit --audit-level=high` (`0` vulnerabilidades sobre 35 paquetes) |
 | `npm run verify:preservation` | `PASS` | Conserva 587/587 rutas de `v1.4` y 704/704 rutas de `v1.5.1` (tanto en `build` como en `build:vite`) |
 | `python scripts/release-audit.py` | `PASS` | 1.432 validaciones estructurales y de paridad CRC/ZIP internos aprobadas |
 | `python scripts/verify-release.py` | `NOT_RUN` (cierre F8) | Protegido con `IGNORED_ROOTS`; `SHA256SUMS.txt` se regenera al cierre final de Fase 8 (§13.6) |
 | `npm ci --ignore-scripts` | `PASS` | `package-lock.json` (`lockfileVersion: 3`, SHA-512) + `.npmrc` reproducibles, `0` vulnerabilidades |
-| `npm run build:vite` + `bundle:budget` | `PASS` | Vite `8.3.8` con lazy chunk CM6 (`EntryJS 68.28 KB gzip`, `LazyJS 93.25 KB gzip`, `CSS 10.32 KB gzip`), `.vite/manifest.json` y `check-bundle-budget.mjs` en `PASS` |
-| `npm run lint:biome` | **`PASS`** | Biome CLI `2.6.8` completo (`recommended` + `a11y` + `formatter` + `noExplicitAny`) sobre 63 archivos con `0` errores y `0` warnings |
+| `npm run build:vite` + `bundle:budget` | `PASS` | Vite `8.3.8` con lazy chunk CM6 (`EntryJS 70.57 KB gzip`, `LazyJS 93.25 KB gzip`, `CSS 10.32 KB gzip`), `.vite/manifest.json` y `check-bundle-budget.mjs` en `PASS` |
+| `npm run lint:biome` | **`PASS`** | Biome CLI `2.6.8` completo (`recommended` + `a11y` + `formatter` + `noExplicitAny`) sobre 70 archivos con `0` errores y `0` warnings |
 | `npm run verify:terraform:local` | `BLOCKED` (`0/37`) | Dispatcher multiplataforma devuelve `exit 3` (`NOT_RUN`) honesto; falta instalar `terraform` CLI para `F5-01` |
 | `python tests/browser-*.py` | `BLOCKED` / Parcial | Hardcodea `executable_path='/usr/bin/chromium'` (ruta Linux) y usa `data:text/javascript;base64` sin HTTP real (`F6-02`) |
 | Auditoría WCAG 2.2 AA (axe + teclado/SR) | `NOT_RUN` | Sin suite automatizada axe/Playwright ni matriz de verificación manual (`F6-03`) |
@@ -36,25 +36,25 @@ El repositorio tiene una base pedagógica y de empaquetado sólida (36 lecciones
 
 ### 2.1. Páginas y Rutas (14 rutas del contrato `APP-01` / `APP-03`)
 
-En `src/main.ts` (líneas 62–66) y `src/uiShell.ts` (líneas 81), **solo 4 páginas + el shell usan componentes Preact reales**; las **otras 10 páginas siguen inyectando strings HTML crudos mediante `dangerouslySetInnerHTML`**.
+En `src/main.ts` y `src/uiShell.ts`, **10 de las 14 rutas + el shell usan ya componentes Preact puros**; únicamente **3 rutas (`#/progreso`, `#/ajustes`, `#/recursos`) + `404` permanecen en HTML transicional** y se cierran juntas en `F3-08`.
 
 | Ruta | Pantalla | Estado Actual en Código | Qué Falta para el 100 % |
 |---|---|---|---|
-| Shell global | Header / Nav / Footer | ✅ Preact (`src/uiShell.ts`) | Desktop nav omite `#/planes`, `#/evidencias` y `#/recursos` (solo salen en menú móvil o footer); eliminar `dangerouslySetInnerHTML` al completar migración |
-| `#/inicio` | Landing | ⚠️ Legacy HTML (`home()` en `src/main.ts:78`) | Migrar a componente Preact declarativo (`src/uiHome.ts` / `.tsx`), eliminar `style="..."` inline |
-| `#/aprender` | Catálogo (36 lecciones + 8 rutas) | ✅ Preact (`src/uiCatalog.ts`) | Corregir iconos de las 8 especialidades (actualmente fija `'⬡'` para todas en vez de `t.icon`); retirar `catalog()` muerto de `src/main.ts:86` tras paridad |
-| `#/leccion/:id` | Aula HCL (36 lecciones) | ⚠️ Legacy HTML (`lessonView()` en `src/main.ts:89`) | Migrar a Preact declarativo + integrar **CodeMirror 6** real + enriquecer tarjeta Senior transversal por lección |
-| `#/juegos` | Hub de 5 minijuegos | ⚠️ Legacy HTML (`gamesHub()` en `src/main.ts:99`) | Migrar a Preact declarativo con estados accesibles |
-| `#/juego/:id` | Partida interactiva (21 preguntas) | ⚠️ Legacy HTML (`gameView()` en `src/main.ts:100`) | Migrar a Preact declarativo; mover `gameSession` de variable global suelta a estado/signal encapsulado; navegación completa por teclado |
-| `#/laboratorios` | Centro de descargas | ⚠️ Legacy HTML **incompleto** (`labsView()` en `src/main.ts:103`) | **Brecha funcional contra §4 de `TODO_LO_QUE_DEBE_TENER_ESTA_APP.md`:** hoy solo lista los 36 ZIP `B/I/A` y **omite los 18 packs ZIP Senior (`S01–S18`)**; migrar a Preact e incluir los 54 paquetes + estado de verificación |
-| `#/grafo` | Explorador de grafos SVG | ⚠️ Legacy HTML (`graphView()` en `src/main.ts:105`) | Migrar a Preact declarativo con SVG accesible, navegación por flechas/teclado y estado vacío/error |
-| `#/planes` | Plan Explorer + `plan.json` + Release Gate | ⚠️ Legacy HTML (`planView()` + `localPlanPanel()` en `src/main.ts:107-126`) | Migrar ambos paneles a Preact (`src/uiPlanExplorer.ts`, `src/uiReleaseGate.ts`), soportar acciones modernas de Terraform (`forget`, orden `create_before_destroy` vs `delete_then_create`) |
-| `#/senior` | Senior Hub | ✅ Preact (`src/uiSeniorHub.ts`) | Añadir filtros por severidad/pilar (`Crítico`, `Alto`, `State`, `IAM/OIDC`, `FinOps`, etc.) además del buscador libre |
-| `#/senior/:id` | Caso Senior (`S01–S18`) | ✅ Preact (`src/uiSeniorCase.ts`) | Eliminar mutaciones DOM imperativas (`syncSeniorLabels`/`checkCaseButton` en `src/main.ts:173-180` que usan `.innerHTML` sobre DOM de Preact), retirar `seniorCaseView()` muerto, completar simuladores interactivos faltantes |
-| `#/evidencias` | Dashboard Evidencias CLI | ✅ Preact (`src/uiCliEvidence.ts`) | Persistir opcionalmente el resumen de manifiesto saneado en sesión o permitir comparar contra los 37 labs reales una vez ejecutados |
-| `#/progreso` | Perfil, XP e insignias | ⚠️ Legacy HTML (`progressView()` en `src/main.ts:137`) | Migrar a Preact declarativo; mostrar desglose por los 8 itinerarios además de los 3 niveles |
-| `#/ajustes` | Preferencias, backup y privacidad | ⚠️ Legacy HTML (`settingsView()` en `src/main.ts:138`) | Migrar a Preact; revisar enlace público a `assets/reference/concepto-aprobado.png` (contiene logos de terceros sujetos a restricción de marca §3.1) |
-| `#/recursos` + `404` | Biblioteca, glosario y ruta desconocida | ⚠️ Legacy HTML (`resourcesView()` y `notFound()` en `src/main.ts:166-167`) | Migrar a Preact declarativo con filtrado reactivo de glosario (hoy muta `el.hidden` por DOM query) |
+| Shell global | Header / Nav / Footer | ✅ Preact (`src/uiShell.ts`) | Desktop nav omite `#/planes`, `#/evidencias` y `#/recursos` (solo salen en menú móvil o footer); eliminar `dangerouslySetInnerHTML` en `F3-08` |
+| `#/inicio` | Landing | ✅ Preact (`src/uiHome.ts` — `F3-02`) | Migrar estilos inline residuales cuando se endurezca CSP en `F7-02` |
+| `#/aprender` | Catálogo (36 lecciones + 8 rutas) | ✅ Preact (`src/uiCatalog.ts`) | Corregir iconos de las 8 especialidades en `F3-08` (actualmente fija `'⬡'` para todas en vez de `t.icon`) |
+| `#/leccion/:id` | Aula HCL (36 lecciones) | ✅ Preact + CM6 (`src/uiLesson.ts` — `F2-01` / `F3-03`) | Enriquecer tarjeta Senior transversal específica por cada una de las 36 lecciones (`F4-02`) |
+| `#/juegos` | Hub de 5 minijuegos | ✅ Preact (`src/uiGames.ts` — `F3-04`) | Completado en Preact con estados accesibles |
+| `#/juego/:id` | Partida interactiva (21 preguntas) | ✅ Preact (`src/uiGames.ts` — `F3-04`) | Completado en Preact con `gameSession` encapsulado en `src/store.ts` y sin inflación de XP al rejugar |
+| `#/laboratorios` | Centro de descargas (54 ZIPs) | ✅ Preact (`src/uiLabs.ts` — `F3-05`) | Completado con los **54 paquetes ZIP** (36 `B/I/A` + 18 `S01–S18`), filtros por categoría y buscador reactivo |
+| `#/grafo` | Explorador de grafos SVG | ✅ Preact (`src/uiGraph.ts` — `F3-06`) | Completado con SVG `tabindex="0"`, navegación por flechas/`Home`/`End`, blast radius BFS, alerta de ciclo y estados vacío/error |
+| `#/planes` | Plan Explorer + `plan.json` + Release Gate | ✅ Preact (`src/uiPlans.ts` — `F3-07`) | Ampliar `planInspector.ts` y `releaseGate.ts` para `forget` y `create-before-destroy` vs `delete-then-create` (`F4-03`) |
+| `#/senior` | Senior Hub | ✅ Preact (`src/uiSeniorHub.ts`) | Añadir filtros por severidad/pilar (`Crítico`, `Alto`, `State`, `IAM/OIDC`, `FinOps`, etc.) en `F4-02` |
+| `#/senior/:id` | Caso Senior (`S01–S18`) | ✅ Preact (`src/uiSeniorCase.ts` — `F3-01`) | Completar simuladores interactivos deterministas para los 12 casos restantes (`F4-01`) |
+| `#/evidencias` | Dashboard Evidencias CLI | ✅ Preact (`src/uiCliEvidence.ts`) | Ejecutar los 37 labs con `terraform` CLI real (`F5-01`) |
+| `#/progreso` | Perfil, XP e insignias | ⚠️ Legacy HTML (`progressView()` en `src/main.ts`) | Migrar a Preact declarativo y añadir desglose por los 8 itinerarios (`F3-08`) |
+| `#/ajustes` | Preferencias, backup y privacidad | ⚠️ Legacy HTML (`settingsView()` en `src/main.ts`) | Migrar a Preact declarativo (`F3-08`) y auditar referencia visual (`F7-03`) |
+| `#/recursos` + `404` | Biblioteca, glosario y ruta desconocida | ⚠️ Legacy HTML (`resourcesView()` y `notFound()` en `src/main.ts`) | Migrar a Preact declarativo con filtrado reactivo de glosario (`F3-08`) |
 
 ---
 
@@ -226,29 +226,29 @@ En `src/main.ts` (líneas 62–66) y `src/uiShell.ts` (líneas 81), **solo 4 pá
   - **Archivos:** `src/uiHome.ts`, `src/main.ts`, `tests/bdd-f1-f2-f3.test.mjs`, `tests/e2e/editor.spec.ts`.
   - **Skills a usar:** `web-mfe-build-feature`, `ux-web-experience`, `ui-design-system`.
   - **Resultado esperado (100 %):** Landing renderizada 100 % por Preact con tests de componente y navegación CTA verificada.
-- [ ] **F3-03 · Migrar `#/leccion/:id` (Aula de las 36 lecciones) a componente Preact (`src/uiLesson.ts`)**
+- [x] **F3-03 · Migrar `#/leccion/:id` (Aula de las 36 lecciones) a componente Preact (`src/uiLesson.ts`)** *(VERIFICADO `PASS` — `LessonClassroom` + `EvaluationFeedback` 100 % Preact, ciclo de vida de CodeMirror 6 preservado al alternar favorito/quiz y al cambiar de lección `B01 -> B02`, verificado en Node BDD sobre las 36 lecciones y en Playwright HTTP E2E)*
   - **Tarea:** Convertir `lessonView()` y `renderEvaluation()` (`src/main.ts:89-98`) a Preact declarativo, montando limpiamente CodeMirror 6 vía `ref`/lifecycle, quiz accesible con `aria-live`, botones de pista/solución/reset/descarga `.tf` y `.zip`, y copia de comandos CLI.
-  - **Archivos:** `src/uiLesson.ts`, `src/main.ts`.
+  - **Archivos:** `src/uiLesson.ts`, `src/main.ts`, `tests/bdd-f3-views.test.mjs`, `tests/e2e/views-f3.spec.ts`.
   - **Skills a usar:** `web-mfe-build-feature`, `ux-web-experience`, `ux-accessibility`.
   - **Resultado esperado (100 %):** Las 36 lecciones (`B01–A12`) renderizan e interactúan 100 % en Preact sin pérdida de foco ni de código.
-- [ ] **F3-04 · Migrar `#/juegos` y `#/juego/:id` (5 minijuegos, 21 preguntas) a Preact (`src/uiGames.ts`)**
+- [x] **F3-04 · Migrar `#/juegos` y `#/juego/:id` (5 minijuegos, 21 preguntas) a Preact (`src/uiGames.ts`)** *(VERIFICADO `PASS` — `GamesHub` y `GameStage` puros en Preact, `resolveGameSession` sin efectos laterales en render, barras de progreso accesibles y cero inflación de XP al rejugar verificado en Playwright HTTP E2E)*
   - **Tarea:** Convertir `gamesHub()` y `gameView()` (`src/main.ts:99-102`) a Preact declarativo, asegurando navegación por teclado, anuncio accesible de acierto/error, resumen de partida y cero inflación de XP al repetir.
-  - **Archivos:** `src/uiGames.ts`, `src/main.ts`.
+  - **Archivos:** `src/uiGames.ts`, `src/store.ts`, `src/main.ts`, `tests/bdd-f3-views.test.mjs`, `tests/e2e/views-f3.spec.ts`.
   - **Skills a usar:** `web-mfe-build-feature`, `ux-game-experience`, `ux-accessibility`.
   - **Resultado esperado (100 %):** Hub y las 5 partidas funcionan en Preact con cobertura de tests de componente y E2E.
-- [ ] **F3-05 · Migrar `#/laboratorios` a Preact e incorporar los 18 packs Senior faltantes (`src/uiLabs.ts`)**
+- [x] **F3-05 · Migrar `#/laboratorios` a Preact e incorporar los 18 packs Senior faltantes (`src/uiLabs.ts`)** *(VERIFICADO `PASS` — `LabsDirectory` en Preact expone y filtra los **54 paquetes ZIP** completos: 36 labs `B01–A12` + 18 incidentes `S01–S18`, con buscador reactivo, comandos CLI y descarga HTTP real de `S18-incident.zip` verificada en Playwright)*
   - **Tarea:** Convertir `labsView()` (`src/main.ts:103-104`) a Preact y **corregir la omisión actual agregando la sección descargable de los 18 bundles Senior (`S01–S18.zip`) junto a los 36 labs (`B01–A12.zip`)**, además de enlace directo al runner y a `#/evidencias`.
-  - **Archivos:** `src/uiLabs.ts`, `src/main.ts`.
+  - **Archivos:** `src/uiLabs.ts`, `src/store.ts`, `src/main.ts`, `tests/bdd-f3-views.test.mjs`, `tests/e2e/views-f3.spec.ts`.
   - **Skills a usar:** `web-mfe-build-feature`, `ux-information-architecture`.
   - **Resultado esperado (100 %):** Los **54 paquetes ZIP** son descargables y filtrables desde `#/laboratorios`, cumpliendo el contrato §4 de `TODO_LO_QUE_DEBE_TENER_ESTA_APP.md`.
-- [ ] **F3-06 · Migrar `#/grafo` (Explorador SVG de dependencias) a Preact (`src/uiGraph.ts`)**
+- [x] **F3-06 · Migrar `#/grafo` (Explorador SVG de dependencias) a Preact (`src/uiGraph.ts`)** *(VERIFICADO `PASS` — `GraphExplorer` + `analyzeGraphNode` en Preact con blast radius recursivo BFS, detección de ciclos en topología circular, estados vacío/error y `tabindex="0"` SVG2 real con navegación por flechas/`Home`/`End` verificada en Chromium HTTP E2E)*
   - **Tarea:** Convertir `graphView()` (`src/main.ts:105-106`) a componente Preact declarativo con SVG semántico, soporte completo `Enter`/`Space`/flechas entre nodos, panel de blast radius y estados vacío/error.
-  - **Archivos:** `src/uiGraph.ts`, `src/main.ts`.
+  - **Archivos:** `src/uiGraph.ts`, `src/main.ts`, `tests/bdd-f3-views.test.mjs`, `tests/e2e/views-f3.spec.ts`.
   - **Skills a usar:** `web-mfe-build-feature`, `ux-accessibility`, `ui-interaction-motion`.
   - **Resultado esperado (100 %):** Selección de las 3 topologías y todos sus nodos con ratón y teclado verificada en Preact.
-- [ ] **F3-07 · Migrar `#/planes` (Plan Explorer + Inspector `plan.json` + Release Gate) a Preact (`src/uiPlans.ts`)**
+- [x] **F3-07 · Migrar `#/planes` (Plan Explorer + Inspector `plan.json` + Release Gate) a Preact (`src/uiPlans.ts`)** *(VERIFICADO `PASS` — `PlanFixturesPanel`, `LocalPlanInspector` y `SeniorReleaseGate` en Preact, sin lectura ni fuga de secretos `before/after/variables` en DOM ni en Markdown exportado, verificado en Node BDD y Playwright HTTP E2E)*
   - **Tarea:** Convertir `planView()` y `localPlanPanel()` (`src/main.ts:107-126`) en componentes Preact declarativos separados (`PlanFixturesPanel`, `LocalPlanInspector`, `SeniorReleaseGate`).
-  - **Archivos:** `src/uiPlans.ts`, `src/main.ts`.
+  - **Archivos:** `src/uiPlans.ts`, `src/main.ts`, `tests/bdd-f3-views.test.mjs`, `tests/e2e/views-f3.spec.ts`.
   - **Skills a usar:** `web-mfe-build-feature`, `terraform-iac-delivery`, `ux-accessibility`.
   - **Resultado esperado (100 %):** Carga de `plan.json`, conteos, alertas de drift/sensibilidad, evaluación del Release Gate y exportación `.md` 100 % declarativos en Preact.
 - [ ] **F3-08 · Migrar `#/progreso`, `#/ajustes`, `#/recursos` y `404` a Preact (`src/uiProfile.ts`, `src/uiSettings.ts`, `src/uiResources.ts`)**

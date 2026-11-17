@@ -12,13 +12,18 @@ import { capstoneNoteValid, reconcileSeniorCompletion, seniorGate } from './seni
 import { buildSeniorPortfolio, buildSeniorReport } from './seniorReport.js';
 import { evaluateSeniorDrill } from './seniorWhatIf.js';
 import { cidrOverlap, estimateCost, planIntegrity } from './simulators.js';
-import { createAcademyStore, filterGlossary, isCaseTabId } from './store.js';
+import { createAcademyStore, filterGlossary, isCaseTabId, isLabsCategory, resolveGameSession } from './store.js';
 import { LearningCatalog } from './uiCatalog.js';
 import { CliEvidenceDashboard } from './uiCliEvidence.js';
+import { GameStage, GamesHub } from './uiGames.js';
+import { GraphExplorer } from './uiGraph.js';
 import { HomePage, findNextLesson } from './uiHome.js';
+import { LabsDirectory } from './uiLabs.js';
+import { LessonClassroom } from './uiLesson.js';
+import { PlansExplorerPage } from './uiPlans.js';
 import { SeniorCasePage } from './uiSeniorCase.js';
 import { SeniorDashboard } from './uiSeniorHub.js';
-import { ROUTES, iconFor, mascotUrl } from './uiShared.js';
+import { ROUTES, mascotUrl } from './uiShared.js';
 import { AppShell } from './uiShell.js';
 import { h, render as renderPreact } from './vendor/preact.mjs';
 const appElement = document.getElementById('app');
@@ -30,7 +35,7 @@ const LESSON_IDS = lessons.map((item) => item.id);
 const SENIOR_IDS = seniorCases.map((item) => item.id);
 const store = createAcademyStore({ lessons, seniorCases });
 let toastTimer;
-const cls = (active, good = 'active') => (active ? good : '');
+let lastMountedLessonId = '';
 function notify(message, error = false) {
     if (toastTimer) {
         window.clearTimeout(toastTimer);
@@ -50,6 +55,12 @@ function parseCurrentRoute() {
         query: new URLSearchParams(rawQuery)
     };
 }
+function syncTextareaValueIfMounted(code) {
+    const textarea = document.querySelector('#code-editor');
+    if (textarea) {
+        textarea.value = code;
+    }
+}
 function render() {
     const s = store.getState();
     const state = s.academy;
@@ -63,13 +74,22 @@ function render() {
             s.activeLevel = from;
         }
     }
-    // Preserve caret inside the transitional `#glossary-search` input until F3-08 migrates `#/recursos` to Preact
+    // Preserve caret inside transitional `#glossary-search` input until F3-08 migrates `#/recursos` to Preact
     const activeEl = document.activeElement;
     const restoreGlossaryCaret = page === 'recursos' && activeEl instanceof HTMLInputElement && activeEl.id === 'glossary-search'
         ? { start: activeEl.selectionStart, end: activeEl.selectionEnd }
         : null;
-    if (page !== 'leccion') {
+    const activeLesson = page === 'leccion' && param ? getLesson(param) : undefined;
+    if (!activeLesson) {
         disposeCodeEditor();
+        lastMountedLessonId = '';
+    }
+    else if (lastMountedLessonId && lastMountedLessonId !== activeLesson.id) {
+        disposeCodeEditor();
+    }
+    const activeGame = page === 'juego' && param ? games.find((g) => g.id === param) : undefined;
+    if (activeGame && (!s.gameSession || s.gameSession.id !== activeGame.id)) {
+        s.gameSession = resolveGameSession(s.gameSession, activeGame.id);
     }
     const seniorScenario = page === 'senior' && param ? getCase(param) : undefined;
     const declarativeView = page === 'inicio'
@@ -82,53 +102,75 @@ function render() {
                 level: s.activeLevel,
                 searchQuery: s.lessonSearch
             })
-            : page === 'senior' && !param
-                ? h(SeniorDashboard, {
+            : page === 'leccion' && activeLesson
+                ? h(LessonClassroom, {
+                    lesson: activeLesson,
+                    lessons,
                     state,
-                    cases: seniorCases,
-                    searchQuery: s.seniorSearch
+                    evalResult: s.evals[activeLesson.id]
                 })
-                : page === 'senior' && seniorScenario
-                    ? h(SeniorCasePage, {
-                        scenario: seniorScenario,
-                        cases: seniorCases,
-                        state,
-                        tab: s.caseTab,
-                        showFix: s.showSeniorFix,
-                        simResult: s.seniorSimResult,
-                        cidrA: s.simInputs.cidrA,
-                        cidrB: s.simInputs.cidrB,
-                        approvedCommit: s.simInputs.approvedCommit,
-                        appliedCommit: s.simInputs.appliedCommit,
-                        replicas: s.simInputs.simulatedReplicas
-                    })
-                    : page === 'evidencias'
-                        ? h(CliEvidenceDashboard, {
-                            manifest: s.cliManifest,
-                            error: s.cliManifestError
-                        })
-                        : undefined;
+                : page === 'juegos'
+                    ? h(GamesHub, { games, state })
+                    : page === 'juego' && activeGame && s.gameSession
+                        ? h(GameStage, { game: activeGame, session: s.gameSession })
+                        : page === 'laboratorios'
+                            ? h(LabsDirectory, {
+                                lessons,
+                                seniorCases,
+                                category: s.labsCategory,
+                                searchQuery: s.labsSearch
+                            })
+                            : page === 'grafo'
+                                ? h(GraphExplorer, {
+                                    graphs,
+                                    selectedGraphId: s.selectedGraph,
+                                    selectedNodeId: s.selectedNode
+                                })
+                                : page === 'planes'
+                                    ? h(PlansExplorerPage, {
+                                        fixtures: planFixtures,
+                                        selectedPlanId: s.selectedPlan,
+                                        showPlanRisks: s.showPlanRisks,
+                                        userPlan: s.userPlan,
+                                        userPlanError: s.userPlanError,
+                                        gateAnswers: s.gateAnswers,
+                                        gateReview: s.gateReview
+                                    })
+                                    : page === 'senior' && !param
+                                        ? h(SeniorDashboard, {
+                                            state,
+                                            cases: seniorCases,
+                                            searchQuery: s.seniorSearch
+                                        })
+                                        : page === 'senior' && seniorScenario
+                                            ? h(SeniorCasePage, {
+                                                scenario: seniorScenario,
+                                                cases: seniorCases,
+                                                state,
+                                                tab: s.caseTab,
+                                                showFix: s.showSeniorFix,
+                                                simResult: s.seniorSimResult,
+                                                cidrA: s.simInputs.cidrA,
+                                                cidrB: s.simInputs.cidrB,
+                                                approvedCommit: s.simInputs.approvedCommit,
+                                                appliedCommit: s.simInputs.appliedCommit,
+                                                replicas: s.simInputs.simulatedReplicas
+                                            })
+                                            : page === 'evidencias'
+                                                ? h(CliEvidenceDashboard, {
+                                                    manifest: s.cliManifest,
+                                                    error: s.cliManifestError
+                                                })
+                                                : undefined;
     const legacyContent = declarativeView
         ? ''
-        : page === 'leccion'
-            ? lessonView(param)
-            : page === 'juegos'
-                ? gamesHub()
-                : page === 'juego'
-                    ? gameView(param)
-                    : page === 'laboratorios'
-                        ? labsView()
-                        : page === 'grafo'
-                            ? graphView()
-                            : page === 'planes'
-                                ? planView()
-                                : page === 'progreso'
-                                    ? progressView()
-                                    : page === 'ajustes'
-                                        ? settingsView()
-                                        : page === 'recursos'
-                                            ? resourcesView()
-                                            : notFound();
+        : page === 'progreso'
+            ? progressView()
+            : page === 'ajustes'
+                ? settingsView()
+                : page === 'recursos'
+                    ? resourcesView()
+                    : notFound();
     renderPreact(h(AppShell, {
         page,
         mobileMenu: s.mobileMenu,
@@ -146,15 +188,15 @@ function render() {
             }
         }
     }
-    if (page === 'leccion' && getLesson(param)) {
+    if (activeLesson) {
+        lastMountedLessonId = activeLesson.id;
         void activateCodeEditor((value) => {
-            const lessonId = param;
+            const lessonId = activeLesson.id;
             const snapshot = store.getState();
             snapshot.academy.code[lessonId] = value.slice(0, 30000);
             delete snapshot.evals[lessonId];
             const invalidated = reconcileLessonCompletion(snapshot.academy, lessons);
             if (invalidated.length > 0) {
-                disposeCodeEditor();
                 store.update(() => { }, { persist: true });
             }
             else {
@@ -186,132 +228,6 @@ function stats() {
 }
 function levelLessons(level) {
     return lessons.filter((l) => l.level === level);
-}
-let lastRenderedLessonId = '';
-function lessonView(id) {
-    const l = id ? getLesson(id) : undefined;
-    if (!l)
-        return notFound();
-    if (lastRenderedLessonId !== l.id) {
-        disposeCodeEditor();
-        lastRenderedLessonId = l.id;
-    }
-    const s = store.getState();
-    const state = s.academy;
-    const code = state.code[l.id] ?? l.starter;
-    const evalResult = s.evals[l.id];
-    const selected = state.quizAnswers[l.id];
-    const correctQuiz = selected === l.correct;
-    const done = state.completed.includes(l.id);
-    const idx = lessons.findIndex((x) => x.id === id);
-    const prev = lessons[idx - 1];
-    const next = lessons[idx + 1];
-    return `<div class="breadcrumb"><a href="${ROUTES.home}">Inicio</a> / <a href="${ROUTES.learn}">Aprender</a> / ${e(l.level)} / <span>${e(l.id)}</span></div><div class="lesson-header"><div class="flex-wrap">${label(`Lección ${l.id}`, 'purple')}${label(l.level, 'cyan')}${done ? label('✓ Completada', 'green') : label(`${l.xp} XP`, 'purple')}${state.seniorEnabled ? label('♛ Senior Mode activo', 'yellow') : ''}<button type="button" class="btn btn-sm" data-action="favorite" data-id="${l.id}" aria-pressed="${state.favorites.includes(l.id)}">${state.favorites.includes(l.id) ? '★ Guardado' : '☆ Favorito'}</button></div><h1 class="page-title">${e(l.title)}</h1><p class="page-lead">${e(l.subtitle)}</p><div class="space12"></div>${bar(state.completed.filter((x) => x.startsWith(l.id[0])).length, 12)}</div>
-<div class="lesson-layout"><div class="lesson-main"><section class="content-panel"><div class="objective-strip"><div style="flex:1"><div class="eyebrow">CONCEPTO · ${e(l.level.toUpperCase())}</div><h2 style="margin:8px 0">Lo que aprenderás</h2><p class="prose">${e(l.concept)}</p></div><img src="${mascotUrl('leyendo')}" alt="Terra leyendo un manual" /></div><div class="concept-grid"><div class="concept-tile"><strong>01 · Comprender</strong>${e(l.subtitle)}</div><div class="concept-tile"><strong>02 · Practicar</strong>Editar HCL y comprobar condiciones específicas de esta lección.</div><div class="concept-tile"><strong>03 · Verificar</strong>Resolver el quiz y, si aplica, ejecutar pruebas CLI en tu equipo.</div></div></section>
-<div class="mission-banner"><strong>🎯 TU MISIÓN</strong>Completa el bloque marcado como TODO para conseguir las condiciones esperadas. Después responde la pregunta de conocimiento. <b>La web no ejecuta HCL ni Terraform CLI.</b></div>
-<section class="editor-card"><div class="editor-toolbar"><div class="flex"><span style="color:#8a62e9">▣</span><span class="file-tab">main.tf</span></div><span class="editor-tag">HCL · editor de texto</span></div><label class="sr-only" for="code-editor">Editor HCL de ${e(l.id)}</label><textarea id="code-editor" class="code-editor" data-input="code" data-id="${l.id}" spellcheck="false" autocapitalize="off" aria-label="Editor main.tf">${e(code)}</textarea><div class="editor-bottom"><div class="flex"><button type="button" class="btn btn-primary btn-sm" data-action="evaluate" data-id="${l.id}">▶ Evaluar reglas</button><button type="button" class="btn btn-sm" data-action="hint" data-id="${l.id}">✦ Pista</button><button type="button" class="btn btn-sm" data-action="solution" data-id="${l.id}">Ver solución</button></div><div class="flex"><button type="button" class="btn btn-sm" data-action="reset-code" data-id="${l.id}">↺ Restablecer</button><button type="button" class="btn btn-sm" data-action="download-code" data-id="${l.id}">↓ .tf</button></div></div></section>
-${evalResult ? renderEvaluation(evalResult) : ''}<section class="content-panel"><div class="eyebrow">COMPRENSIÓN</div><h2 style="margin-top:9px">Pon a prueba tu criterio</h2><p class="prose">${e(l.question)}</p><div class="space16"></div>${l.options.map((opt, i) => `<button type="button" class="quiz-answer ${cls(selected === i, 'selected')} ${selected === i ? (correctQuiz ? 'correct' : 'incorrect') : ''}" data-action="answer-quiz" data-id="${l.id}" data-index="${i}"><span class="quiz-letter">${String.fromCharCode(65 + i)}</span><span>${e(opt)}</span></button>`).join('')}${selected !== undefined ? `<div class="space16"></div><div class="feedback ${correctQuiz ? '' : 'fail'}"><h3>${correctQuiz ? '✓ Respuesta correcta' : '⨯ Esa opción no es correcta'}</h3><p>${correctQuiz ? 'Buen criterio. Ahora comprueba las reglas HCL.' : `Revisa la explicación y vuelve a intentarlo. Pista: ${e(l.tip)}`}</p></div>` : ''}</section>
-<div class="flex-wrap">${done ? label('✓ Lección completada', 'green') : label('Pendiente: evaluación + quiz', 'yellow')}${link('⬇ Descargar laboratorio', `./assets/labs/${l.id}.zip`, 'btn btn-soft')}${link('Ver grafos →', ROUTES.graph, 'btn btn-sm')}</div><div class="space16"></div>${link('Ver evidencia CLI real →', ROUTES.evidence, 'btn btn-soft')}<div class="lesson-footer">${prev ? link(`← ${e(`${prev.id} · ${prev.title}`)}`, `#/leccion/${prev.id}`, 'btn') : link('← Ver currículo', ROUTES.learn, 'btn')}${next ? link(`Siguiente: ${e(next.id)} →`, `#/leccion/${next.id}`, 'btn btn-primary') : link('Ir a Senior Mode →', ROUTES.senior, 'btn btn-primary')}</div>
-${state.seniorEnabled ? `<section class="case-review"><b>♛ PREGUNTA DE ARQUITECTURA</b><p>¿Cómo cambiarían los riesgos de esta configuración en producción? Define owner, observabilidad y una prueba reproducible.</p><div class="space12"></div>${link('Ver casos relacionados →', ROUTES.senior, 'btn btn-sm btn-soft')}</section>` : ''}</div>
-<aside class="lesson-aside"><div class="content-panel"><h3>Paso a paso</h3>${['Lee el concepto y el resultado esperado.', 'Completa la línea TODO en main.tf.', 'Pulsa “Evaluar reglas” (no CLI).', 'Responde el quiz correctamente.', 'Descarga y ejecuta la práctica local.'].map((step, i) => `<div class="side-step ${i === 0 ? 'active' : ''}">${i + 1}. ${step}</div>`).join('')}</div><div class="content-panel"><img src="${mascotUrl(done ? 'exito' : 'idea')}" class="side-terra" alt="Mascota Terra ofreciendo ayuda"/><p class="side-note">${done ? '¡Lección completada! Puedes repetirla cuando quieras.' : 'Terra te acompaña. Pide una pista cuando te atasques.'}</p><div class="space12"></div><div class="side-caution">${e(l.warning)}</div></div><div class="content-panel"><h3>Práctica local</h3><p class="card-desc">En tu equipo con Terraform CLI instalado, tras descomprimir el pack:</p>${['terraform fmt -check', 'terraform init -backend=false', 'terraform validate', 'terraform test'].map((cmd) => `<div class="terminal-command"><code>${cmd}</code><button type="button" data-action="copy" data-value="${e(cmd)}">Copiar</button></div>`).join('')}<p class="small-note">Los comandos no se ejecutan en el navegador. Los resultados CLI están sin verificar en esta sesión.</p></div></aside></div>`;
-}
-function renderEvaluation(result) {
-    return `<div class="feedback ${result.ok ? '' : 'fail'}" role="status"><h3>${result.ok ? '✓ Reglas educativas superadas' : '⚠ Aún hay condiciones por corregir'}</h3><ul>${result.checks.map((item) => `<li>${item.ok ? '✓' : '○'} ${e(item.label)}</li>`).join('')}</ul><p class="provenance">PROCEDENCIA: ${result.provenance} · ${e(result.note)}</p></div>`;
-}
-function gamesHub() {
-    const state = store.getState().academy;
-    return `<div class="breadcrumb"><a href="${ROUTES.home}">Inicio</a> / <span>Minijuegos</span></div><div class="eyebrow">APRENDE JUGANDO</div><h1 class="page-title">Minijuegos IaC</h1><p class="page-lead">Cinco mecánicas, veintiuna preguntas y feedback específico. Los juegos comprueban conocimientos; no simulan una ejecución real de Terraform.</p><div class="space24"></div><div class="games-grid">${games.map((g, i) => `<div class="card game-card"><div class="flex space-between">${label(g.eyebrow, i % 2 ? 'cyan' : 'purple')}${label(`Mejor: ${state.gameWins[g.id] || 0}/${g.questions.length}`, 'green')}</div><div style="font-size:36px;color:var(--purple)">${iconFor(g.icon)}</div><h3>${e(g.title)}</h3><p>${e(g.description)}</p>${link('▶ Jugar', `#/juego/${g.id}`, 'btn btn-primary')}</div>`).join('')}</div><section class="section"><div class="senior-banner"><div><div class="eyebrow">DESAFÍO EXTRA</div><h3>¿Y si una decisión de Terraform falla en producción?</h3><p>Senior Mode añade incidentes sintéticos, revisión técnica y documentación de decisiones verificable.</p><div class="space16"></div>${link('Ir a Senior Mode →', ROUTES.senior, 'btn btn-primary')}</div><img src="${mascotUrl('alerta')}" alt="Terra reaccionando a una alerta"/></div></section>`;
-}
-function gameView(id) {
-    const game = games.find((g) => g.id === id);
-    if (!game)
-        return notFound();
-    const storeState = store.getState();
-    if (!storeState.gameSession || storeState.gameSession.id !== game.id) {
-        storeState.gameSession = { id: game.id, at: 0, score: 0, last: null, finished: false };
-    }
-    const s = storeState.gameSession;
-    if (s.finished) {
-        const won = s.score >= Math.ceil(game.questions.length * 0.8);
-        return `<div class="breadcrumb"><a href="${ROUTES.games}">Minijuegos</a> / <span>${e(game.title)}</span></div><div class="game-stage card game-result"><div class="eyebrow">JUEGO FINALIZADO</div><img src="${mascotUrl(won ? 'exito' : 'pensando')}" alt="Terra mostrando el resultado del juego"/><h2>${won ? '¡Reto superado!' : 'Buen intento, sigue practicando'}</h2><p class="prose" style="margin:15px 0">Respuestas correctas: <strong>${s.score} de ${game.questions.length}</strong>. ${won ? 'Has logrado el objetivo de conocimiento.' : 'Lee las explicaciones e inténtalo de nuevo.'}</p>${label(won ? '+20 XP por respuesta acertada' : 'Practica y mejora', won ? 'green' : 'yellow')}<div class="space24"></div><div class="flex-wrap" style="justify-content:center"><button type="button" class="btn btn-primary" data-action="restart-game" data-id="${game.id}">↺ Volver a jugar</button>${link('Todos los juegos', ROUTES.games, 'btn')}</div></div>`;
-    }
-    const q = game.questions[s.at];
-    return `<div class="breadcrumb"><a href="${ROUTES.games}">Minijuegos</a> / <span>${e(game.title)}</span></div><div class="game-stage"><div class="flex space-between"><div><div class="eyebrow">${e(game.eyebrow)}</div><h1 class="page-title">${e(game.title)}</h1></div><img src="${mascotUrl(s.last === null ? 'pensando' : 'exito')}" alt="Terra" class="portrait"></div><div class="game-progress">${game.questions.map((_, i) => `<span class="${i < s.at ? 'done' : i === s.at ? 'active' : ''}"></span>`).join('')}</div><div class="card" style="margin-top:22px"><div class="flex space-between">${label(`Pregunta ${s.at + 1}/${game.questions.length}`)}${label(`${s.score} aciertos`, 'green')}</div><h2 class="game-question">${e(q.question)}</h2>${q.options.map((choice, i) => `<button type="button" data-action="game-answer" data-id="${game.id}" data-index="${i}" ${s.last !== null ? 'disabled' : ''} class="quiz-answer ${s.last === i ? (s.last === q.correct ? 'correct' : 'incorrect') : ''}"><span class="quiz-letter">${String.fromCharCode(65 + i)}</span>${e(choice)}</button>`).join('')}${s.last !== null ? `<div class="space16"></div><div class="feedback ${s.last === q.correct ? '' : 'fail'}"><h3>${s.last === q.correct ? '✓ Correcto' : '○ Hay una mejor decisión'}</h3><p>${e(q.explanation)}</p></div><div class="space16"></div><button type="button" class="btn btn-primary" data-action="next-game" data-id="${game.id}">${s.at === game.questions.length - 1 ? 'Ver resultado →' : 'Siguiente pregunta →'}</button>` : ''}</div></div>`;
-}
-function labsView() {
-    return `<div class="breadcrumb"><a href="${ROUTES.home}">Inicio</a> / <span>Laboratorios</span></div><div class="eyebrow">PRÁCTICA AUTÉNTICA</div><h1 class="page-title">Laboratorios Terraform locales</h1><p class="page-lead">36 paquetes individuales de ejercicios con HCL, test .tftest.hcl de referencia y README. Descárgalos para probar con tu propia Terraform CLI; ninguna cuenta cloud es necesaria para los laboratorios seguros de terraform_data.</p><div class="space24"></div><div class="alert"><strong>Importante:</strong> las descargas están incluidas en el ZIP. En esta aplicación <b>NO</b> se ejecuta Terraform; algunos ejemplos avanzados con provider AWS/backend S3 son solo ilustrativos y requieren sustituir valores, permisos y revisión previa. Los tests no están marcados PASS hasta que los ejecutes.</div><div class="space24"></div><div class="card" style="margin-bottom:20px"><h3 class="card-title">Comienza con la CLI en tu equipo</h3><p class="card-desc">Abre un laboratorio offline en una terminal. Revisa su README para saber si requiere providers externos. El pack B04 es un punto de partida seguro sin credenciales cloud.</p>${['terraform version', 'terraform fmt -check', 'terraform init -backend=false', 'terraform validate', 'terraform test'].map((cmd) => `<div class="terminal-command"><code>${cmd}</code><button type="button" data-action="copy" data-value="${e(cmd)}">Copiar</button></div>`).join('')}</div>
-${['Básico', 'Intermedio', 'Avanzado']
-        .map((level) => `<section class="section">${sectionHead('LAB PACKS', level)}<div class="lesson-list">${levelLessons(level)
-        .map((l) => `<div class="list-card"><div class="lesson-index">${l.id}</div><div class="list-card-info"><h3>${e(l.title)}</h3><p>main.tf · outputs/test · README · ZIP</p></div><a class="btn btn-sm btn-primary" href="./assets/labs/${l.id}.zip" download="${l.id}-lab.zip">↓ ZIP</a></div>`)
-        .join('')}</div></section>`)
-        .join('')}<section class="section"><div class="notice">Para pruebas AWS reales, usa una cuenta sandbox propia con presupuesto y cleanup. Nunca guardes credenciales en Terraform source, en state público ni en artefactos de CI.</div></section>`;
-}
-function graphView() {
-    const s = store.getState();
-    const graph = graphs.find((g) => g.id === s.selectedGraph) || graphs[0];
-    const node = graph.nodes.find((n) => n.id === s.selectedNode) || graph.nodes[0];
-    const lines = graph.nodes
-        .flatMap((n) => n.dep.map((ref) => {
-        const from = graph.nodes.find((x) => x.id === ref);
-        return from
-            ? `<line class="edge" x1="${from.x + 65}" y1="${from.y + 19}" x2="${n.x + 65}" y2="${n.y + 19}" marker-end="url(#edge-arrow)"></line>`
-            : '';
-    }))
-        .join('');
-    return `<div class="breadcrumb"><a href="${ROUTES.home}">Inicio</a> / <span>Visualizador</span></div><div class="eyebrow">INFRASTRUCTURE GRAPH</div><h1 class="page-title">Observa las dependencias</h1><p class="page-lead">Grafo interactivo basado en topologías ficticias: qué recurso depende de cuál, dónde hay acoplamiento y cómo acotar el blast radius.</p><div class="space24"></div><div class="tabs">${graphs.map((g) => `<button type="button" class="tab ${cls(graph.id === g.id)}" data-action="graph" data-id="${g.id}">${e(g.title)}</button>`).join('')}</div><div class="content-panel"><div class="flex space-between" style="align-items:start"><div><h2>${e(graph.title)}</h2><p class="prose">${e(graph.description)}</p></div>${label('SIMULACIÓN VISUAL', 'yellow')}</div><div class="space16"></div><div class="graph-frame"><svg viewBox="0 0 930 350" role="img" aria-label="Grafo de dependencias de ${e(graph.title)}"><defs><marker id="edge-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M 0 0 L 7 3.5 L 0 7 z" fill="#b38bff"/></marker></defs>${lines}${graph.nodes.map((n) => `<g class="graph-node ${cls(node.id === n.id)}" data-action="graph-node" data-id="${n.id}" role="button" tabindex="0" aria-label="Ver nodo ${e(n.label)}"><rect x="${n.x}" y="${n.y}" rx="11" width="130" height="46"/><text x="${n.x + 65}" y="${n.y + 27}" text-anchor="middle">${e(n.label)}</text></g>`).join('')}</svg></div><div class="graph-legend">${graph.nodes.map((n) => `<button type="button" class="btn btn-sm ${n.id === node.id ? 'btn-primary' : ''}" data-action="graph-node" data-id="${n.id}">${e(n.label)}</button>`).join('')}</div><div class="graph-detail"><div class="flex-wrap">${label(node.category, 'purple')}${label(node.level, 'cyan')}</div><h3 style="margin:10px 0">${e(node.label)}</h3><p class="prose">${e(node.description)}</p><p class="small-note">Depende de: ${node.dep.length ? node.dep.map(e).join(', ') : 'ningún otro nodo'}.</p></div><div class="notice">Estos diagramas no provienen de terraform graph real. Son casos de estudio para aprender modelado, propiedad y dependencias.</div></div><div class="space24"></div>${link('Explorar cambios de plan →', ROUTES.plan, 'btn btn-primary')}`;
-}
-function localPlanPanel() {
-    const s = store.getState();
-    const plan = s.userPlan;
-    const gateAnswers = s.gateAnswers;
-    const gateReview = s.gateReview;
-    const counts = plan
-        ? Object.entries(plan.summary)
-            .filter(([, num]) => num > 0)
-            .map(([name, num]) => label(`${name}: ${num}`, name === 'delete' || name === 'replace' ? 'red' : 'cyan'))
-            .join('')
-        : '';
-    return `<section class="content-panel" style="margin-top:24px" id="real-plan-review"><div class="flex space-between"><div><div class="eyebrow">ANÁLISIS LOCAL · ARCHIVO DEL ESTUDIANTE</div><h2 style="margin:8px 0">Inspeccionar terraform show -json</h2></div>${label('SIN SUBIR A SERVIDOR', 'green')}</div>
- <p class="prose">Carga un <code>plan.json</code> generado en tu propio entorno con <code>terraform show -json plan.tfplan &gt; plan.json</code>. La app analiza operaciones y drift declarados, sin leer valores before/after, variables ni outputs. <strong>Los nombres y direcciones pueden revelar información interna.</strong></p>
- <label class="field-label" for="user-plan-json">Archivo local plan.json (máx. 5 MB)</label><input type="file" id="user-plan-json" accept=".json,application/json" aria-label="Seleccionar plan JSON de Terraform" />
- <div class="space12"></div><button type="button" class="btn btn-sm" data-action="clear-user-plan">Olvidar archivo analizado</button>${plan ? ` <button type="button" class="btn btn-sm btn-primary" data-action="export-user-plan">↓ Informe local (.md)</button>` : ''}
- ${s.userPlanError ? `<div class="alert" role="alert">${e(s.userPlanError)}</div>` : ''}
- ${plan
-        ? `<div class="release-gate" id="release-gate"><div class="eyebrow">SENIOR · RELEASE GATE</div><h3>¿Este plan estaría listo para revisión humana?</h3><p class="small-note">Evaluación local orientativa: los controles marcados son declaraciones tuyas, no verificaciones externas. Nunca concede permiso de apply.</p>
- <label class="field-label" for="review-environment">Ambiente declarado</label><select class="search-bar" id="review-environment" data-input="review-environment"><option value="prod" ${gateAnswers.environment === 'prod' ? 'selected' : ''}>Producción</option><option value="staging" ${gateAnswers.environment === 'staging' ? 'selected' : ''}>Staging</option><option value="dev" ${gateAnswers.environment === 'dev' ? 'selected' : ''}>Development</option></select>
- ${[
-            ['provenanceVerified', 'Cotejé origen, commit, workspace y digest del plan'],
-            ['ownersApproved', 'Owners del entorno revisaron el cambio'],
-            ['driftInvestigated', 'Investigación del drift documentada'],
-            ['destructiveReviewed', 'Revisé los reemplazos/eliminaciones por recurso'],
-            ['rollbackDocumented', 'Runbook, rollback y condiciones de parada documentados'],
-            ['costReviewed', 'Revisé costos, cuotas y presupuesto']
-        ]
-            .map(([key, labelText]) => `<label class="check-row"><input type="checkbox" data-input="gate-check" data-id="${key}" ${gateAnswers[key] ? 'checked' : ''}/>${e(labelText)}</label>`)
-            .join('')}
- <button type="button" class="btn btn-primary" data-action="run-release-gate">Evaluar gate didáctico →</button> ${gateReview ? `<button type="button" class="btn btn-soft" data-action="export-release-gate">↓ Informe gate .md</button><div class="feedback ${gateReview.status === 'READY_FOR_HUMAN_REVIEW' ? '' : 'fail'}" role="status"><h3>${e(gateReview.status)}</h3><p>${gateReview.checksPassed}/${gateReview.checksRequired} controles declarados</p>${gateReview.findings.map((f) => `<div class="side-step">${e(f.id)} (${f.severity}): ${e(f.message)}</div>`).join('')}</div>` : ''}
- </div>`
-        : ''}
- ${plan
-        ? `<div class="notice" role="status" style="margin-top:15px"><b>Procedencia: USER_SUPPLIED_TERRAFORM_JSON</b> · Terraform ${e(plan.terraformVersion)} · ${plan.total} cambios · ${plan.destructive} destructivos · ${plan.sensitiveCount} marcados sensitive · ${plan.driftCount} eventos drift. No se verifica ejecución cloud.</div><div class="flex-wrap" style="margin:16px 0">${counts}</div>
- <div class="plan-import-results">${plan.changes.map((item) => `<div class="plan-resource"><div class="plan-resource-head"><code>${e(item.address)}</code>${label(item.kind, item.kind === 'delete' || item.kind === 'replace' ? 'red' : 'cyan')}</div><div class="detail">Provider: ${e(item.provider)} · ${item.sensitive ? 'Datos sensibles presentes (no mostrados)' : 'Sin indicador sensitive en el cambio'}</div></div>`).join('')}</div>
- <div class="notice">${plan.notices.map((note) => `<p>${e(note)}</p>`).join('')}</div>${plan.driftCount ? `<h3>Drift reportado por Terraform (metadatos)</h3><div class="plan-import-results">${plan.drift.map((item) => `<div class="plan-resource"><code>${e(item.address)}</code> ${label(item.kind, item.kind === 'delete' || item.kind === 'replace' ? 'red' : 'yellow')}</div>`).join('')}</div>` : ''}`
-        : ''}
- </section>`;
-}
-function planView() {
-    const s = store.getState();
-    const fixture = planFixtures.find((p) => p.id === s.selectedPlan) || planFixtures[0];
-    const symbols = { create: '+', update: '~', delete: '−', replace: '−/+', 'no-op': '=' };
-    const spanish = {
-        create: 'Crear',
-        update: 'Actualizar',
-        delete: 'Eliminar',
-        replace: 'Reemplazar',
-        'no-op': 'Sin cambios'
-    };
-    const risky = fixture.resources.filter((r) => r.action === 'delete' || r.action === 'replace').length;
-    return `<div class="breadcrumb"><a href="${ROUTES.home}">Inicio</a> / <span>Plan Explorer</span></div><div class="eyebrow">LEER ANTES DE APLICAR</div><h1 class="page-title">Plan Explorer</h1><p class="page-lead">Compara operaciones de infraestructura y detecta cambios peligrosos. Todos los planes de esta pantalla son <strong>sintéticos</strong> para aprendizaje, no resultados de Terraform CLI.</p><div class="space24"></div><div class="plan-layout"><aside class="fixture-menu">${planFixtures.map((p) => `<button type="button" class="fixture-select ${cls(p.id === fixture.id)}" data-action="plan" data-id="${p.id}"><strong>${e(p.title)}</strong><small>${e(p.environment)} · ${p.resources.length} recursos</small></button>`).join('')}</aside><div class="content-panel"><div class="flex space-between"><div><div class="eyebrow">PLAN DIDÁCTICO · ${e(fixture.environment.toUpperCase())}</div><h2 style="margin-top:8px">${e(fixture.title)}</h2></div>${label('SYNTHETIC_FIXTURE', 'yellow')}</div><p class="prose">${e(fixture.summary)}</p><div class="space16"></div><div class="plan-toolbar">${label(`${fixture.resources.length} recursos`, 'purple')}${label(`${risky} operaciones destructivas`, risky ? 'red' : 'green')}<button type="button" class="btn btn-sm btn-soft" data-action="reveal-plan">${s.showPlanRisks ? 'Ocultar análisis' : 'Mostrar análisis de riesgo'}</button></div><div class="space16"></div>${fixture.resources.map((r) => `<div class="plan-resource"><div class="plan-resource-head"><code><strong class="action-${r.action}">${symbols[r.action]}</strong> ${e(r.name)}</code>${label(spanish[r.action], r.action === 'replace' || r.action === 'delete' ? 'red' : r.action === 'create' ? 'green' : 'cyan')}</div><div class="detail">${e(r.detail)}</div>${s.showPlanRisks ? `<div class="risk">⚑ ${e(r.risk)}</div>` : ''}</div>`).join('')}<div class="notice">La clasificación de operaciones se realiza sobre datos preparados. Un plan real debe revisarse desde un origen autorizado, con entorno y versión exactos.</div></div></div><div class="space24"></div>${localPlanPanel()}<div class="space24"></div>${link('Resolver caso S11: plan integrity →', '#/senior/S11', 'btn btn-primary')}`;
 }
 function progressView() {
     const state = store.getState().academy;
@@ -509,6 +425,13 @@ async function handleAction(action, id, index, element) {
                 s.activeLevel = id;
             });
             return;
+        case 'labs-category':
+            if (isLabsCategory(id)) {
+                store.update((s) => {
+                    s.labsCategory = id;
+                });
+            }
+            return;
         case 'evaluate': {
             const lesson = getLesson(id);
             if (!lesson)
@@ -541,7 +464,7 @@ async function handleAction(action, id, index, element) {
                 return;
             if (!window.confirm('Ver la solución completa reemplazará tu código actual. ¿Continuar?'))
                 return;
-            disposeCodeEditor();
+            syncTextareaValueIfMounted(l.example);
             store.update((s) => {
                 s.academy.code[id] = l.example;
                 delete s.evals[id];
@@ -556,7 +479,7 @@ async function handleAction(action, id, index, element) {
                 return;
             if (!window.confirm('¿Restablecer solo el código de esta lección?'))
                 return;
-            disposeCodeEditor();
+            syncTextareaValueIfMounted(l.starter);
             store.update((s) => {
                 s.academy.code[id] = l.starter;
                 delete s.evals[id];
@@ -637,13 +560,13 @@ async function handleAction(action, id, index, element) {
                 }
             });
             if (shouldPersist) {
-                store.update(() => { }, { persist: true });
+                store.persistQuietly();
             }
             return;
         }
         case 'restart-game':
             store.update((s) => {
-                s.gameSession = null;
+                s.gameSession = resolveGameSession(null, id);
             });
             return;
         case 'graph':
@@ -930,6 +853,12 @@ root.addEventListener('input', (event) => {
             });
             return;
         }
+        if (target.id === 'labs-search') {
+            store.update((s) => {
+                s.labsSearch = target.value.slice(0, 120);
+            });
+            return;
+        }
         if (target.id === 'glossary-search') {
             store.update((s) => {
                 s.glossarySearch = target.value.slice(0, 120);
@@ -1134,10 +1063,42 @@ root.addEventListener('keydown', (event) => {
         }, { persist: true });
         return;
     }
-    if ((event.key === 'Enter' || event.key === ' ') && target instanceof Element && target.matches('g.graph-node')) {
-        event.preventDefault();
-        const node = target;
-        void handleAction('graph-node', node.dataset.id || '', 0, node);
+    // SVG Graph keyboard navigation: Enter, Space, Arrow keys, Home, End
+    if (target instanceof Element && target.matches('g.graph-node')) {
+        const nodeEl = target;
+        const currentId = nodeEl.dataset.id || '';
+        const s = store.getState();
+        const activeGraph = graphs.find((g) => g.id === s.selectedGraph) || graphs[0];
+        if (!activeGraph || activeGraph.nodes.length === 0)
+            return;
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            void handleAction('graph-node', currentId, 0, nodeEl);
+            return;
+        }
+        const currentIdx = Math.max(0, activeGraph.nodes.findIndex((n) => n.id === currentId));
+        let nextIdx = -1;
+        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+            nextIdx = (currentIdx + 1) % activeGraph.nodes.length;
+        }
+        else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+            nextIdx = (currentIdx - 1 + activeGraph.nodes.length) % activeGraph.nodes.length;
+        }
+        else if (event.key === 'Home') {
+            nextIdx = 0;
+        }
+        else if (event.key === 'End') {
+            nextIdx = activeGraph.nodes.length - 1;
+        }
+        if (nextIdx >= 0) {
+            event.preventDefault();
+            const nextNodeId = activeGraph.nodes[nextIdx].id;
+            store.update((draft) => {
+                draft.selectedNode = nextNodeId;
+            });
+            const nextDomNode = root.querySelector(`g.graph-node[data-id="${nextNodeId}"]`);
+            nextDomNode?.focus();
+        }
     }
 });
 window.addEventListener('hashchange', () => {

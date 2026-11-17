@@ -19,6 +19,7 @@ import type { Case } from './senior.js';
 import { reconcileSeniorCompletion } from './seniorProgress.js';
 
 export type CaseTabId = 'investigar' | 'decision' | 'review' | 'evidencia' | 'operaciones';
+export type LabsCategory = 'Todos' | 'Básico' | 'Intermedio' | 'Avanzado' | 'Senior';
 
 export interface GameSession {
   id: string;
@@ -49,6 +50,8 @@ export interface AcademyStoreState {
   lessonSearch: string;
   seniorSearch: string;
   glossarySearch: string;
+  labsCategory: LabsCategory;
+  labsSearch: string;
   caseTab: CaseTabId;
   selectedPlan: string;
   selectedGraph: string;
@@ -120,6 +123,44 @@ export function filterGlossary(
   return entries.filter(([term, description]) => `${term} ${description}`.toLowerCase().includes(normalized));
 }
 
+const VALID_LAB_CATEGORIES: readonly LabsCategory[] = ['Todos', 'Básico', 'Intermedio', 'Avanzado', 'Senior'];
+
+export function isLabsCategory(value: string): value is LabsCategory {
+  return (VALID_LAB_CATEGORIES as readonly string[]).includes(value);
+}
+
+export function filterLabPacks(
+  allLessons: readonly Lesson[],
+  allSenior: readonly Case[],
+  category: LabsCategory,
+  query: string
+): { lessons: readonly Lesson[]; seniorCases: readonly Case[] } {
+  const normalized = query.toLowerCase().trim();
+  const matchedLessons =
+    category === 'Senior'
+      ? []
+      : allLessons.filter((item) => {
+          if (category !== 'Todos' && item.level !== category) return false;
+          if (!normalized) return true;
+          return `${item.id} ${item.title} ${item.subtitle} ${item.level}`.toLowerCase().includes(normalized);
+        });
+  const matchedSenior =
+    category !== 'Todos' && category !== 'Senior'
+      ? []
+      : allSenior.filter((item) => {
+          if (!normalized) return true;
+          return `${item.id} ${item.title} ${item.pillar} ${item.severity} ${item.subtitle}`
+            .toLowerCase()
+            .includes(normalized);
+        });
+  return { lessons: matchedLessons, seniorCases: matchedSenior };
+}
+
+export function resolveGameSession(current: GameSession | null, gameId: string): GameSession {
+  if (current && current.id === gameId) return current;
+  return { id: gameId, at: 0, score: 0, last: null, finished: false };
+}
+
 export function createAcademyStore({
   lessons,
   seniorCases,
@@ -142,6 +183,8 @@ export function createAcademyStore({
     lessonSearch: '',
     seniorSearch: '',
     glossarySearch: '',
+    labsCategory: 'Todos',
+    labsSearch: '',
     caseTab: 'investigar',
     selectedPlan: 'p2',
     selectedGraph: 'network',

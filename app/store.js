@@ -31,6 +31,37 @@ export function filterGlossary(entries, query) {
         return entries;
     return entries.filter(([term, description]) => `${term} ${description}`.toLowerCase().includes(normalized));
 }
+const VALID_LAB_CATEGORIES = ['Todos', 'Básico', 'Intermedio', 'Avanzado', 'Senior'];
+export function isLabsCategory(value) {
+    return VALID_LAB_CATEGORIES.includes(value);
+}
+export function filterLabPacks(allLessons, allSenior, category, query) {
+    const normalized = query.toLowerCase().trim();
+    const matchedLessons = category === 'Senior'
+        ? []
+        : allLessons.filter((item) => {
+            if (category !== 'Todos' && item.level !== category)
+                return false;
+            if (!normalized)
+                return true;
+            return `${item.id} ${item.title} ${item.subtitle} ${item.level}`.toLowerCase().includes(normalized);
+        });
+    const matchedSenior = category !== 'Todos' && category !== 'Senior'
+        ? []
+        : allSenior.filter((item) => {
+            if (!normalized)
+                return true;
+            return `${item.id} ${item.title} ${item.pillar} ${item.severity} ${item.subtitle}`
+                .toLowerCase()
+                .includes(normalized);
+        });
+    return { lessons: matchedLessons, seniorCases: matchedSenior };
+}
+export function resolveGameSession(current, gameId) {
+    if (current && current.id === gameId)
+        return current;
+    return { id: gameId, at: 0, score: 0, last: null, finished: false };
+}
 export function createAcademyStore({ lessons, seniorCases, initialAcademy, persistFn = saveState }) {
     const lessonIds = lessons.map((item) => item.id);
     const seniorIds = seniorCases.map((item) => item.id);
@@ -46,6 +77,8 @@ export function createAcademyStore({ lessons, seniorCases, initialAcademy, persi
         lessonSearch: '',
         seniorSearch: '',
         glossarySearch: '',
+        labsCategory: 'Todos',
+        labsSearch: '',
         caseTab: 'investigar',
         selectedPlan: 'p2',
         selectedGraph: 'network',
