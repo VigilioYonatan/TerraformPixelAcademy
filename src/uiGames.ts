@@ -1,13 +1,17 @@
 /**
- * Declarative Preact Mini-Games Hub (`#/juegos`) & Interactive Game Stage (`#/juego/:id` — `F3-04`).
- * Pure render without side effects; supports full keyboard navigation, `aria-live` feedback,
- * redundant visual/text cues (`ux-game-experience`), and non-inflating high-score XP.
+ * Declarative Preact Mini-Games Hub (`#/juegos`) & Interactive 3D Game Stage (`#/juego/:id`).
+ * Combines a lazy-loaded Three.js 3D Infrastructure Arena with accessible keyboard controls,
+ * immediate technical feedback, and non-inflating XP persistence (`F3-04` + Three.js 3D upgrade).
  */
 import type { AcademyState } from './engine.js';
 import type { Game } from './games.js';
 import type { GameSession } from './store.js';
-import { ROUTES, iconFor, mascotUrl } from './uiShared.js';
+import { iconFor, mascotUrl, ROUTES } from './uiShared.js';
 import { h } from './vendor/preact.mjs';
+
+function chip(text: string, variant = 'purple') {
+  return h('span', { className: `chip chip-${variant}` }, text);
+}
 
 export interface GamesHubProps {
   games: readonly Game[];
@@ -19,21 +23,25 @@ export interface GameStageProps {
   session: GameSession;
 }
 
-function chip(text: string, variant = 'purple') {
-  return h('span', { className: `chip chip-${variant}` }, text);
-}
+const ARENA_LABELS: Record<string, string> = {
+  g1: 'Topología Orbital 3D',
+  g2: 'Pipeline CI/CD 3D',
+  g3: 'Radar de Riesgos 3D',
+  g4: 'Guardia de Drift 3D',
+  g5: 'Arquitectura Multi-Capa 3D'
+};
 
 export function GamesHub({ games, state }: GamesHubProps) {
   return h(
     'div',
     { id: 'games-hub' },
     h('div', { className: 'breadcrumb' }, h('a', { href: ROUTES.home }, 'Inicio'), ' / ', h('span', {}, 'Minijuegos')),
-    h('div', { className: 'eyebrow' }, 'APRENDE JUGANDO'),
-    h('h1', { className: 'page-title' }, 'Minijuegos IaC'),
+    h('div', { className: 'eyebrow' }, 'PRACTICA JUGANDO · ARENA 3D INTERACTIVA'),
+    h('h1', { className: 'page-title' }, 'Desafíos rápidos de IaC en 3D'),
     h(
       'p',
       { className: 'page-lead' },
-      'Cinco mecánicas, veintiuna preguntas y feedback específico. Los juegos comprueban conocimientos; no simulan una ejecución real de Terraform.'
+      'Cada desafío combina una topología interactiva 3D con Three.js, explicación inmediata y control por mouse o teclado (1, 2, 3). Superar el 80 % suma XP una sola vez por mejora de récord.'
     ),
     h('div', { className: 'space24' }),
     h(
@@ -51,8 +59,9 @@ export function GamesHub({ games, state }: GamesHubProps) {
           ),
           h('div', { className: 'icon-game', 'aria-hidden': 'true' }, iconFor(g.icon)),
           h('h3', {}, g.title),
+          h('div', { className: 'eyebrow eyebrow-xs' }, ARENA_LABELS[g.id] || 'Escenario 3D'),
           h('p', {}, g.description),
-          h('a', { href: `#/juego/${g.id}`, className: 'btn btn-primary' }, '▶ Jugar')
+          h('a', { href: `#/juego/${g.id}`, className: 'btn btn-primary' }, '▶ Jugar en Arena 3D')
         )
       )
     ),
@@ -70,7 +79,7 @@ export function GamesHub({ games, state }: GamesHubProps) {
           h(
             'p',
             {},
-            'Senior Mode añade incidentes sintéticos, revisión técnica y documentación de decisiones verificable.'
+            'Senior Mode añade 18 incidentes reales simulados, revisión técnica y documentación ADR verificable.'
           ),
           h('div', { className: 'space16' }),
           h('a', { href: ROUTES.senior, className: 'btn btn-primary' }, 'Ir a Senior Mode →')
@@ -108,7 +117,7 @@ export function GameStage({ game, session }: GameStageProps) {
           { className: 'prose my-15' },
           'Respuestas correctas: ',
           h('strong', {}, `${session.score} de ${game.questions.length}`),
-          `. ${won ? 'Has logrado el objetivo de conocimiento.' : 'Lee las explicaciones e inténtalo de nuevo.'}`
+          `. ${won ? 'Has logrado el objetivo de conocimiento y estabilizado la topología 3D.' : 'Lee las explicaciones e inténtalo de nuevo.'}`
         ),
         chip(won ? '+20 XP por respuesta acertada' : 'Practica y mejora', won ? 'green' : 'yellow'),
         h('div', { className: 'space24' }),
@@ -130,6 +139,9 @@ export function GameStage({ game, session }: GameStageProps) {
   const answered = session.last !== null;
   const isCorrect = answered && session.last === question.correct;
   const currentPose = !answered ? 'pensando' : isCorrect ? 'exito' : 'alerta';
+  const integrityPct = Math.round(
+    ((session.score + (answered && !isCorrect ? 0 : 1)) / (game.questions.length + 1)) * 100
+  );
 
   return h(
     'div',
@@ -143,14 +155,14 @@ export function GameStage({ game, session }: GameStageProps) {
     ),
     h(
       'div',
-      { className: 'game-stage' },
+      { className: 'game-stage-wide' },
       h(
         'div',
-        { className: 'flex space-between' },
+        { className: 'flex space-between wrap gap-12' },
         h(
           'div',
           {},
-          h('div', { className: 'eyebrow' }, game.eyebrow),
+          h('div', { className: 'eyebrow' }, `${game.eyebrow} · ${ARENA_LABELS[game.id] || 'ARENA 3D'}`),
           h('h1', { className: 'page-title' }, game.title)
         ),
         h('img', {
@@ -182,60 +194,110 @@ export function GameStage({ game, session }: GameStageProps) {
       ),
       h(
         'div',
-        { className: 'card mt-22' },
+        { className: 'game-3d-layout mt-22' },
         h(
-          'div',
-          { className: 'flex space-between' },
-          chip(`Pregunta ${session.at + 1}/${game.questions.length}`),
-          chip(`${session.score} aciertos`, 'green')
-        ),
-        h('h2', { className: 'game-question' }, question.question),
-        ...question.options.map((choice, i) => {
-          const isChosen = session.last === i;
-          const statusClass = isChosen ? (isCorrect ? 'correct' : 'incorrect') : '';
-          return h(
-            'button',
+          'section',
+          { className: 'card game-3d-panel', 'aria-label': 'Arena 3D interactiva' },
+          h(
+            'div',
+            { className: 'flex space-between wrap gap-8 mb-14' },
+            chip(ARENA_LABELS[game.id] || 'Arena 3D', 'cyan'),
+            chip(`Integridad ${integrityPct}%`, isCorrect || !answered ? 'green' : 'red')
+          ),
+          h(
+            'div',
             {
-              key: `${game.id}-${session.at}-${i}`,
-              type: 'button',
-              'data-action': 'game-answer',
-              'data-id': game.id,
-              'data-index': i,
-              disabled: answered,
-              className: `quiz-answer ${statusClass}`.trim()
+              id: 'game-3d-viewport',
+              className: 'game-3d-viewport',
+              'data-game-3d': game.id
             },
-            h('span', { className: 'quiz-letter' }, String.fromCharCode(65 + i)),
-            h('span', {}, choice)
-          );
-        }),
-        answered
-          ? h(
+            h(
               'div',
-              {},
-              h('div', { className: 'space16' }),
+              { className: 'game-3d-fallback' },
+              h('span', { className: 'eyebrow' }, 'VISTA TÁCTICA DE INFRAESTRUCTURA'),
               h(
-                'div',
-                {
-                  className: `feedback ${isCorrect ? '' : 'fail'}`.trim(),
-                  role: 'status',
-                  'aria-live': 'polite'
-                },
-                h('h3', {}, isCorrect ? '✓ Correcto' : '○ Hay una mejor decisión'),
-                h('p', {}, question.explanation)
-              ),
-              h('div', { className: 'space16' }),
-              h(
-                'button',
-                {
-                  type: 'button',
-                  className: 'btn btn-primary',
-                  'data-action': 'next-game',
-                  'data-id': game.id
-                },
-                session.at === game.questions.length - 1 ? 'Ver resultado →' : 'Siguiente pregunta →'
+                'p',
+                { className: 'small-note mt-6' },
+                'Arrastra para rotar · Haz clic en un nodo 3D para inspeccionarlo.'
               )
             )
-          : null
+          ),
+          h(
+            'div',
+            { id: 'game-3d-inspector', className: 'notice mt-12', role: 'status', 'aria-live': 'polite' },
+            h('strong', {}, 'Nodo activo: '),
+            'Selecciona un módulo 3D o responde para avanzar en la topología.'
+          ),
+          h(
+            'div',
+            { className: 'flex-wrap mt-12' },
+            h(
+              'button',
+              { type: 'button', className: 'btn btn-sm btn-soft', 'data-action': 'game-cam-iso' },
+              'Isométrica'
+            ),
+            h(
+              'button',
+              { type: 'button', className: 'btn btn-sm btn-soft', 'data-action': 'game-cam-top' },
+              'Vista superior'
+            ),
+            h(
+              'button',
+              { type: 'button', className: 'btn btn-sm btn-soft', 'data-action': 'game-cam-rotate' },
+              'Auto-rotar'
+            ),
+            h('button', { type: 'button', className: 'btn btn-sm', 'data-action': 'game-cam-reset' }, '↺ Centrar')
+          )
+        ),
+        h(
+          'section',
+          { className: 'card', 'aria-label': 'Pregunta y decisión' },
+          h(
+            'div',
+            { className: 'flex space-between' },
+            chip(`Pregunta ${session.at + 1}/${game.questions.length}`),
+            chip(`${session.score} aciertos`, 'green')
+          ),
+          h('h2', { className: 'game-question' }, question.question),
+          ...question.options.map((choice, i) => {
+            const isChosen = session.last === i;
+            const statusClass = isChosen ? (isCorrect ? 'correct' : 'incorrect') : '';
+            return h(
+              'button',
+              {
+                key: `${game.id}-q${session.at}-opt-${i}`,
+                type: 'button',
+                className: `quiz-answer ${statusClass}`.trim(),
+                'data-action': 'game-answer',
+                'data-id': game.id,
+                'data-index': i,
+                disabled: answered
+              },
+              h('span', { className: 'quiz-letter' }, String(i + 1)),
+              h('span', {}, choice)
+            );
+          }),
+          h('p', { className: 'small-note mt-10' }, 'Atajo rápido: pulsa las teclas 1, 2 o 3 para elegir una opción.'),
+          answered
+            ? h(
+                'div',
+                {},
+                h('div', { className: 'space16' }),
+                h(
+                  'div',
+                  { className: `feedback ${isCorrect ? '' : 'fail'}`.trim(), role: 'status', 'aria-live': 'polite' },
+                  h('h3', {}, isCorrect ? '✓ Correcto (+20 XP)' : '⨯ Hay una mejor decisión'),
+                  h('p', {}, question.explanation)
+                ),
+                h('div', { className: 'space16' }),
+                h(
+                  'button',
+                  { type: 'button', className: 'btn btn-primary', 'data-action': 'next-game', 'data-id': game.id },
+                  session.at >= game.questions.length - 1 ? 'Ver resultado →' : 'Siguiente pregunta →'
+                )
+              )
+            : null
+        )
       )
     )
   );

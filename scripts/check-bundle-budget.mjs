@@ -15,8 +15,8 @@ const distDir = process.env.DIST_DIR ? resolve(process.env.DIST_DIR) : join(root
 const BUDGETS = {
   maxEntryRawBytes: 350_000,
   maxEntryGzipBytes: 110_000,
-  maxLazyChunkRawBytes: 450_000,
-  maxLazyChunkGzipBytes: 140_000,
+  maxLazyChunkRawBytes: 700_000,
+  maxLazyChunkGzipBytes: 165_000,
   maxCssRawBytes: 95_000,
   maxCssGzipBytes: 25_000
 };

@@ -1,0 +1,24 @@
+export type { Material } from 'three';
+export {
+  AmbientLight,
+  BoxGeometry,
+  BufferGeometry,
+  Color,
+  CylinderGeometry,
+  DirectionalLight,
+  GridHelper,
+  Group,
+  Line,
+  LineBasicMaterial,
+  Mesh,
+  MeshStandardMaterial,
+  OctahedronGeometry,
+  PerspectiveCamera,
+  PointLight,
+  Raycaster,
+  Scene,
+  TorusGeometry,
+  Vector2,
+  Vector3,
+  WebGLRenderer
+} from 'three';

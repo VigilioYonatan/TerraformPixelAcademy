@@ -35,7 +35,7 @@ const server = createServer(async (req, res) => {
       !(
         /^\/(?:index\.html|styles\.css)$/.test(publicPath) ||
         /^\/app\/[a-zA-Z0-9_-]+\.js$/.test(publicPath) ||
-        /^\/app\/vendor\/(?:preact|codemirror6)\.mjs$/.test(publicPath) ||
+        /^\/app\/vendor\/(?:preact|codemirror6|three)\.mjs$/.test(publicPath) ||
         /^\/assets\/[a-zA-Z0-9_./-]+$/.test(publicPath) ||
         publicPath === '/docs/TERRAFORM_ACADEMY_MASTER_SPEC_V1_1_AUDITADA.md'
       )

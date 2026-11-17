@@ -21,6 +21,12 @@
   - `@lezer/highlight` **1.2.5** (MIT)
 - El tokenizador HCL (`src/hclLanguage.ts`) y los temas accesibles claro/oscuro (`src/editor.ts`, `styles.css`) son implementación original de TerraPixel Academy. No constituyen el compilador oficial de HashiCorp HCL ni ejecutan Terraform CLI.
 
+## Three.js 0.187.0 (Arena 3D de Minijuegos)
+
+- Proyecto: https://threejs.org / https://github.com/mrdoob/three.js
+- Licencia: **MIT**, Copyright © 2010–2026 three.js authors.
+- Subconjunto *tree-shaken* fijado en `package-lock.json` (`three@0.187.0`) y empaquetado determinísticamente mediante `scripts/bundle-three.mjs` en `app/vendor/three.mjs` para ejecución WebGL 100 % offline en `#/juego/:id` (`src/gameScene3d.ts`).
+
 ## CodeMirror 5.58.3 (Preservado en baseline histórico)
 
 - Origen: paquete MIT CodeMirror incluido por el proyecto open-source nbclassic/Jupyter.

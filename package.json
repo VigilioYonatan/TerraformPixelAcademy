@@ -8,6 +8,7 @@
     "start": "node scripts/server.mjs",
     "dev": "node scripts/dev.mjs",
     "vendor:cm6": "node scripts/bundle-codemirror6.mjs",
+    "vendor:three": "node scripts/bundle-three.mjs",
     "build": "node tools/typescript/bin/tsc -p tsconfig.json && node scripts/build-static.mjs",
     "build:offline": "node tools/typescript/bin/tsc -p tsconfig.json",
     "typecheck": "node tools/typescript/bin/tsc -p tsconfig.json --noEmit",
@@ -43,8 +44,10 @@
     "@lezer/highlight": "1.2.5",
     "@playwright/test": "1.64.1",
     "@testing-library/preact": "3.2.6",
+    "@types/three": "0.187.0",
     "jsdom": "31.0.1",
     "preact": "10.29.8",
+    "three": "0.187.0",
     "typescript": "5.8.3",
     "vite": "8.3.8",
     "vitest": "5.1.0"

@@ -112,7 +112,7 @@ describe('F6-01: Preact Component Suite across all 14 views + AppShell + 404 (@t
     const state = defaultState();
     state.gameWins = { g1: 5, g2: 3 };
     mount(GamesHub({ games, state }));
-    expect(screen.getAllByRole('link', { name: '▶ Jugar' })).toHaveLength(5);
+    expect(screen.getAllByRole('link', { name: /▶ Jugar en Arena 3D/ })).toHaveLength(5);
     cleanup();
 
     for (const game of games) {

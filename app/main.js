@@ -39,6 +39,17 @@ const SENIOR_IDS = seniorCases.map((item) => item.id);
 const store = createAcademyStore({ lessons, seniorCases });
 let toastTimer;
 let lastMountedLessonId = '';
+let activeArena3D = null;
+let lastMountedGameId = '';
+let arenaMountToken = 0;
+function disposeGameArena() {
+    arenaMountToken++;
+    lastMountedGameId = '';
+    if (activeArena3D) {
+        activeArena3D.dispose();
+        activeArena3D = null;
+    }
+}
 function notify(message, error = false) {
     if (toastTimer) {
         window.clearTimeout(toastTimer);
@@ -171,6 +182,12 @@ function render() {
         view,
         toast: s.toast
     }), root);
+    if (!activeGame || s.gameSession?.finished) {
+        disposeGameArena();
+    }
+    else if (lastMountedGameId && lastMountedGameId !== activeGame.id) {
+        disposeGameArena();
+    }
     if (activeLesson) {
         lastMountedLessonId = activeLesson.id;
         void activateCodeEditor((value) => {
@@ -186,6 +203,50 @@ function render() {
                 store.persistQuietly();
             }
         }, state.theme);
+    }
+    if (activeGame && s.gameSession && !s.gameSession.finished) {
+        const session = s.gameSession;
+        const question = activeGame.questions[session.at];
+        const lastStatus = session.last === null ? 'idle' : session.last === question.correct ? 'correct' : 'wrong';
+        const arenaState = {
+            gameId: activeGame.id,
+            step: session.at,
+            total: activeGame.questions.length,
+            score: session.score,
+            streak: session.score,
+            finished: session.finished,
+            won: session.score >= Math.ceil(activeGame.questions.length * 0.8),
+            lastStatus,
+            theme: state.theme,
+            reducedMotion: state.reducedMotion
+        };
+        if (activeArena3D && lastMountedGameId === activeGame.id) {
+            activeArena3D.updateState(arenaState);
+        }
+        else {
+            const viewport = document.getElementById('game-3d-viewport');
+            if (viewport && !viewport.querySelector('canvas.game-3d-canvas')) {
+                lastMountedGameId = activeGame.id;
+                const myToken = ++arenaMountToken;
+                void import('./gameScene3d.js').then(({ mountGameArena3D }) => mountGameArena3D(viewport, {
+                    initialState: arenaState,
+                    onNodeSelect(title, role) {
+                        const inspector = document.getElementById('game-3d-inspector');
+                        if (inspector) {
+                            inspector.textContent = `Nodo activo (${title}): ${role}`;
+                        }
+                    }
+                }).then((controller) => {
+                    if (!controller)
+                        return;
+                    if (myToken !== arenaMountToken || !viewport.isConnected) {
+                        controller.dispose();
+                        return;
+                    }
+                    activeArena3D = controller;
+                }));
+            }
+        }
     }
 }
 store.subscribe(render);
@@ -400,9 +461,26 @@ async function handleAction(action, id, index, element) {
             return;
         }
         case 'restart-game':
+            disposeGameArena();
             store.update((s) => {
                 s.gameSession = resolveGameSession(null, id);
             });
+            return;
+        case 'game-cam-iso':
+            activeArena3D?.setView('iso');
+            return;
+        case 'game-cam-top':
+            activeArena3D?.setView('top');
+            return;
+        case 'game-cam-rotate': {
+            const rotating = activeArena3D?.toggleAutoRotate();
+            if (rotating !== undefined) {
+                notify(rotating ? 'Auto-rotación 3D activada.' : 'Auto-rotación 3D pausada.');
+            }
+            return;
+        }
+        case 'game-cam-reset':
+            activeArena3D?.resetCamera();
             return;
         case 'graph':
             store.update((s) => {
@@ -877,6 +955,19 @@ root.addEventListener('change', (event) => {
 });
 root.addEventListener('keydown', (event) => {
     const target = event.target;
+    // Quick 1 / 2 / 3 option selection in Three.js GameStage (`#/juego/:id`)
+    if (!(target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement) &&
+        (event.key === '1' || event.key === '2' || event.key === '3')) {
+        const stage = document.getElementById('game-stage-active');
+        const gameId = stage?.getAttribute('data-game-id') || '';
+        if (gameId) {
+            const idx = Number(event.key) - 1;
+            void handleAction('game-answer', gameId, idx, stage);
+            return;
+        }
+    }
     // Fallback Tab indentation only when `<textarea id="code-editor">` is visible without CodeMirror 6
     if (target instanceof HTMLTextAreaElement && target.id === 'code-editor' && !target.hidden && event.key === 'Tab') {
         event.preventDefault();
