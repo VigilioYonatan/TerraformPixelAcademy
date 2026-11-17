@@ -193,9 +193,16 @@ html[data-font-scale="1.3"]{font-size:20.8px}
 .level-ghost-num{position:absolute;right:18px;top:10px;font-family:'Space Grotesk',sans-serif;font-size:56px;font-weight:800;line-height:1;color:var(--border-strong);opacity:.32;pointer-events:none}
 .round-arrow{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--border-strong);background:var(--panel-2);color:var(--purple-bright);font-weight:900;transition:transform .2s ease,background .2s ease,border-color .2s ease}
 .level-card:hover .round-arrow{transform:translateX(3px);background:var(--purple);border-color:var(--purple);color:#fff}
+.nav-px{flex:0 0 auto;display:block;transition:transform .15s ease}
+.nav-link:hover .nav-px,.senior-toggle:hover .nav-px,.header-icon:hover .nav-px{transform:scale(1.1)}
+.nav-px-cyan{fill:var(--cyan)}
+.nav-px-purple{fill:var(--purple-bright)}
+.nav-px-gold{fill:#f6c453}
+.nav-px-green{fill:var(--green)}
+.senior-toggle-label{white-space:nowrap}
 @media(max-width:1230px){.hero-art{right:40px;width:320px;height:320px}.hero-terra{width:195px;max-height:215px}}
 @media(max-width:980px){.game-3d-layout{grid-template-columns:1fr}.game-3d-viewport{height:270px}.hero-art{right:24px;width:250px;height:250px}.hero-terra{width:180px;max-height:200px}.orbit-chip,.hero-side-label,.art-ring{display:none}.stats-strip{grid-template-columns:repeat(2,1fr);gap:14px}.stats-strip > div{border-right:0;justify-content:start}}
-@media(max-width:680px){.hero{min-height:auto;padding:31px 25px 28px}.hero-art{position:relative;top:auto;right:auto;bottom:auto;transform:none;width:220px;height:210px;margin:20px auto 0}.hero-terra{width:170px;max-height:185px}}
+@media(max-width:680px){.senior-toggle{font-size:13px;width:38px;height:38px;padding:0;gap:0}.senior-toggle-label{display:none}.hero{min-height:auto;padding:31px 25px 28px}.hero-art{position:relative;top:auto;right:auto;bottom:auto;transform:none;width:220px;height:210px;margin:20px auto 0}.hero-terra{width:170px;max-height:185px}}
 @media(max-width:520px){.stats-strip{grid-template-columns:1fr}}
 /* Minimalist SVG Learning & Incident Flow Diagrams (dark + light token contrast, zero inline styles) */
 .diagram-card{margin-top:16px;padding:14px 16px;border:1px solid var(--border);border-radius:14px;background:var(--panel-2)}
