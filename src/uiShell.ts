@@ -1,39 +1,41 @@
 /**
- * Preact-owned, declarative app chrome (`AppShell`, `Header`, `Navigation`, `Footer`, `Toast`).
- * Navigation, footer, toast notifications, and accessibility landmarks are real Preact VNodes.
+ * Preact-owned, 100% declarative app chrome (`AppShell`, `Header`, `Navigation`, `Footer`, `Toast`).
+ * Zero raw HTML string injection: all 14 routes + 404 render as native Preact VNodes (`F3-08`).
  */
 import type { ToastMessage } from './store.js';
-import { h } from './vendor/preact.mjs';
+import { h, type VNode } from './vendor/preact.mjs';
 
 export interface ShellProps {
   page: string;
   mobileMenu: boolean;
   seniorEnabled: boolean;
-  content: string;
-  view?: unknown;
+  view: VNode;
   toast?: ToastMessage | null;
 }
 
-const navItems = [
+export const NAV_ITEMS = [
   { label: 'Inicio', slug: 'inicio', icon: '⌂' },
   { label: 'Aprender', slug: 'aprender', icon: '▣' },
   { label: 'Minijuegos', slug: 'juegos', icon: '✦' },
   { label: 'Laboratorios', slug: 'laboratorios', icon: '⌘' },
   { label: 'Visualizar', slug: 'grafo', icon: '⬡' },
-  { label: 'Senior Mode', slug: 'senior', icon: '♛' }
+  { label: 'Planes', slug: 'planes', icon: '▤' },
+  { label: 'Senior Mode', slug: 'senior', icon: '♛' },
+  { label: 'Evidencias', slug: 'evidencias', icon: '✓' },
+  { label: 'Recursos', slug: 'recursos', icon: '↗' }
 ] as const;
 
 function Navigation({ page }: { page: string }) {
   return h(
     'div',
     { className: 'nav-items' },
-    ...navItems.map((item) =>
+    ...NAV_ITEMS.map((item) =>
       h(
         'a',
         {
           key: item.slug,
           href: `#/${item.slug}`,
-          className: `nav-link ${page === item.slug ? 'active' : ''}`,
+          className: `nav-link ${page === item.slug ? 'active' : ''}`.trim(),
           'aria-current': page === item.slug ? 'page' : undefined
         },
         h('span', { className: 'nav-emoji', 'aria-hidden': 'true' }, item.icon),
@@ -43,7 +45,7 @@ function Navigation({ page }: { page: string }) {
   );
 }
 
-function Header({ page, mobileMenu, seniorEnabled }: Omit<ShellProps, 'content' | 'view' | 'toast'>) {
+function Header({ page, mobileMenu, seniorEnabled }: Omit<ShellProps, 'view' | 'toast'>) {
   return h(
     'header',
     { className: 'header' },
@@ -69,7 +71,7 @@ function Header({ page, mobileMenu, seniorEnabled }: Omit<ShellProps, 'content' 
           'button',
           {
             type: 'button',
-            className: `senior-toggle ${seniorEnabled ? 'on' : ''}`,
+            className: `senior-toggle ${seniorEnabled ? 'on' : ''}`.trim(),
             'data-action': 'toggle-senior',
             'aria-label': seniorEnabled ? 'Desactivar Senior Mode' : 'Activar Senior Mode',
             'aria-pressed': String(seniorEnabled)
@@ -96,16 +98,7 @@ function Header({ page, mobileMenu, seniorEnabled }: Omit<ShellProps, 'content' 
         )
       )
     ),
-    mobileMenu
-      ? h(
-          'nav',
-          { className: 'mobile-menu', 'aria-label': 'Menú móvil' },
-          h(Navigation, { page }),
-          h('a', { className: 'nav-link', href: '#/planes' }, '▤  Explorar planes'),
-          h('a', { className: 'nav-link', href: '#/recursos' }, '↗  Recursos'),
-          h('a', { className: 'nav-link', href: '#/evidencias' }, '▣  Evidencias CLI')
-        )
-      : null
+    mobileMenu ? h('nav', { className: 'mobile-menu', 'aria-label': 'Menú móvil' }, h(Navigation, { page })) : null
   );
 }
 
@@ -144,21 +137,13 @@ function Footer() {
   );
 }
 
-export function AppShell({ page, mobileMenu, seniorEnabled, content, view, toast }: ShellProps) {
+export function AppShell({ page, mobileMenu, seniorEnabled, view, toast }: ShellProps) {
   return h(
     'div',
     { className: 'app-shell' },
     h('a', { href: '#main-content', className: 'skip-link' }, 'Saltar al contenido'),
     h(Header, { page, mobileMenu, seniorEnabled }),
-    view
-      ? h('main', { className: 'container', id: 'main-content', tabIndex: -1 }, view)
-      : h('main', {
-          className: 'container',
-          id: 'main-content',
-          tabIndex: -1,
-          // Transitional HTML bridge strictly for remaining F3-03..F3-08 views; all dynamic user strings are escaped via engine.escapeHtml.
-          dangerouslySetInnerHTML: { __html: content }
-        }),
+    h('main', { className: 'container', id: 'main-content', tabIndex: -1 }, view),
     h(Footer, {}),
     toast
       ? h(

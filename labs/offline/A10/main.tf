@@ -1,8 +1,8 @@
 variable "entorno" {
   default = "dev"
-  type = string
+  type    = string
   validation {
-    condition = contains(["dev", "staging", "prod"], var.entorno)
+    condition     = contains(["dev", "staging", "prod"], var.entorno)
     error_message = "Entorno desconocido"
   }
 }

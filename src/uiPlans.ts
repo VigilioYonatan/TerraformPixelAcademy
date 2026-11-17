@@ -337,7 +337,18 @@ export function LocalPlanInspector({ userPlan, userPlanError, gateAnswers, gateR
                   'div',
                   { className: 'plan-resource-head' },
                   h('code', {}, item.address),
-                  chip(item.kind, item.kind === 'delete' || item.kind === 'replace' ? 'red' : 'cyan')
+                  h(
+                    'div',
+                    { className: 'flex-wrap' },
+                    chip(
+                      item.replaceOrder ? `${item.kind} (${item.replaceOrder})` : item.kind,
+                      item.kind === 'delete' || item.kind === 'replace'
+                        ? 'red'
+                        : item.kind === 'forget'
+                          ? 'yellow'
+                          : 'cyan'
+                    )
+                  )
                 ),
                 h(
                   'div',

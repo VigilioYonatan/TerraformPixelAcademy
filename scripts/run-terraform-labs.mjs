@@ -5,11 +5,26 @@
  * Preserves exact exit codes: 0 = PASS, 1 = lab FAIL, 2 = manifest error, 3 = NOT_RUN (CLI missing).
  */
 import { spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { delimiter, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { join } from 'node:path';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const isWin = process.platform === 'win32';
+const useLocalTools = process.argv.includes('--use-local-tools');
+const localTerraformDir = join(root, '.tools', 'terraform', '1.10.5');
+const localTerraformBin = join(localTerraformDir, isWin ? 'terraform.exe' : 'terraform');
+
+const childEnv = { ...process.env, NODE_BINARY: process.execPath };
+if (useLocalTools && existsSync(localTerraformBin)) {
+  const existingPath = childEnv.PATH || childEnv.Path || '';
+  const mergedPath = `${localTerraformDir}${delimiter}${existingPath}`;
+  childEnv.PATH = mergedPath;
+  if (isWin) {
+    childEnv.Path = mergedPath;
+  }
+}
+
 const command = isWin ? 'powershell.exe' : 'bash';
 const args = isWin
   ? [
@@ -24,7 +39,7 @@ const args = isWin
 
 const result = spawnSync(command, args, {
   cwd: root,
-  env: { ...process.env, NODE_BINARY: process.execPath },
+  env: childEnv,
   stdio: 'inherit'
 });
 

@@ -1,7 +1,7 @@
 variable "etiqueta" {
-  type = string
+  type      = string
   sensitive = true
-  default = "demo-sin-secretos"
+  default   = "demo-sin-secretos"
 }
 resource "terraform_data" "state_demo" {
   input = var.etiqueta

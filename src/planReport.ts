@@ -1,17 +1,23 @@
-/** Export only reviewed metadata, never values from a Terraform plan or state. */
+/** Export only reviewed metadata, never values from a Terraform plan or state (`F4-03`). */
 import type { PlanAnalysis, PlanChange } from './planInspector.js';
+
 const oneLine = (value: string) =>
   value
     .replace(/\p{Cc}/gu, ' ')
     .replace(/[|`]/g, '-')
     .slice(0, 260);
+
+const formatOperation = (item: PlanChange): string =>
+  item.replaceOrder ? `${item.kind} (${item.replaceOrder})` : item.kind;
+
 const printChanges = (changes: PlanChange[]) =>
   changes
     .map(
       (item) =>
-        `| ${oneLine(item.kind)} | ${oneLine(item.address)} | ${oneLine(item.provider)} | ${item.sensitive ? 'sí' : 'no'} |`
+        `| ${oneLine(formatOperation(item))} | ${oneLine(item.address)} | ${oneLine(item.provider)} | ${item.sensitive ? 'sí' : 'no'} |`
     )
     .join('\n') || '| — | Sin cambios listados | — | — |';
+
 export function buildPlanReviewMarkdown(plan: PlanAnalysis): string {
   return `# Revisión local de plan Terraform — TerraPixel Academy
 
@@ -23,7 +29,8 @@ export function buildPlanReviewMarkdown(plan: PlanAnalysis): string {
 - Versión informada de Terraform: ${oneLine(plan.terraformVersion)}
 - Versión de formato: ${oneLine(plan.formatVersion)}
 - Cambios declarados: ${plan.total} (muestra: ${plan.shown})
-- Eliminaciones/reemplazos: ${plan.destructive}
+- Eliminaciones/reemplazos: ${plan.destructive} (delete-then-create: ${plan.replaceDeleteThenCreate}, create-before-destroy: ${plan.replaceCreateBeforeDestroy})
+- Objetos desvinculados de state (forget): ${plan.forgottenCount}
 - Recursos marcados sensitive: ${plan.sensitiveCount}
 - Eventos resource_drift declarados: ${plan.driftCount} (destructivos: ${plan.driftDestructive})
 - Terraform CLI, cloud, firma y origen del artefacto: **NOT_RUN / NO VERIFICADOS**

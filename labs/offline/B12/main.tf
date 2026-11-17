@@ -1,5 +1,5 @@
 variable "equipo" {
-  type = string
+  type    = string
   default = "vigilio"
 }
 resource "terraform_data" "proyecto" {

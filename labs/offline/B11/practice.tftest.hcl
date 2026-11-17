@@ -3,7 +3,7 @@
 run "b11_competencia" {
   command = apply
   assert {
-    condition     = output.academy_evidence == ["dev", "staging"]
+    condition     = output.academy_evidence == tolist(["dev", "staging"])
     error_message = "B11: la competencia IaC no produce el valor esperado"
   }
 }

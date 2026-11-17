@@ -60,8 +60,13 @@ body[data-theme="light"] .editor-card .cm-variable{color:#594e7b}
 body[data-theme="light"] .editor-card .cm-keyword{color:#622cba}
 body[data-theme="light"] .editor-card .cm-string{color:#227940}
 @media(max-width:680px){.editor-card .CodeMirror{height:315px;font-size:12px}}
-/* Declarative Preact navigation wrapper (v1.6). */
-.nav-links .nav-items{display:flex;align-items:center;gap:inherit}
+/* Declarative Preact navigation wrapper (v1.6 + F3-08 full 9-item desktop nav without overflow). */
+.nav-inner{gap:16px}
+.nav-links{min-width:0;gap:4px}
+.nav-links .nav-items{display:flex;align-items:center;gap:4px;flex-wrap:nowrap}
+.nav-links .nav-link{padding:8px 9px;font-size:12px;gap:5px}
+.nav-links .nav-link .nav-emoji{font-size:13px}
+@media(max-width:1260px){.nav-links{display:none}.menu-btn{display:grid}.mobile-menu{display:flex;position:absolute;left:0;right:0;top:79px;background:var(--bg);padding:15px 28px 22px;border-bottom:1px solid var(--border);flex-direction:column;gap:6px}}
 .mobile-menu .nav-items{display:flex;flex-direction:column;gap:4px}
 .skip-link{position:fixed;top:-120px;left:16px;z-index:2000;padding:12px 18px;background:#efe5ff;color:#150f22;border-radius:10px;font-weight:700}
 .skip-link:focus{top:12px}

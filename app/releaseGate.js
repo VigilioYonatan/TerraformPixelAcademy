@@ -11,28 +11,47 @@ export function evaluateReleaseGate(plan, answer) {
     const findings = [];
     const block = (id, message) => findings.push({ id, severity: 'BLOCK', message });
     const review = (id, message) => findings.push({ id, severity: 'REVIEW', message });
-    if (plan.total === 0)
+    if (plan.total === 0) {
         review('EMPTY', 'El plan declara cero recursos modificados: confirma que corresponde al workspace esperado.');
-    if (plan.summary.unknown > 0)
+    }
+    if (plan.summary.unknown > 0) {
         block('UNKNOWN', `${plan.summary.unknown} operaciones desconocidas; el plan no debe utilizarse para autorizar cambios.`);
-    if (!answer.provenanceVerified)
+    }
+    if (!answer.provenanceVerified) {
         block('PROVENANCE', 'Falta cotejar commit, entorno, origen y checksum del plan aprobado.');
-    if (plan.driftCount > 0 && !answer.driftInvestigated)
+    }
+    if (plan.driftCount > 0 && !answer.driftInvestigated) {
         block('DRIFT', `Hay ${plan.driftCount} eventos de drift sin investigación declarada.`);
-    if (plan.destructive > 0 && !answer.destructiveReviewed)
-        block('DESTRUCTIVE', `${plan.destructive} operaciones destructivas o reemplazos requieren revisión por recurso.`);
-    if (plan.driftDestructive > 0)
+    }
+    if (plan.destructive > 0 && !answer.destructiveReviewed) {
+        const orderDetail = plan.replaceDeleteThenCreate > 0
+            ? ` (incluye ${plan.replaceDeleteThenCreate} delete-then-create con corte potencial)`
+            : plan.replaceCreateBeforeDestroy > 0
+                ? ` (incluye ${plan.replaceCreateBeforeDestroy} create-before-destroy)`
+                : '';
+        block('DESTRUCTIVE', `${plan.destructive} operaciones destructivas o reemplazos requieren revisión por recurso${orderDetail}.`);
+    }
+    if (plan.driftDestructive > 0) {
         review('DRIFT_DESTRUCTIVE', `${plan.driftDestructive} eventos de drift destructivo: requiere diagnóstico fuera de esta herramienta.`);
-    if (answer.environment === 'prod' && !answer.ownersApproved)
+    }
+    if (plan.forgottenCount > 0) {
+        review('STATE_FORGET', `${plan.forgottenCount} operación(es) forget (removed): el recurso sale del state sin destruirse en cloud; documenta nuevo owner y costo residual.`);
+    }
+    if (answer.environment === 'prod' && !answer.ownersApproved) {
         block('APPROVAL', 'Falta revisión declarada de los owners para producción.');
-    else if (!answer.ownersApproved)
+    }
+    else if (!answer.ownersApproved) {
         review('OWNER', 'No consta aprobación del responsable del entorno.');
-    if (!answer.rollbackDocumented)
+    }
+    if (!answer.rollbackDocumented) {
         review('ROLLBACK', 'Falta runbook de recuperación y condición de parada.');
-    if (!answer.costReviewed)
+    }
+    if (!answer.costReviewed) {
         review('FINOPS', 'Falta revisión de costos y cuota presupuestaria.');
-    if (plan.sensitiveCount > 0)
+    }
+    if (plan.sensitiveCount > 0) {
         review('SENSITIVE', `Existen ${plan.sensitiveCount} indicadores sensitive: restringe acceso a plan/state.`);
+    }
     const checksRequired = 6;
     const checksPassed = [
         answer.provenanceVerified,
@@ -55,6 +74,9 @@ export function evaluateReleaseGate(plan, answer) {
         checksRequired,
         environment: answer.environment,
         destructive: plan.destructive,
+        replaceDeleteThenCreate: plan.replaceDeleteThenCreate,
+        replaceCreateBeforeDestroy: plan.replaceCreateBeforeDestroy,
+        forgottenCount: plan.forgottenCount,
         driftCount: plan.driftCount,
         unknownActions: plan.summary.unknown
     };
@@ -68,7 +90,8 @@ export function exportGateReview(review) {
 **Estado:** ${review.status}  
 **Ambiente declarado:** ${review.environment}  
 **Controles declarados:** ${review.checksPassed}/${review.checksRequired}  
-**Cambios destructivos:** ${review.destructive}  
+**Cambios destructivos:** ${review.destructive} (delete→create: ${review.replaceDeleteThenCreate}, create→delete: ${review.replaceCreateBeforeDestroy})  
+**Objetos desvinculados (forget):** ${review.forgottenCount}  
 **Drift reportado:** ${review.driftCount}  
 **Operaciones desconocidas:** ${review.unknownActions}
 

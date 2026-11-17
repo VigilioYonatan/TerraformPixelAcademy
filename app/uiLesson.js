@@ -1,3 +1,4 @@
+import { getLessonSeniorContext } from './lessonSeniorContext.js';
 import { ROUTES, mascotUrl } from './uiShared.js';
 import { h } from './vendor/preact.mjs';
 const STEP_GUIDE = [
@@ -93,7 +94,10 @@ export function LessonClassroom({ lesson, lessons, state, evalResult }) {
         : h('a', { href: ROUTES.learn, className: 'btn' }, '← Ver currículo'), next
         ? h('a', { href: `#/leccion/${next.id}`, className: 'btn btn-primary' }, `Siguiente: ${next.id} →`)
         : h('a', { href: ROUTES.senior, className: 'btn btn-primary' }, 'Ir a Senior Mode →')), state.seniorEnabled
-        ? h('section', { className: 'case-review' }, h('b', {}, '♛ PREGUNTA DE ARQUITECTURA'), h('p', {}, '¿Cómo cambiarían los riesgos de esta configuración en producción? Define owner, observabilidad y una prueba reproducible.'), h('div', { className: 'space12' }), h('a', { href: ROUTES.senior, className: 'btn btn-sm btn-soft' }, 'Ver casos relacionados →'))
+        ? (() => {
+            const seniorCtx = getLessonSeniorContext(lesson.id);
+            return h('section', { className: 'case-review', id: 'lesson-senior-callout' }, h('div', { className: 'flex space-between', style: 'flex-wrap:wrap;gap:8px;margin-bottom:8px' }, h('b', {}, `♛ PREGUNTA DE ARQUITECTURA · ${lesson.id}`), chip(`${seniorCtx.domain} · ${seniorCtx.relatedCaseId}`, 'yellow')), h('p', { style: 'margin-bottom:8px' }, h('strong', {}, 'Riesgo en producción: '), seniorCtx.productionRisk), h('p', {}, seniorCtx.architecturePrompt), h('div', { className: 'space12' }), h('div', { className: 'flex-wrap' }, h('a', { href: `#/senior/${seniorCtx.relatedCaseId}`, className: 'btn btn-sm btn-primary' }, `Resolver incidente ${seniorCtx.relatedCaseId} →`), h('a', { href: ROUTES.senior, className: 'btn btn-sm btn-soft' }, 'Mapa Senior completo →')));
+        })()
         : null), h('aside', { className: 'lesson-aside' }, h('div', { className: 'content-panel' }, h('h3', {}, 'Paso a paso'), ...STEP_GUIDE.map((stepText, i) => h('div', { key: stepText, className: `side-step ${i === 0 ? 'active' : ''}`.trim() }, `${i + 1}. ${stepText}`))), h('div', { className: 'content-panel' }, h('img', {
         src: mascotUrl(done ? 'exito' : 'idea'),
         className: 'side-terra',

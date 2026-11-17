@@ -1,30 +1,29 @@
 /**
- * Fully declarative Preact detail for ALL 18 Senior cases.
- * Existing data-action/data-input controls deliberately retain the proven
- * root delegation contract, with no dangerous HTML injection.
+ * Fully declarative Preact detail for ALL 18 Senior cases (`S01–S18`).
+ * Includes dedicated, parameterized deterministic simulators (`F4-01`), What-If drills,
+ * before/after code review snippets, ADR structural gate, and S18 8-milestone Capstone.
  */
-import { h } from './vendor/preact.mjs';
 import type { AcademyState } from './engine.js';
 import type { Case } from './senior.js';
 import { capstoneSteps } from './senior.js';
+import { capstoneNoteValid, seniorGate } from './seniorProgress.js';
 import { seniorSnippets } from './seniorSnippets.js';
-import { getSeniorDrill, evaluateSeniorDrill } from './seniorWhatIf.js';
-import { seniorGate, capstoneNoteValid } from './seniorProgress.js';
-interface Props {
+import { evaluateSeniorDrill, getSeniorDrill } from './seniorWhatIf.js';
+import { defaultSimulatorInputs, type SimulatorInputs } from './simulators.js';
+import { h } from './vendor/preact.mjs';
+
+export interface SeniorCaseProps {
   scenario: Case;
   cases: readonly Case[];
   state: AcademyState;
   tab: string;
   showFix: boolean;
   simResult: string;
-  cidrA: string;
-  cidrB: string;
-  approvedCommit: string;
-  appliedCommit: string;
-  replicas: number;
+  simInputs?: SimulatorInputs;
 }
+
 const tag = (value: string, color = 'purple') => h('span', { className: `chip chip-${color}` }, value);
-const action = (label: string, name: string, id: string = '', klass = 'btn btn-primary', index?: number) =>
+const action = (label: string, name: string, id = '', klass = 'btn btn-primary', index?: number) =>
   h(
     'button',
     {
@@ -40,98 +39,400 @@ const spacer = () => h('div', { className: 'space16' });
 const reviewBox = (title: string, body: string) =>
   h('div', { className: 'case-review' }, h('b', {}, title), h('p', {}, body));
 const stage = (text: string) => h('div', { className: 'side-step' }, text);
-function Simulator({ scenario, state, simResult, cidrA, cidrB, approvedCommit, appliedCommit, replicas }: Props) {
-  const id = scenario.id,
-    drill = getSeniorDrill(id),
-    selected = state.seniorDrillAnswers[id];
-  const result = selected === undefined ? null : evaluateSeniorDrill(id, selected);
-  let control: unknown = null;
-  const field = (label: string, actionId: string, value: string, placeholder: string) =>
+
+function simTextField(label: string, key: keyof SimulatorInputs, value: string, ariaLabel: string) {
+  return h(
+    'div',
+    {},
+    h('label', { className: 'field-label' }, label),
+    h('input', {
+      className: 'search-bar',
+      type: 'text',
+      'data-input': 'sim-text',
+      'data-id': key,
+      value,
+      'aria-label': ariaLabel
+    })
+  );
+}
+
+function simNumberField(
+  label: string,
+  key: keyof SimulatorInputs,
+  value: number,
+  min: number,
+  max: number,
+  ariaLabel: string
+) {
+  return h(
+    'div',
+    {},
+    h('label', { className: 'field-label' }, label),
+    h('input', {
+      className: 'search-bar',
+      type: 'number',
+      min,
+      max,
+      'data-input': 'sim-num',
+      'data-id': key,
+      value,
+      'aria-label': ariaLabel
+    })
+  );
+}
+
+function simCheckField(label: string, key: keyof SimulatorInputs, checked: boolean) {
+  return h(
+    'label',
+    { className: 'check-row' },
+    h('input', {
+      type: 'checkbox',
+      'data-input': 'sim-bool',
+      'data-id': key,
+      checked
+    }),
+    label
+  );
+}
+
+function simSelectField(
+  label: string,
+  key: keyof SimulatorInputs,
+  value: string,
+  options: ReadonlyArray<readonly [string, string]>,
+  ariaLabel: string
+) {
+  return h(
+    'div',
+    {},
+    h('label', { className: 'field-label' }, label),
     h(
-      'div',
-      {},
-      h('label', { className: 'field-label' }, label),
-      h('input', { className: 'search-bar', 'data-input': actionId, value, 'aria-label': placeholder })
-    );
-  if (id === 'S09')
-    control = h(
-      'div',
-      {},
-      h(
+      'select',
+      {
+        className: 'input-select',
+        'data-input': 'sim-select',
+        'data-id': key,
+        value,
+        'aria-label': ariaLabel
+      },
+      ...options.map(([optVal, optLabel]) =>
+        h('option', { key: optVal, value: optVal, selected: value === optVal }, optLabel)
+      )
+    )
+  );
+}
+
+function buildCaseSimulatorControls(id: string, inp: SimulatorInputs) {
+  switch (id) {
+    case 'S01':
+      return h(
         'div',
-        { className: 'cards-2' },
-        field('CIDR de development', 'cidr-a', cidrA, 'CIDR desarrollo'),
-        field('CIDR de producción', 'cidr-b', cidrB, 'CIDR producción')
-      ),
-      spacer(),
-      action('Comprobar rangos →', 'check-cidr')
-    );
-  if (id === 'S11')
-    control = h(
-      'div',
-      {},
-      h(
-        'div',
-        { className: 'cards-2' },
-        field('Commit del plan aprobado', 'approved-commit', approvedCommit, 'Commit aprobado'),
-        field('Commit usado para apply', 'applied-commit', appliedCommit, 'Commit aplicado')
-      ),
-      spacer(),
-      action('Verificar identidad del fixture →', 'check-integrity')
-    );
-  if (id === 'S14')
-    control = h(
-      'div',
-      {},
-      h('label', { className: 'field-label' }, 'Número ficticio de réplicas (base USD 61/mes)'),
-      h('input', {
-        className: 'search-bar',
-        type: 'number',
-        min: 0,
-        max: 50,
-        'data-input': 'replicas',
-        value: replicas,
-        'aria-label': 'Número de réplicas'
-      }),
-      spacer(),
-      action('Calcular estimación →', 'check-cost')
-    );
-  if (id === 'S02')
-    control = h(
-      'div',
-      {},
-      h('p', { className: 'prose' }, 'Writer A adquirió el lock en 10:01; writer B llega en 10:02.'),
-      spacer(),
-      action('Intentar writer B →', 'simulate-lock')
-    );
-  if (id === 'S03')
-    control = h(
-      'div',
-      {},
-      h(
-        'pre',
-        { className: 'code-preview' },
+        { className: 'case-sim-controls', 'data-sim-case': id },
         h(
-          'code',
-          {},
-          'HCL: tags.Owner = "team-platform"\nSTATE: tags.Owner = "team-platform"\nREMOTE: tags.Owner = "unknown"'
-        )
-      ),
-      spacer(),
-      action('Detectar drift →', 'simulate-drift')
-    );
-  if (id === 'S01')
-    control = h(
-      'div',
-      {},
-      h(
-        'pre',
-        { className: 'code-preview' },
-        h('code', {}, 'Antes: terraform_data.node["old_key"]\nDespués: terraform_data.node["new_key"]')
-      ),
-      spacer(),
-      action('Evaluar direcciones →', 'simulate-keys')
-    );
+          'div',
+          { className: 'cards-2' },
+          simTextField('Clave anterior for_each', 'oldKey', inp.oldKey, 'Clave anterior'),
+          simTextField('Clave nueva for_each', 'newKey', inp.newKey, 'Clave nueva')
+        ),
+        simCheckField('Declarar bloque moved explícito', 'hasMovedBlock', inp.hasMovedBlock),
+        spacer(),
+        action('Evaluar direcciones →', 'run-case-sim', id)
+      );
+    case 'S02':
+      return h(
+        'div',
+        { className: 'case-sim-controls', 'data-sim-case': id },
+        simNumberField('Antigüedad del lock (minutos)', 'lockAgeMinutes', inp.lockAgeMinutes, 0, 240, 'Minutos lock'),
+        simCheckField('Writer A sigue ejecutándose en CI', 'writerActive', inp.writerActive),
+        simCheckField('Autorización dual del owner documentada', 'lockDualApproved', inp.lockDualApproved),
+        spacer(),
+        action('Evaluar concurrencia de lock →', 'run-case-sim', id)
+      );
+    case 'S03':
+      return h(
+        'div',
+        { className: 'case-sim-controls', 'data-sim-case': id },
+        h(
+          'div',
+          { className: 'cards-2' },
+          simTextField('Owner en Git (HCL)', 'hclOwner', inp.hclOwner, 'Owner Git'),
+          simTextField('Owner observado en Cloud', 'remoteOwner', inp.remoteOwner, 'Owner Cloud')
+        ),
+        simCheckField('La deriva modifica reglas de red / seguridad', 'driftTouchesSecurity', inp.driftTouchesSecurity),
+        spacer(),
+        action('Diagnosticar drift →', 'run-case-sim', id)
+      );
+    case 'S04':
+      return h(
+        'div',
+        { className: 'case-sim-controls', 'data-sim-case': id },
+        simSelectField(
+          'Entorno afectado',
+          'criticalEnv',
+          inp.criticalEnv,
+          [
+            ['prod', 'Producción'],
+            ['staging', 'Staging'],
+            ['dev', 'Development']
+          ],
+          'Entorno afectado'
+        ),
+        simCheckField('lifecycle.prevent_destroy = true activo', 'hasPreventDestroy', inp.hasPreventDestroy),
+        simCheckField('Backup 3-2-1 con restore drill verificado', 'hasVerifiedBackup', inp.hasVerifiedBackup),
+        spacer(),
+        action('Evaluar guardia anti-destrucción →', 'run-case-sim', id)
+      );
+    case 'S05':
+      return h(
+        'div',
+        { className: 'case-sim-controls', 'data-sim-case': id },
+        simCheckField('Pipelines escritores congelados', 'writersFrozen', inp.writersFrozen),
+        simCheckField(
+          'Backup versionado verificado antes de migrar',
+          'migrationBackupVerified',
+          inp.migrationBackupVerified
+        ),
+        simCheckField(
+          'Bloqueo nativo S3 (use_lockfile = true) en destino',
+          'migrationLockEnabled',
+          inp.migrationLockEnabled
+        ),
+        spacer(),
+        action('Verificar preflight migrate-state →', 'run-case-sim', id)
+      );
+    case 'S06':
+      return h(
+        'div',
+        { className: 'case-sim-controls', 'data-sim-case': id },
+        simSelectField(
+          'Mecanismo aplicado al secreto sintético',
+          'secretHandling',
+          inp.secretHandling,
+          [
+            ['sensitive_var', 'variable sensitive = true'],
+            ['ephemeral_var', 'variable ephemeral = true (Terraform >= 1.10)'],
+            ['raw_output', 'output público sin redacción']
+          ],
+          'Mecanismo de manejo de secreto'
+        ),
+        simCheckField('El valor se pasa a un atributo que persiste en state', 'secretInState', inp.secretInState),
+        spacer(),
+        action('Auditar exposición en state/logs →', 'run-case-sim', id)
+      );
+    case 'S07':
+      return h(
+        'div',
+        { className: 'case-sim-controls', 'data-sim-case': id },
+        h(
+          'div',
+          { className: 'cards-2' },
+          simTextField('Versión actual del provider', 'providerFrom', inp.providerFrom, 'Versión origen'),
+          simTextField('Versión objetivo del provider', 'providerTo', inp.providerTo, 'Versión destino')
+        ),
+        simCheckField('.terraform.lock.hcl fijado y verificado en PR', 'lockfilePinned', inp.lockfilePinned),
+        spacer(),
+        action('Evaluar compatibilidad SemVer →', 'run-case-sim', id)
+      );
+    case 'S08':
+      return h(
+        'div',
+        { className: 'case-sim-controls', 'data-sim-case': id },
+        h(
+          'div',
+          { className: 'cards-2' },
+          simNumberField(
+            'Recursos acoplados en un solo state',
+            'stateResourceCount',
+            inp.stateResourceCount,
+            1,
+            2000,
+            'Recursos en state'
+          ),
+          simNumberField('Referencias circulares entre módulos', 'cycleCount', inp.cycleCount, 0, 10, 'Ciclos DAG')
+        ),
+        spacer(),
+        action('Analizar blast radius y acoplamiento →', 'run-case-sim', id)
+      );
+    case 'S09':
+      return h(
+        'div',
+        { className: 'case-sim-controls', 'data-sim-case': id },
+        h(
+          'div',
+          { className: 'cards-2' },
+          simTextField('CIDR de development', 'cidrA', inp.cidrA, 'CIDR desarrollo'),
+          simTextField('CIDR de producción', 'cidrB', inp.cidrB, 'CIDR producción')
+        ),
+        spacer(),
+        action('Comprobar rangos →', 'run-case-sim', id)
+      );
+    case 'S10':
+      return h(
+        'div',
+        { className: 'case-sim-controls', 'data-sim-case': id },
+        h(
+          'div',
+          { className: 'cards-2' },
+          simTextField('Claim sub permitido en IAM OIDC', 'oidcSubject', inp.oidcSubject, 'Claim sub OIDC'),
+          simTextField('Audience (aud) requerida', 'oidcAudience', inp.oidcAudience, 'Audience OIDC')
+        ),
+        simCheckField('Requiere GitHub Environment protegido con reviewers', 'oidcProtectedEnv', inp.oidcProtectedEnv),
+        spacer(),
+        action('Validar trust policy OIDC →', 'run-case-sim', id)
+      );
+    case 'S11':
+      return h(
+        'div',
+        { className: 'case-sim-controls', 'data-sim-case': id },
+        h(
+          'div',
+          { className: 'cards-2' },
+          simTextField('Commit del plan aprobado', 'approvedCommit', inp.approvedCommit, 'Commit aprobado'),
+          simTextField('Commit usado para apply', 'appliedCommit', inp.appliedCommit, 'Commit aplicado')
+        ),
+        spacer(),
+        action('Verificar identidad del fixture →', 'run-case-sim', id)
+      );
+    case 'S12':
+      return h(
+        'div',
+        { className: 'case-sim-controls', 'data-sim-case': id },
+        simCheckField('Suite .tftest.hcl con mock_provider en PASS', 'mockTestsPass', inp.mockTestsPass),
+        simCheckField(
+          'Integración ejecutada en cuenta sandbox efímera aislada',
+          'sandboxIntegrationPass',
+          inp.sandboxIntegrationPass
+        ),
+        spacer(),
+        action('Clasificar cobertura real vs mock →', 'run-case-sim', id)
+      );
+    case 'S13':
+      return h(
+        'div',
+        { className: 'case-sim-controls', 'data-sim-case': id },
+        h(
+          'div',
+          { className: 'cards-2' },
+          simSelectField(
+            'Severidad del hallazgo Policy-as-Code',
+            'policySeverity',
+            inp.policySeverity,
+            [
+              ['CRITICAL', 'CRITICAL'],
+              ['HIGH', 'HIGH'],
+              ['MEDIUM', 'MEDIUM']
+            ],
+            'Severidad policy'
+          ),
+          simNumberField(
+            'Vigencia solicitada (días, máx. 14)',
+            'exceptionTtlDays',
+            inp.exceptionTtlDays,
+            0,
+            365,
+            'TTL días'
+          )
+        ),
+        simTextField('Owner responsable del riesgo', 'exceptionOwner', inp.exceptionOwner, 'Owner de excepción'),
+        spacer(),
+        action('Evaluar excepción OPA/Conftest →', 'run-case-sim', id)
+      );
+    case 'S14':
+      return h(
+        'div',
+        { className: 'case-sim-controls', 'data-sim-case': id },
+        simNumberField(
+          'Número ficticio de réplicas (base USD 61/mes, umbral USD 250)',
+          'simulatedReplicas',
+          inp.simulatedReplicas,
+          0,
+          50,
+          'Número de réplicas'
+        ),
+        simCheckField('Etiquetas Owner, CostCenter y Environment presentes', 'hasFinOpsTags', inp.hasFinOpsTags),
+        simCheckField('Mover base de datos primaria stateful a nodos Spot', 'statefulOnSpot', inp.statefulOnSpot),
+        spacer(),
+        action('Calcular estimación FinOps →', 'run-case-sim', id)
+      );
+    case 'S15':
+      return h(
+        'div',
+        { className: 'case-sim-controls', 'data-sim-case': id },
+        simNumberField(
+          'RTO cronometrado en simulacro (minutos)',
+          'drRtoMinutes',
+          inp.drRtoMinutes,
+          1,
+          480,
+          'RTO minutos'
+        ),
+        simCheckField('Todos los writers CI/CD pausados', 'drWritersPaused', inp.drWritersPaused),
+        simCheckField('Revisión y aprobación dual confirmada', 'drDualApproved', inp.drDualApproved),
+        spacer(),
+        action('Evaluar recuperación de emergencia →', 'run-case-sim', id)
+      );
+    case 'S16':
+      return h(
+        'div',
+        { className: 'case-sim-controls', 'data-sim-case': id },
+        simCheckField('Terraform gestiona VPC, EKS base y Pod Identity', 'tfOwnsCluster', inp.tfOwnsCluster),
+        simCheckField('Terraform aplica Deployments/ConfigMaps de apps', 'tfOwnsWorkloads', inp.tfOwnsWorkloads),
+        simCheckField('Argo CD / Helm reconcilia Deployments de apps', 'gitopsOwnsWorkloads', inp.gitopsOwnsWorkloads),
+        spacer(),
+        action('Comprobar matriz de ownership →', 'run-case-sim', id)
+      );
+    case 'S17':
+      return h(
+        'div',
+        { className: 'case-sim-controls', 'data-sim-case': id },
+        simCheckField(
+          'RFC propone toda la nube en un único state monolítico',
+          'rfcMonolithicState',
+          inp.rfcMonolithicState
+        ),
+        simCheckField('Incluye plan de rollback y backup verificado', 'rfcHasRollback', inp.rfcHasRollback),
+        simCheckField('Define gates automatizados y CODEOWNERS por capa', 'rfcHasGates', inp.rfcHasGates),
+        spacer(),
+        action('Priorizar hallazgos P0/P1/P2 →', 'run-case-sim', id)
+      );
+    case 'S18':
+      return h(
+        'div',
+        { className: 'case-sim-controls', 'data-sim-case': id },
+        simSelectField(
+          'Etapa de promoción objetivo',
+          'capstoneTargetEnv',
+          inp.capstoneTargetEnv,
+          [
+            ['dev', 'Development'],
+            ['staging', 'Staging'],
+            ['prod', 'Production']
+          ],
+          'Entorno objetivo Capstone'
+        ),
+        simCheckField('Gates fmt / validate / test / policy en PASS', 'capstoneGatesGreen', inp.capstoneGatesGreen),
+        simCheckField('Identidad OIDC aislada por entorno', 'capstoneOidcScoped', inp.capstoneOidcScoped),
+        simCheckField(
+          'Presupuesto FinOps y revisión de plan aprobados',
+          'capstoneFinOpsApproved',
+          inp.capstoneFinOpsApproved
+        ),
+        spacer(),
+        action('Simular gate de promoción →', 'run-case-sim', id)
+      );
+    default:
+      return null;
+  }
+}
+
+function Simulator({ scenario, state, simResult, simInputs }: SeniorCaseProps) {
+  const id = scenario.id;
+  const drill = getSeniorDrill(id);
+  const selected = state.seniorDrillAnswers[id];
+  const result = selected === undefined ? null : evaluateSeniorDrill(id, selected);
+  const inputs = simInputs ?? defaultSimulatorInputs();
+  const control = buildCaseSimulatorControls(id, inputs);
+
   if (!drill) return null;
   return h(
     'section',
@@ -142,13 +443,14 @@ function Simulator({ scenario, state, simResult, cidrA, cidrB, approvedCommit, a
       h(
         'div',
         {},
-        h('div', { className: 'eyebrow' }, 'SIMULADOR DETERMINISTA'),
+        h('div', { className: 'eyebrow' }, `SIMULADOR DETERMINISTA · ${id}`),
         h('h3', { style: 'margin-top:8px' }, 'Prueba una hipótesis')
       ),
       tag('SIMULADO', 'yellow')
     ),
     spacer(),
     control,
+    simResult ? h('div', { className: 'alert', role: 'status', style: 'margin-top:14px' }, simResult) : null,
     h(
       'div',
       { className: 'what-if' },
@@ -162,7 +464,7 @@ function Simulator({ scenario, state, simResult, cidrA, cidrB, approvedCommit, a
             `${String.fromCharCode(65 + i)}. ${option}`,
             'what-if-answer',
             id,
-            `btn btn-soft ${selected === i ? 'selected' : ''}`,
+            `btn btn-soft ${selected === i ? 'selected' : ''}`.trim(),
             i
           )
         )
@@ -178,7 +480,6 @@ function Simulator({ scenario, state, simResult, cidrA, cidrB, approvedCommit, a
           )
         : null
     ),
-    simResult ? h('div', { className: 'alert', role: 'status' }, simResult) : null,
     h(
       'p',
       { className: 'small-note', style: 'margin-top:15px' },
@@ -186,6 +487,7 @@ function Simulator({ scenario, state, simResult, cidrA, cidrB, approvedCommit, a
     )
   );
 }
+
 function ReviewSnippet({ scenario, showFix }: { scenario: Case; showFix: boolean }) {
   const snip = seniorSnippets[scenario.id];
   if (!snip) return null;
@@ -203,7 +505,8 @@ function ReviewSnippet({ scenario, showFix }: { scenario: Case; showFix: boolean
     reviewBox('Revisión', snip.review)
   );
 }
-function Capstone({ state }: Pick<Props, 'state'>) {
+
+function Capstone({ state }: Pick<SeniorCaseProps, 'state'>) {
   return h(
     'div',
     {},
@@ -211,11 +514,11 @@ function Capstone({ state }: Pick<Props, 'state'>) {
     h('div', { className: 'eyebrow' }, 'CAPSTONE · 8 HITOS'),
     h('h3', { style: 'margin:12px 0' }, 'Checklist de entregables'),
     ...capstoneSteps.map((step, i) => {
-      const note = state.capstoneEvidence[String(i)] || '',
-        valid = capstoneNoteValid(note);
+      const note = state.capstoneEvidence[String(i)] || '';
+      const valid = capstoneNoteValid(note);
       return h(
         'div',
-        { className: 'capstone-stage', key: i },
+        { className: 'capstone-stage', key: step.name },
         h(
           'label',
           { className: 'check-row' },
@@ -262,11 +565,13 @@ function Capstone({ state }: Pick<Props, 'state'>) {
     h('p', { className: 'small-note' }, 'Las notas son autodeclaradas; sin ejecución ni aprobación externa.')
   );
 }
-function TabContent(props: Props) {
-  const c = props.scenario,
-    decision = props.state.seniorDecisions[c.id],
-    correct = decision === c.correct;
+
+function TabContent(props: SeniorCaseProps) {
+  const c = props.scenario;
+  const decision = props.state.seniorDecisions[c.id];
+  const correct = decision === c.correct;
   const evidence = props.state.seniorEvidence[c.id] || '';
+
   if (props.tab === 'investigar')
     return h(
       'section',
@@ -295,6 +600,7 @@ function TabContent(props: Props) {
         action('Tomar una decisión →', 'case-tab', 'decision', 'btn btn-primary btn-sm')
       )
     );
+
   if (props.tab === 'decision')
     return h(
       'section',
@@ -307,8 +613,9 @@ function TabContent(props: Props) {
         h(
           'button',
           {
+            key: `${c.id}-choice-${i}`,
             type: 'button',
-            className: `quiz-answer ${decision === i ? (correct ? 'correct' : 'incorrect') : ''}`,
+            className: `quiz-answer ${decision === i ? (correct ? 'correct' : 'incorrect') : ''}`.trim(),
             'data-action': 'case-decision',
             'data-id': c.id,
             'data-index': i
@@ -320,7 +627,7 @@ function TabContent(props: Props) {
       decision !== undefined
         ? h(
             'div',
-            { className: `feedback ${correct ? '' : 'fail'}`, role: 'status' },
+            { className: `feedback ${correct ? '' : 'fail'}`.trim(), role: 'status' },
             h('h3', {}, correct ? '✓ Decisión defendible' : '○ Se requiere una opción más segura'),
             h('p', {}, c.explanation)
           )
@@ -328,6 +635,7 @@ function TabContent(props: Props) {
       h('div', { className: 'space24' }),
       action('Continuar al review →', 'case-tab', 'review')
     );
+
   if (props.tab === 'review')
     return h(
       'section',
@@ -353,6 +661,7 @@ function TabContent(props: Props) {
       h('div', { className: 'space24' }),
       action('Documentar evidencia →', 'case-tab', 'evidencia')
     );
+
   if (props.tab === 'evidencia')
     return h(
       'section',
@@ -388,6 +697,7 @@ function TabContent(props: Props) {
       ' ',
       action('Preparar operaciones →', 'case-tab', 'operaciones')
     );
+
   return h(
     'section',
     { className: 'case-panel' },
@@ -406,22 +716,24 @@ function TabContent(props: Props) {
     action('← Revisar mi ADR', 'case-tab', 'evidencia')
   );
 }
-export function SeniorCasePage(props: Props) {
-  const c = props.scenario,
-    state = props.state;
-  const checked = state.seniorChecklist[c.id] || [],
-    done = state.seniorCompleted.includes(c.id),
-    gate = seniorGate(state, c);
-  const idx = props.cases.findIndex((x) => x.id === c.id),
-    prev = props.cases[idx - 1],
-    next = props.cases[idx + 1];
+
+export function SeniorCasePage(props: SeniorCaseProps) {
+  const c = props.scenario;
+  const state = props.state;
+  const checked = state.seniorChecklist[c.id] || [];
+  const done = state.seniorCompleted.includes(c.id);
+  const gate = seniorGate(state, c);
+  const idx = props.cases.findIndex((x) => x.id === c.id);
+  const prev = props.cases[idx - 1];
+  const next = props.cases[idx + 1];
   const tabs = [
     ['investigar', 'Investigar'],
     ['decision', 'Decisión'],
     ['review', 'Code Review'],
     ['evidencia', 'Evidencia'],
     ['operaciones', 'Operaciones']
-  ];
+  ] as const;
+
   return h(
     'div',
     { id: 'preact-senior-case' },
@@ -457,8 +769,9 @@ export function SeniorCasePage(props: Props) {
             h(
               'button',
               {
+                key: id,
                 type: 'button',
-                className: `tab ${props.tab === id ? 'active' : ''}`,
+                className: `tab ${props.tab === id ? 'active' : ''}`.trim(),
                 'data-action': 'case-tab',
                 'data-id': id,
                 'aria-current': props.tab === id ? 'step' : undefined
@@ -549,7 +862,7 @@ export function SeniorCasePage(props: Props) {
           ...c.checklist.map((text, i) =>
             h(
               'label',
-              { className: 'check-row' },
+              { key: `${c.id}-chk-${i}`, className: 'check-row' },
               h('input', {
                 type: 'checkbox',
                 'data-input': 'case-check',

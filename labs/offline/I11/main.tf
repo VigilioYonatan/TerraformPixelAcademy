@@ -1,5 +1,5 @@
 variable "approved" {
-  type = bool
+  type    = bool
   default = false
 }
 resource "terraform_data" "release" {

@@ -1,14 +1,14 @@
 terraform { required_version = ">= 1.6.0" }
 module "network" {
-  source = "../../modules/network"
+  source      = "../../modules/network"
   environment = "prod"
 }
 module "service" {
-  source = "../../modules/service"
+  source      = "../../modules/service"
   environment = "prod"
 }
 module "data" {
-  source = "../../modules/data"
+  source      = "../../modules/data"
   environment = "prod"
 }
 output "network_id" { value = module.network.id }

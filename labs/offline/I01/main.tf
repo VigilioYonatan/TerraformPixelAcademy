@@ -1,6 +1,6 @@
 variable "nombre" {
   default = "academy"
-  type = string
+  type    = string
 }
 resource "terraform_data" "modulo" {
   input = var.nombre

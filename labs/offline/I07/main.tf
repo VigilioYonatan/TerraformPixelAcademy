@@ -1,8 +1,8 @@
 variable "environment" {
   default = "staging"
-  type = string
+  type    = string
   validation {
-    condition = contains(["dev", "staging", "prod"], var.environment)
+    condition     = contains(["dev", "staging", "prod"], var.environment)
     error_message = "Entorno no permitido"
   }
 }

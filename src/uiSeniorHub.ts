@@ -1,4 +1,4 @@
-/** Senior dashboard as native, declarative Preact UI with reactive search filtering. */
+/** Senior dashboard as native, declarative Preact UI with search, severity, and pillar filters (`F4-02`). */
 import type { AcademyState } from './engine.js';
 import type { Case } from './senior.js';
 import { filterSeniorCases } from './store.js';
@@ -9,7 +9,11 @@ export interface SeniorHubProps {
   state: AcademyState;
   cases: readonly Case[];
   searchQuery?: string;
+  severityFilter?: string;
+  pillarFilter?: string;
 }
+
+const SEVERITY_TABS = ['Todas', 'Crítico', 'Alto'] as const;
 
 function chip(value: string, tone = 'purple') {
   return h('span', { className: `chip chip-${tone}` }, value);
@@ -24,9 +28,16 @@ function stat(value: string | number, description: string, icon: string) {
   );
 }
 
-export function SeniorDashboard({ state, cases, searchQuery = '' }: SeniorHubProps) {
+export function SeniorDashboard({
+  state,
+  cases,
+  searchQuery = '',
+  severityFilter = 'Todas',
+  pillarFilter = 'Todos'
+}: SeniorHubProps) {
   const completed = state.seniorCompleted.length;
-  const filteredCases = filterSeniorCases(cases, searchQuery);
+  const pillars = ['Todos', ...new Set(cases.map((c) => c.pillar))];
+  const filteredCases = filterSeniorCases(cases, searchQuery, severityFilter, pillarFilter);
 
   return h(
     'div',
@@ -70,7 +81,7 @@ export function SeniorDashboard({ state, cases, searchQuery = '' }: SeniorHubPro
       'div',
       { className: 'cards-4' },
       stat(cases.length, 'Escenarios', '♛'),
-      stat(new Set(cases.map((c) => c.pillar)).size, 'Dominios técnicos', '⚑'),
+      stat(pillars.length - 1, 'Dominios técnicos', '⚑'),
       stat(completed, 'Casos autoevaluados', '✓'),
       stat(`${Math.round((completed / Math.max(1, cases.length)) * 100)}%`, 'Avance Senior', '✦')
     ),
@@ -94,16 +105,57 @@ export function SeniorDashboard({ state, cases, searchQuery = '' }: SeniorHubPro
         ),
         chip(`${completed}/${cases.length} completados`)
       ),
-      h('label', { className: 'field-label', htmlFor: 'senior-search' }, 'Buscar un caso Senior'),
-      h('input', {
-        id: 'senior-search',
-        type: 'search',
-        className: 'search-bar',
-        value: searchQuery,
-        placeholder: 'Buscar incidentes, dominios o controles…',
-        'aria-label': 'Buscar casos Senior'
-      }),
-      h('div', { className: 'space16' }),
+      h(
+        'div',
+        { className: 'flex space-between', style: 'flex-wrap:wrap;gap:12px;margin-bottom:14px' },
+        h(
+          'div',
+          { className: 'tabs', style: 'margin-bottom:0;border-bottom:0' },
+          ...SEVERITY_TABS.map((sev) =>
+            h(
+              'button',
+              {
+                key: sev,
+                type: 'button',
+                className: `tab ${severityFilter === sev ? 'active' : ''}`.trim(),
+                'data-action': 'senior-severity',
+                'data-id': sev,
+                'aria-pressed': String(severityFilter === sev)
+              },
+              sev === 'Todas' ? 'Severidad: Todas' : sev
+            )
+          )
+        ),
+        h(
+          'div',
+          { className: 'flex-wrap' },
+          h(
+            'select',
+            {
+              id: 'senior-pillar-filter',
+              className: 'input-select',
+              'data-input': 'senior-pillar',
+              'aria-label': 'Filtrar por dominio técnico',
+              value: pillarFilter
+            },
+            ...pillars.map((pillar) =>
+              h(
+                'option',
+                { key: pillar, value: pillar, selected: pillarFilter === pillar },
+                pillar === 'Todos' ? 'Dominio: Todos' : pillar
+              )
+            )
+          ),
+          h('input', {
+            id: 'senior-search',
+            type: 'search',
+            className: 'search-bar',
+            value: searchQuery,
+            placeholder: 'Buscar incidentes, dominios o controles…',
+            'aria-label': 'Buscar casos Senior'
+          })
+        )
+      ),
       filteredCases.length > 0
         ? h(
             'div',
@@ -143,7 +195,7 @@ export function SeniorDashboard({ state, cases, searchQuery = '' }: SeniorHubPro
             'div',
             { className: 'card', role: 'status' },
             h('h3', { className: 'card-title' }, 'Sin casos coincidentes'),
-            h('p', { className: 'card-desc' }, 'No hay escenarios Senior que coincidan con tu búsqueda.')
+            h('p', { className: 'card-desc' }, 'No hay escenarios Senior que coincidan con tu filtro.')
           )
     ),
     h(

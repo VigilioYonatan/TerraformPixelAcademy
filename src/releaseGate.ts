@@ -1,11 +1,13 @@
 /**
- * Training-only policy review for a Terraform show -json plan.
+ * Training-only policy review for a Terraform `show -json` plan (`F4-03`).
  * Never returns a deploy authorization, only a checklist status for human review.
- * All inputs stay in the browser, and no before/after values are read.
+ * All inputs stay in the browser, and no `before`/`after` values are read.
  */
 import type { PlanAnalysis } from './planInspector.js';
+
 export type ReviewEnvironment = 'dev' | 'staging' | 'prod';
 export type GateStatus = 'BLOCKED' | 'NEEDS_EVIDENCE' | 'READY_FOR_HUMAN_REVIEW';
+
 export interface GateAnswers {
   environment: ReviewEnvironment;
   provenanceVerified: boolean;
@@ -15,6 +17,7 @@ export interface GateAnswers {
   rollbackDocumented: boolean;
   costReviewed: boolean;
 }
+
 export const emptyGateAnswers = (): GateAnswers => ({
   environment: 'prod',
   provenanceVerified: false,
@@ -24,11 +27,13 @@ export const emptyGateAnswers = (): GateAnswers => ({
   rollbackDocumented: false,
   costReviewed: false
 });
+
 export interface GateFinding {
   id: string;
   severity: 'BLOCK' | 'REVIEW';
   message: string;
 }
+
 export interface GateReview {
   provenance: 'LOCAL_TRAINING_ONLY';
   status: GateStatus;
@@ -36,39 +41,73 @@ export interface GateReview {
   checksPassed: number;
   checksRequired: number;
   destructive: number;
+  replaceDeleteThenCreate: number;
+  replaceCreateBeforeDestroy: number;
+  forgottenCount: number;
   driftCount: number;
   unknownActions: number;
   environment: ReviewEnvironment;
 }
+
 export function evaluateReleaseGate(plan: PlanAnalysis, answer: GateAnswers): GateReview {
   const findings: GateFinding[] = [];
   const block = (id: string, message: string) => findings.push({ id, severity: 'BLOCK', message });
   const review = (id: string, message: string) => findings.push({ id, severity: 'REVIEW', message });
-  if (plan.total === 0)
+
+  if (plan.total === 0) {
     review('EMPTY', 'El plan declara cero recursos modificados: confirma que corresponde al workspace esperado.');
-  if (plan.summary.unknown > 0)
+  }
+  if (plan.summary.unknown > 0) {
     block(
       'UNKNOWN',
       `${plan.summary.unknown} operaciones desconocidas; el plan no debe utilizarse para autorizar cambios.`
     );
-  if (!answer.provenanceVerified)
+  }
+  if (!answer.provenanceVerified) {
     block('PROVENANCE', 'Falta cotejar commit, entorno, origen y checksum del plan aprobado.');
-  if (plan.driftCount > 0 && !answer.driftInvestigated)
+  }
+  if (plan.driftCount > 0 && !answer.driftInvestigated) {
     block('DRIFT', `Hay ${plan.driftCount} eventos de drift sin investigación declarada.`);
-  if (plan.destructive > 0 && !answer.destructiveReviewed)
-    block('DESTRUCTIVE', `${plan.destructive} operaciones destructivas o reemplazos requieren revisión por recurso.`);
-  if (plan.driftDestructive > 0)
+  }
+  if (plan.destructive > 0 && !answer.destructiveReviewed) {
+    const orderDetail =
+      plan.replaceDeleteThenCreate > 0
+        ? ` (incluye ${plan.replaceDeleteThenCreate} delete-then-create con corte potencial)`
+        : plan.replaceCreateBeforeDestroy > 0
+          ? ` (incluye ${plan.replaceCreateBeforeDestroy} create-before-destroy)`
+          : '';
+    block(
+      'DESTRUCTIVE',
+      `${plan.destructive} operaciones destructivas o reemplazos requieren revisión por recurso${orderDetail}.`
+    );
+  }
+  if (plan.driftDestructive > 0) {
     review(
       'DRIFT_DESTRUCTIVE',
       `${plan.driftDestructive} eventos de drift destructivo: requiere diagnóstico fuera de esta herramienta.`
     );
-  if (answer.environment === 'prod' && !answer.ownersApproved)
+  }
+  if (plan.forgottenCount > 0) {
+    review(
+      'STATE_FORGET',
+      `${plan.forgottenCount} operación(es) forget (removed): el recurso sale del state sin destruirse en cloud; documenta nuevo owner y costo residual.`
+    );
+  }
+  if (answer.environment === 'prod' && !answer.ownersApproved) {
     block('APPROVAL', 'Falta revisión declarada de los owners para producción.');
-  else if (!answer.ownersApproved) review('OWNER', 'No consta aprobación del responsable del entorno.');
-  if (!answer.rollbackDocumented) review('ROLLBACK', 'Falta runbook de recuperación y condición de parada.');
-  if (!answer.costReviewed) review('FINOPS', 'Falta revisión de costos y cuota presupuestaria.');
-  if (plan.sensitiveCount > 0)
+  } else if (!answer.ownersApproved) {
+    review('OWNER', 'No consta aprobación del responsable del entorno.');
+  }
+  if (!answer.rollbackDocumented) {
+    review('ROLLBACK', 'Falta runbook de recuperación y condición de parada.');
+  }
+  if (!answer.costReviewed) {
+    review('FINOPS', 'Falta revisión de costos y cuota presupuestaria.');
+  }
+  if (plan.sensitiveCount > 0) {
     review('SENSITIVE', `Existen ${plan.sensitiveCount} indicadores sensitive: restringe acceso a plan/state.`);
+  }
+
   const checksRequired = 6;
   const checksPassed = [
     answer.provenanceVerified,
@@ -78,11 +117,13 @@ export function evaluateReleaseGate(plan: PlanAnalysis, answer: GateAnswers): Ga
     answer.rollbackDocumented,
     answer.costReviewed
   ].filter(Boolean).length;
+
   const status: GateStatus = findings.some((f) => f.severity === 'BLOCK')
     ? 'BLOCKED'
     : findings.some((f) => f.severity === 'REVIEW')
       ? 'NEEDS_EVIDENCE'
       : 'READY_FOR_HUMAN_REVIEW';
+
   return {
     provenance: 'LOCAL_TRAINING_ONLY',
     status,
@@ -91,10 +132,14 @@ export function evaluateReleaseGate(plan: PlanAnalysis, answer: GateAnswers): Ga
     checksRequired,
     environment: answer.environment,
     destructive: plan.destructive,
+    replaceDeleteThenCreate: plan.replaceDeleteThenCreate,
+    replaceCreateBeforeDestroy: plan.replaceCreateBeforeDestroy,
+    forgottenCount: plan.forgottenCount,
     driftCount: plan.driftCount,
     unknownActions: plan.summary.unknown
   };
 }
+
 /** Markdown never claims an actual GO or cloud approval, and never includes plan values. */
 export function exportGateReview(review: GateReview): string {
   const line = (s: string) => s.replace(/\p{Cc}/gu, ' ').slice(0, 300);
@@ -104,7 +149,8 @@ export function exportGateReview(review: GateReview): string {
 **Estado:** ${review.status}  
 **Ambiente declarado:** ${review.environment}  
 **Controles declarados:** ${review.checksPassed}/${review.checksRequired}  
-**Cambios destructivos:** ${review.destructive}  
+**Cambios destructivos:** ${review.destructive} (delete→create: ${review.replaceDeleteThenCreate}, create→delete: ${review.replaceCreateBeforeDestroy})  
+**Objetos desvinculados (forget):** ${review.forgottenCount}  
 **Drift reportado:** ${review.driftCount}  
 **Operaciones desconocidas:** ${review.unknownActions}
 

@@ -10,9 +10,13 @@ New-Item -Type Directory -Path $Report -Force | Out-Null
 $prevAutomation = $env:TF_IN_AUTOMATION
 $env:TF_IN_AUTOMATION = '1'
 try {
+  $prevEap = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
   $verOut = & terraform version 2>&1
-  if ($LASTEXITCODE -ne 0) {
-    [Console]::Error.WriteLine("FAIL: terraform version devolvio codigo $LASTEXITCODE")
+  $verExit = $LASTEXITCODE
+  $ErrorActionPreference = $prevEap
+  if ($verExit -ne 0) {
+    [Console]::Error.WriteLine("FAIL: terraform version devolvio codigo $verExit")
     exit 1
   }
   ($verOut | Out-String).TrimEnd() | Set-Content -LiteralPath (Join-Path $Report 'terraform-version.txt') -Encoding utf8
@@ -38,8 +42,12 @@ try {
       Copy-Item -Path (Join-Path $dir '*') -Destination $sandbox -Recurse -Force
       Push-Location $sandbox
       try {
+        $prevEap = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
         $fmtCheck = & terraform fmt -check -recursive -no-color 2>&1
-        if ($LASTEXITCODE -ne 0) {
+        $fmtExit = $LASTEXITCODE
+        $ErrorActionPreference = $prevEap
+        if ($fmtExit -ne 0) {
           if ($fmtCheck) { $logLines.Add(($fmtCheck | Out-String).TrimEnd()) }
           $logLines.Add('SOURCE_FORMAT_FAIL: la fuente original no pasa terraform fmt -check.')
           throw 'Terraform formatting check failed'
@@ -51,9 +59,13 @@ try {
           @('test','-no-color')
         )
         foreach ($arguments in $commands) {
+          $prevEap = $ErrorActionPreference
+          $ErrorActionPreference = 'Continue'
           $cmdOut = & terraform @arguments 2>&1
+          $cmdExit = $LASTEXITCODE
+          $ErrorActionPreference = $prevEap
           if ($cmdOut) { $logLines.Add(($cmdOut | Out-String).TrimEnd()) }
-          if ($LASTEXITCODE -ne 0) { throw "terraform $($arguments[0]) failed ($LASTEXITCODE)" }
+          if ($cmdExit -ne 0) { throw "terraform $($arguments[0]) failed ($cmdExit)" }
         }
       } finally { Pop-Location }
     } catch {

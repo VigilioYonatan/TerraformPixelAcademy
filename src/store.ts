@@ -17,7 +17,9 @@ import type { PlanAnalysis } from './planInspector.js';
 import { emptyGateAnswers, type GateAnswers, type GateReview } from './releaseGate.js';
 import type { Case } from './senior.js';
 import { reconcileSeniorCompletion } from './seniorProgress.js';
+import { defaultSimulatorInputs, type SimulatorInputs } from './simulators.js';
 
+export type { SimulatorInputs };
 export type CaseTabId = 'investigar' | 'decision' | 'review' | 'evidencia' | 'operaciones';
 export type LabsCategory = 'Todos' | 'Básico' | 'Intermedio' | 'Avanzado' | 'Senior';
 
@@ -35,20 +37,14 @@ export interface ToastMessage {
   error: boolean;
 }
 
-export interface SimulatorInputs {
-  cidrA: string;
-  cidrB: string;
-  approvedCommit: string;
-  appliedCommit: string;
-  simulatedReplicas: number;
-}
-
 export interface AcademyStoreState {
   academy: AcademyState;
   mobileMenu: boolean;
   activeLevel: string;
   lessonSearch: string;
   seniorSearch: string;
+  seniorSeverity: string;
+  seniorPillar: string;
   glossarySearch: string;
   labsCategory: LabsCategory;
   labsSearch: string;
@@ -105,11 +101,18 @@ export function filterLessons(allLessons: readonly Lesson[], level: string, quer
   });
 }
 
-export function filterSeniorCases(allCases: readonly Case[], query: string): readonly Case[] {
+export function filterSeniorCases(
+  allCases: readonly Case[],
+  query: string,
+  severity = 'Todas',
+  pillar = 'Todos'
+): readonly Case[] {
   const normalized = query.toLowerCase().trim();
-  if (!normalized) return allCases;
   return allCases.filter((item) => {
-    const haystack = `${item.id} ${item.title} ${item.pillar} ${item.subtitle}`.toLowerCase();
+    if (severity !== 'Todas' && item.severity !== severity) return false;
+    if (pillar !== 'Todos' && item.pillar !== pillar) return false;
+    if (!normalized) return true;
+    const haystack = `${item.id} ${item.title} ${item.pillar} ${item.severity} ${item.subtitle}`.toLowerCase();
     return haystack.includes(normalized);
   });
 }
@@ -182,6 +185,8 @@ export function createAcademyStore({
     activeLevel: 'Todos',
     lessonSearch: '',
     seniorSearch: '',
+    seniorSeverity: 'Todas',
+    seniorPillar: 'Todos',
     glossarySearch: '',
     labsCategory: 'Todos',
     labsSearch: '',
@@ -193,13 +198,7 @@ export function createAcademyStore({
     evals: {},
     showSeniorFix: false,
     seniorSimResult: '',
-    simInputs: {
-      cidrA: '10.40.0.0/16',
-      cidrB: '10.40.8.0/21',
-      approvedCommit: 'a1b2',
-      appliedCommit: 'c9d8',
-      simulatedReplicas: 6
-    },
+    simInputs: defaultSimulatorInputs(),
     cliManifest: null,
     cliManifestError: '',
     userPlan: null,

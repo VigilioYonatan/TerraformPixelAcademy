@@ -1,5 +1,5 @@
 variable "proyecto" {
-  type = string
+  type    = string
   default = "academy"
 }
 locals {

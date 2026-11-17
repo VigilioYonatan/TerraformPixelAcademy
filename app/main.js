@@ -1,7 +1,7 @@
 import { cliEvidenceMarkdown, parseCliManifest } from './cliEvidence.js';
 import { getLesson, lessons, tracks } from './curriculum.js';
 import { activateCodeEditor, disposeCodeEditor, updateEditorTheme } from './editor.js';
-import { calculateXP, escapeHtml as e, evaluateLesson, reconcileLessonCompletion, sanitizeState, slugFilename } from './engine.js';
+import { evaluateLesson, reconcileLessonCompletion, sanitizeState, slugFilename } from './engine.js';
 import { graphs, planFixtures } from './fixtures.js';
 import { games } from './games.js';
 import { inspectTerraformPlan } from './planInspector.js';
@@ -11,19 +11,22 @@ import { getCase, seniorCases } from './senior.js';
 import { capstoneNoteValid, reconcileSeniorCompletion, seniorGate } from './seniorProgress.js';
 import { buildSeniorPortfolio, buildSeniorReport } from './seniorReport.js';
 import { evaluateSeniorDrill } from './seniorWhatIf.js';
-import { cidrOverlap, estimateCost, planIntegrity } from './simulators.js';
-import { createAcademyStore, filterGlossary, isCaseTabId, isLabsCategory, resolveGameSession } from './store.js';
+import { runCaseSimulator, updateSimulatorBoolean, updateSimulatorNumber, updateSimulatorText } from './simulators.js';
+import { createAcademyStore, isCaseTabId, isLabsCategory, resolveGameSession } from './store.js';
 import { LearningCatalog } from './uiCatalog.js';
 import { CliEvidenceDashboard } from './uiCliEvidence.js';
 import { GameStage, GamesHub } from './uiGames.js';
 import { GraphExplorer } from './uiGraph.js';
-import { HomePage, findNextLesson } from './uiHome.js';
+import { HomePage } from './uiHome.js';
 import { LabsDirectory } from './uiLabs.js';
 import { LessonClassroom } from './uiLesson.js';
 import { PlansExplorerPage } from './uiPlans.js';
+import { ProfileProgressPage } from './uiProfile.js';
+import { NotFoundPage, ResourcesPage } from './uiResources.js';
 import { SeniorCasePage } from './uiSeniorCase.js';
 import { SeniorDashboard } from './uiSeniorHub.js';
-import { ROUTES, mascotUrl } from './uiShared.js';
+import { SettingsPage } from './uiSettings.js';
+import { ROUTES } from './uiShared.js';
 import { AppShell } from './uiShell.js';
 import { h, render as renderPreact } from './vendor/preact.mjs';
 const appElement = document.getElementById('app');
@@ -74,11 +77,6 @@ function render() {
             s.activeLevel = from;
         }
     }
-    // Preserve caret inside transitional `#glossary-search` input until F3-08 migrates `#/recursos` to Preact
-    const activeEl = document.activeElement;
-    const restoreGlossaryCaret = page === 'recursos' && activeEl instanceof HTMLInputElement && activeEl.id === 'glossary-search'
-        ? { start: activeEl.selectionStart, end: activeEl.selectionEnd }
-        : null;
     const activeLesson = page === 'leccion' && param ? getLesson(param) : undefined;
     if (!activeLesson) {
         disposeCodeEditor();
@@ -92,7 +90,7 @@ function render() {
         s.gameSession = resolveGameSession(s.gameSession, activeGame.id);
     }
     const seniorScenario = page === 'senior' && param ? getCase(param) : undefined;
-    const declarativeView = page === 'inicio'
+    const view = page === 'inicio'
         ? h(HomePage, { state, lessons })
         : page === 'aprender'
             ? h(LearningCatalog, {
@@ -140,7 +138,9 @@ function render() {
                                         ? h(SeniorDashboard, {
                                             state,
                                             cases: seniorCases,
-                                            searchQuery: s.seniorSearch
+                                            searchQuery: s.seniorSearch,
+                                            severityFilter: s.seniorSeverity,
+                                            pillarFilter: s.seniorPillar
                                         })
                                         : page === 'senior' && seniorScenario
                                             ? h(SeniorCasePage, {
@@ -150,44 +150,27 @@ function render() {
                                                 tab: s.caseTab,
                                                 showFix: s.showSeniorFix,
                                                 simResult: s.seniorSimResult,
-                                                cidrA: s.simInputs.cidrA,
-                                                cidrB: s.simInputs.cidrB,
-                                                approvedCommit: s.simInputs.approvedCommit,
-                                                appliedCommit: s.simInputs.appliedCommit,
-                                                replicas: s.simInputs.simulatedReplicas
+                                                simInputs: s.simInputs
                                             })
                                             : page === 'evidencias'
                                                 ? h(CliEvidenceDashboard, {
                                                     manifest: s.cliManifest,
                                                     error: s.cliManifestError
                                                 })
-                                                : undefined;
-    const legacyContent = declarativeView
-        ? ''
-        : page === 'progreso'
-            ? progressView()
-            : page === 'ajustes'
-                ? settingsView()
-                : page === 'recursos'
-                    ? resourcesView()
-                    : notFound();
+                                                : page === 'progreso'
+                                                    ? h(ProfileProgressPage, { state, lessons, tracks })
+                                                    : page === 'ajustes'
+                                                        ? h(SettingsPage, { state })
+                                                        : page === 'recursos'
+                                                            ? h(ResourcesPage, { glossarySearch: s.glossarySearch })
+                                                            : h(NotFoundPage, {});
     renderPreact(h(AppShell, {
         page,
         mobileMenu: s.mobileMenu,
         seniorEnabled: state.seniorEnabled,
-        content: legacyContent,
-        view: declarativeView,
+        view,
         toast: s.toast
     }), root);
-    if (restoreGlossaryCaret) {
-        const nextInput = document.getElementById('glossary-search');
-        if (nextInput instanceof HTMLInputElement) {
-            nextInput.focus();
-            if (restoreGlossaryCaret.start !== null && restoreGlossaryCaret.end !== null) {
-                nextInput.setSelectionRange(restoreGlossaryCaret.start, restoreGlossaryCaret.end);
-            }
-        }
-    }
     if (activeLesson) {
         lastMountedLessonId = activeLesson.id;
         void activateCodeEditor((value) => {
@@ -206,161 +189,6 @@ function render() {
     }
 }
 store.subscribe(render);
-function link(text, path, style = 'btn btn-soft') {
-    return `<a href="${path}" class="${style}">${text}</a>`;
-}
-function label(text, variant = 'purple') {
-    return `<span class="chip chip-${variant}">${e(text)}</span>`;
-}
-function sectionHead(eyebrow, title, side = '') {
-    return `<div class="section-heading"><div><div class="eyebrow">${eyebrow}</div><h2>${title}</h2></div>${side}</div>`;
-}
-function bar(done, total) {
-    const pct = total ? Math.min(100, Math.round((done / total) * 100)) : 0;
-    return `<div class="progress-track" role="progressbar" aria-label="Progreso" aria-valuenow="${done}" aria-valuemin="0" aria-valuemax="${total}"><div class="progress-fill" style="width:${pct}%"></div></div>`;
-}
-function stats() {
-    const state = store.getState().academy;
-    const done = state.completed.length;
-    const seniorDone = state.seniorCompleted.length;
-    const gamesWon = Object.values(state.gameWins).reduce((a, b) => a + b, 0);
-    return `<div class="cards-4"><div class="stat-pill"><span style="font-size:27px">✧</span><div><div class="number">${calculateXP(state).toLocaleString('es-PE')}</div><div class="caption">XP de práctica</div></div></div><div class="stat-pill"><span style="font-size:27px">▣</span><div><div class="number">${done}/36</div><div class="caption">Lecciones evaluadas</div></div></div><div class="stat-pill"><span style="font-size:27px">♛</span><div><div class="number">${seniorDone}/18</div><div class="caption">Casos Senior completados*</div></div></div><div class="stat-pill"><span style="font-size:27px">◆</span><div><div class="number">${gamesWon}</div><div class="caption">Juegos ganados</div></div></div></div>`;
-}
-function levelLessons(level) {
-    return lessons.filter((l) => l.level === level);
-}
-function progressView() {
-    const state = store.getState().academy;
-    const counts = ['Básico', 'Intermedio', 'Avanzado'].map((level) => ({
-        level,
-        count: levelLessons(level).filter((l) => state.completed.includes(l.id)).length
-    }));
-    const badges = [
-        {
-            title: 'Primer commit',
-            needed: state.completed.length >= 1,
-            icon: 'hola',
-            description: 'Tu primera lección superada'
-        },
-        {
-            title: 'HCL Explorer',
-            needed: counts[0].count >= 6,
-            icon: 'codificando',
-            description: '6 lecciones de fundamentos'
-        },
-        { title: 'Builder', needed: counts[0].count === 12, icon: 'arquitectura', description: 'Básico completo' },
-        { title: 'DevSecOps', needed: counts[1].count === 12, icon: 'deploy', description: 'Intermedio completo' },
-        { title: 'Cloud Architect', needed: counts[2].count === 12, icon: 'idea', description: 'Avanzado completo' },
-        {
-            title: 'Senior Reviewer',
-            needed: state.seniorCompleted.length === 18,
-            icon: 'senior',
-            description: '18 casos autoevaluados'
-        }
-    ];
-    const next = findNextLesson(lessons, state.completed);
-    return `<div class="breadcrumb"><a href="${ROUTES.home}">Inicio</a> / <span>Progreso</span></div><div class="eyebrow">MI PERFIL DE APRENDIZAJE</div><h1 class="page-title">Tus logros en IaC</h1><p class="page-lead">Tu progreso se guarda en este navegador, sin cuenta ni telemetría. Exporta un respaldo JSON si vas a cambiar de dispositivo.</p><div class="space24"></div>${stats()}<section class="section">${sectionHead('CONTINUIDAD', 'Avance por nivel')}<div class="cards-3">${counts.map((item) => `<div class="card"><div class="flex space-between"><h3 style="font-size:21px">${item.level}</h3>${label(`${item.count}/12`, 'purple')}</div><div class="space24"></div>${bar(item.count, 12)}<p class="card-desc" style="margin:14px 0">${item.count === 12 ? 'Nivel completado' : `${12 - item.count} lecciones pendientes`}</p>${link('Abrir nivel →', `#/aprender?nivel=${encodeURIComponent(item.level)}`, 'btn btn-sm btn-soft')}</div>`).join('')}</div></section><section class="section">${sectionHead('PIXEL ACHIEVEMENTS', 'Galería de insignias')}<div class="badge-grid">${badges.map((b) => `<div class="badge-card ${b.needed ? '' : 'locked'}"><img src="${mascotUrl(b.icon)}" alt="" class="image-pixel"><strong>${e(b.title)}</strong><small>${e(b.description)}</small><div class="space12"></div>${label(b.needed ? 'Desbloqueada' : 'Bloqueada', b.needed ? 'green' : 'purple')}</div>`).join('')}</div></section><section class="section">${sectionHead('REPASO', 'Continúa donde quedaste')}<div class="cards-2"><div class="card"><h3 class="card-title">Próxima lección</h3><p class="card-desc">${e(`${next.id} — ${next.title}`)}</p><div class="space16"></div>${link('Continuar →', `#/leccion/${next.id}`, 'btn btn-primary')}</div><div class="card"><h3 class="card-title">Guardado local</h3><p class="card-desc">Tu JSON de progreso incluye respuestas, ejercicios, decisiones y ADR escritos. No compartas su contenido si incluye datos privados.</p><div class="space16"></div><button type="button" class="btn btn-soft" data-action="export-progress">↓ Exportar respaldo</button></div></div></section><div class="space24"></div><div class="notice">XP e insignias son indicadores de práctica educativa. Senior Mode registra autoevaluación; no garantiza experiencia laboral, certificación oficial ni despliegues validados.</div>`;
-}
-function settingsView() {
-    const state = store.getState().academy;
-    return `<div class="breadcrumb"><a href="${ROUTES.home}">Inicio</a> / <span>Ajustes</span></div><div class="eyebrow">PREFERENCIAS Y PRIVACIDAD</div><h1 class="page-title">Tu academia, a tu manera</h1><p class="page-lead">Controla apariencia, movimiento y progreso. Todo funciona localmente, sin inicio de sesión y sin enviar tus ejercicios a un servidor.</p><div class="space24"></div><div class="settings-layout"><div class="content-panel"><h2>Experiencia</h2><div class="settings-item"><div><h4>Tema</h4><p>Claro u oscuro</p></div><select class="input-select" data-input="theme" aria-label="Tema"><option value="dark" ${state.theme === 'dark' ? 'selected' : ''}>Oscuro</option><option value="light" ${state.theme === 'light' ? 'selected' : ''}>Claro</option></select></div><div class="settings-item"><div><h4>Senior Mode</h4><p>Muestra preguntas y retos avanzados</p></div><button type="button" class="btn btn-sm ${state.seniorEnabled ? 'btn-primary' : ''}" data-action="toggle-senior">${state.seniorEnabled ? 'Activado' : 'Desactivado'}</button></div><div class="settings-item"><div><h4>Reducir movimiento</h4><p>Desactiva animaciones decorativas</p></div><button type="button" class="btn btn-sm" data-action="toggle-motion">${state.reducedMotion ? 'Sí' : 'No'}</button></div><div class="settings-item"><div><h4>Tamaño de texto</h4><p>Escala general de lectura</p></div><select class="input-select" data-input="font-scale" aria-label="Tamaño de texto"><option value="0.9" ${state.fontScale === 0.9 ? 'selected' : ''}>Compacto</option><option value="1" ${state.fontScale === 1 ? 'selected' : ''}>Normal</option><option value="1.15" ${state.fontScale === 1.15 ? 'selected' : ''}>Grande</option><option value="1.3" ${state.fontScale === 1.3 ? 'selected' : ''}>Muy grande</option></select></div><div class="settings-item"><div><h4>Idioma</h4><p>La versión completa se ofrece en español</p></div><span class="chip">Español</span></div></div><div class="content-panel"><h2>Datos locales</h2><p class="prose">El almacenamiento usa localStorage. No existe cuenta, sincronización ni analítica remota en la app. Puedes hacer backup, restaurar y borrar tus datos del navegador.</p><div class="space24"></div><div class="flex-wrap"><button type="button" class="btn btn-primary" data-action="export-progress">↓ Exportar JSON</button><button type="button" class="btn" data-action="import-progress">↑ Importar JSON</button><input type="file" id="progress-file" accept="application/json,.json" style="display:none" aria-label="Cargar archivo de progreso"/></div><div class="space24"></div><div class="alert">El respaldo incluye código editado, decisiones y evidencia Senior. Consérvalo como información personal. La importación reemplaza el progreso actual después de validación de estructura.</div><div class="space24"></div><button type="button" class="btn btn-danger" data-action="reset-progress">Eliminar todo mi progreso</button><div class="space24"></div><h3 style="font-size:17px">Sobre los laboratorios</h3><p class="prose">Los comandos CLI se ejecutan en tu equipo. Los simuladores no hacen apply ni gestionan cuentas cloud.</p></div></div><section class="section"><div class="card"><h3>Diseño aprobado</h3><p class="card-desc">Se incluye una copia local del concepto visual y un spritesheet original de Terra con 12 poses PNG.</p><div class="space16"></div><a href="./assets/reference/concepto-aprobado.png" target="_blank" rel="noopener noreferrer" class="btn btn-soft">↗ Ver imagen original</a></div></section>`;
-}
-const glossary = [
-    ['HCL', 'Lenguaje de configuración de HashiCorp, con bloques, atributos y expresiones.'],
-    ['Provider', 'Plugin que expone tipos de recursos y data sources para una API.'],
-    ['Resource', 'Declaración de un objeto administrado por Terraform.'],
-    ['Data source', 'Consulta de datos existentes, sin declarar su gestión.'],
-    ['State', 'Registro del mapeo entre configuración y objetos administrados; puede contener secretos.'],
-    ['Backend', 'Configuración para almacenar y bloquear state.'],
-    ['Lock', 'Mecanismo que impide escritores concurrentes sobre un estado.'],
-    ['Drift', 'Desviación observada entre la configuración/estado y recursos externos.'],
-    ['Plan', 'Representación de cambios propuestos antes de apply.'],
-    ['Apply', 'Operación que ejecuta modificaciones reales autorizadas.'],
-    ['Destroy', 'Operación que plantea eliminar objetos administrados.'],
-    ['Module', 'Unidad reusable de configuración con variables, recursos y outputs.'],
-    ['Output', 'Contrato de valores expuestos por un módulo.'],
-    ['Variable', 'Entrada parametrizable tipada del módulo.'],
-    ['Local', 'Valor derivado reusable dentro de un módulo.'],
-    ['for_each', 'Multiplica instancias de recursos por claves estables.'],
-    ['count', 'Multiplica instancias por índice posicional.'],
-    ['moved', 'Declara un traslado de dirección de recurso administrado.'],
-    ['Import', 'Asocia un objeto existente a una dirección de estado.'],
-    ['Remote state', 'Estado compartido gestionado en un backend externo.'],
-    ['Policy as Code', 'Reglas automáticas auditables aplicadas a configuración o planes.'],
-    ['OIDC', 'Identidad federada temporal para workloads, por ejemplo CI/CD.'],
-    ['Sensitive', 'Marca de exposición para ciertos valores; no asegura excluirlos del state.'],
-    ['Ephemeral', 'Propiedad de ciertas entradas/salidas que evita su persistencia en contextos soportados.'],
-    ['Blast radius', 'Alcance potencial de un cambio o incidente.'],
-    ['ADR', 'Registro de decisión arquitectónica con alternativas y consecuencias.'],
-    ['FinOps', 'Gestión colaborativa de costo, valor y riesgo cloud.'],
-    ['GitOps', 'Reconciliación declarativa de entornos a partir de Git.'],
-    ['Mock provider', 'Sustituto de proveedor en determinadas pruebas Terraform.'],
-    ['Plan fixture', 'Datos sintéticos para análisis de un plan; no provienen de CLI real.']
-];
-const resources = [
-    {
-        title: 'Documentación oficial Terraform',
-        description: 'Lenguaje HCL, módulos, providers, state y CLI.',
-        href: 'https://developer.hashicorp.com/terraform/docs',
-        tag: 'Oficial'
-    },
-    {
-        title: 'Tutoriales y guías de Terraform',
-        description: 'Aprendizaje práctico y ejercicios oficiales.',
-        href: 'https://developer.hashicorp.com/terraform/tutorials',
-        tag: 'Oficial'
-    },
-    {
-        title: 'Terraform test',
-        description: 'Documentación del marco de pruebas, mocks y advertencias.',
-        href: 'https://developer.hashicorp.com/terraform/language/tests',
-        tag: 'Oficial'
-    },
-    {
-        title: 'Backends y state',
-        description: 'Protección de state y almacenamiento remoto.',
-        href: 'https://developer.hashicorp.com/terraform/language/backend',
-        tag: 'Oficial'
-    },
-    {
-        title: 'Referencia HCL',
-        description: 'Bloques, expresiones y funciones.',
-        href: 'https://developer.hashicorp.com/terraform/language',
-        tag: 'Oficial'
-    },
-    {
-        title: 'Guía de marca HashiCorp',
-        description: 'Uso descriptivo de Terraform y restricciones de marca.',
-        href: 'https://www.hashicorp.com/en/trademark-policy',
-        tag: 'Legal'
-    },
-    {
-        title: 'Open Policy Agent',
-        description: 'Motor de políticas que puede complementar IaC.',
-        href: 'https://www.openpolicyagent.org/docs',
-        tag: 'Externo'
-    },
-    {
-        title: 'Infracost',
-        description: 'Estimaciones de costo para revisión de infraestructura.',
-        href: 'https://www.infracost.io/docs/',
-        tag: 'Externo'
-    },
-    {
-        title: 'Vigilio: guía de implementación',
-        description: 'Archivo MASTER_SPEC auditado incluido en docs del ZIP.',
-        href: './docs/TERRAFORM_ACADEMY_MASTER_SPEC_V1_1_AUDITADA.md',
-        tag: 'Proyecto'
-    }
-];
-function resourcesView() {
-    const query = store.getState().glossarySearch;
-    const visibleGlossary = filterGlossary(glossary, query);
-    return `<div class="breadcrumb"><a href="${ROUTES.home}">Inicio</a> / <span>Recursos</span></div><div class="eyebrow">BIBLIOTECA IAC</div><h1 class="page-title">Recursos para aprender mejor</h1><p class="page-lead">Enlaces a documentación oficial, guías técnicas y un glosario de conceptos clave para revisar antes de usar infraestructura real.</p><section class="section">${sectionHead('BIBLIOTECA', 'Documentación y herramientas')}<div class="resource-grid">${resources.map((r) => `<div class="resource-card">${label(r.tag, 'purple')}<h3 style="margin-top:11px">${e(r.title)}</h3><p>${e(r.description)}</p><a href="${e(r.href)}" ${r.href.startsWith('https:') ? 'target="_blank" rel="noopener noreferrer"' : ''}>Consultar ↗</a></div>`).join('')}</div></section><section class="section">${sectionHead('A—Z', 'Glosario de Terraform')}<input class="search-bar" type="search" id="glossary-search" value="${e(query)}" placeholder="⌕ Buscar un término…" aria-label="Buscar glosario"/><div class="space16"></div><div class="cards-3" id="glossary-list">${visibleGlossary.map(([term, description]) => `<div class="card glossary-tile"><h3 style="font-size:18px;color:var(--purple-bright)">${e(term)}</h3><p class="card-desc" style="margin-top:9px">${e(description)}</p></div>`).join('')}</div></section>`;
-}
-function notFound() {
-    return `<div class="empty-state"><img src="${mascotUrl('pensando')}" alt="Terra confuso" width="210" style="margin:auto"><h1 class="page-title">No encontré esta ruta</h1><p>Revisa la URL o regresa al inicio.</p><div class="space24"></div>${link('Volver a la academia →', ROUTES.home, 'btn btn-primary')}</div>`;
-}
 function downloadText(name, contents, mime = 'text/plain;charset=utf-8') {
     const blob = new Blob([contents], { type: mime });
     const url = URL.createObjectURL(blob);
@@ -429,6 +257,13 @@ async function handleAction(action, id, index, element) {
             if (isLabsCategory(id)) {
                 store.update((s) => {
                     s.labsCategory = id;
+                });
+            }
+            return;
+        case 'senior-severity':
+            if (['Todas', 'Crítico', 'Alto'].includes(id)) {
+                store.update((s) => {
+                    s.seniorSeverity = id;
                 });
             }
             return;
@@ -603,54 +438,39 @@ async function handleAction(action, id, index, element) {
                 s.showSeniorFix = !s.showSeniorFix;
             });
             return;
-        case 'check-cidr': {
+        case 'run-case-sim':
             store.update((s) => {
-                const overlap = cidrOverlap(s.simInputs.cidrA, s.simInputs.cidrB);
-                s.seniorSimResult =
-                    overlap === null
-                        ? 'Formato CIDR inválido'
-                        : overlap
-                            ? 'BLOQUEADO: los rangos se superponen.'
-                            : 'Sin superposición entre estos dos rangos; revisar IPAM completo.';
+                s.seniorSimResult = runCaseSimulator(id, s.simInputs);
             });
             return;
-        }
-        case 'check-integrity': {
+        case 'check-cidr':
             store.update((s) => {
-                const { approvedCommit, appliedCommit } = s.simInputs;
-                const result = planIntegrity({ commit: approvedCommit, env: 'prod', digest: 'sha256-a1' }, {
-                    commit: appliedCommit,
-                    env: 'prod',
-                    digest: approvedCommit === appliedCommit ? 'sha256-a1' : 'sha256-b2'
-                });
-                s.seniorSimResult = result.ok
-                    ? 'Coincidencia local de datos del fixture; todavía requiere autorización real.'
-                    : `BLOQUEADO: ${result.problems.join(', ')}.`;
+                s.seniorSimResult = runCaseSimulator('S09', s.simInputs);
             });
             return;
-        }
-        case 'check-cost': {
+        case 'check-integrity':
             store.update((s) => {
-                const result = estimateCost(s.simInputs.simulatedReplicas);
-                s.seniorSimResult = `Estimación ficticia: USD ${result.estimate}/mes (presupuesto USD ${result.budget}). ${result.exceeds ? 'BLOQUEAR y revisar SLA/costos' : 'Dentro del umbral ficticio; revisar capacidad/SLA'}.`;
+                s.seniorSimResult = runCaseSimulator('S11', s.simInputs);
             });
             return;
-        }
+        case 'check-cost':
+            store.update((s) => {
+                s.seniorSimResult = runCaseSimulator('S14', s.simInputs);
+            });
+            return;
         case 'simulate-lock':
             store.update((s) => {
-                s.seniorSimResult =
-                    'Writer B: BLOCKED. El lock de Writer A sigue activo; investigar antes de cualquier force-unlock.';
+                s.seniorSimResult = runCaseSimulator('S02', s.simInputs);
             });
             return;
         case 'simulate-drift':
             store.update((s) => {
-                s.seniorSimResult = 'DRIFT DETECTADO: Owner esperado team-platform, remoto unknown. NO aplicar sin investigar.';
+                s.seniorSimResult = runCaseSimulator('S03', s.simInputs);
             });
             return;
         case 'simulate-keys':
             store.update((s) => {
-                s.seniorSimResult =
-                    'Cambio de clave old_key → new_key. Plan ficticio: destroy + create; revisar moved y continuidad.';
+                s.seniorSimResult = runCaseSimulator('S01', s.simInputs);
             });
             return;
         case 'case-decision': {
@@ -805,39 +625,21 @@ root.addEventListener('input', (event) => {
         return;
     const input = target.dataset.input;
     if (target instanceof HTMLInputElement) {
-        if (input === 'cidr-a') {
+        if (input === 'sim-text') {
+            const key = target.dataset.id || '';
             store.update((s) => {
-                s.simInputs.cidrA = target.value.slice(0, 50);
-                s.seniorSimResult = '';
+                if (updateSimulatorText(s.simInputs, key, target.value)) {
+                    s.seniorSimResult = '';
+                }
             });
             return;
         }
-        if (input === 'cidr-b') {
+        if (input === 'sim-num') {
+            const key = target.dataset.id || '';
             store.update((s) => {
-                s.simInputs.cidrB = target.value.slice(0, 50);
-                s.seniorSimResult = '';
-            });
-            return;
-        }
-        if (input === 'approved-commit') {
-            store.update((s) => {
-                s.simInputs.approvedCommit = target.value.slice(0, 120);
-                s.seniorSimResult = '';
-            });
-            return;
-        }
-        if (input === 'applied-commit') {
-            store.update((s) => {
-                s.simInputs.appliedCommit = target.value.slice(0, 120);
-                s.seniorSimResult = '';
-            });
-            return;
-        }
-        if (input === 'replicas') {
-            const value = Number(target.value);
-            store.update((s) => {
-                s.simInputs.simulatedReplicas = Number.isInteger(value) ? Math.max(0, Math.min(50, value)) : 0;
-                s.seniorSimResult = '';
+                if (updateSimulatorNumber(s.simInputs, key, Number(target.value))) {
+                    s.seniorSimResult = '';
+                }
             });
             return;
         }
@@ -902,6 +704,21 @@ root.addEventListener('change', (event) => {
     if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLSelectElement))
         return;
     if (target instanceof HTMLSelectElement) {
+        if (target.dataset.input === 'senior-pillar') {
+            store.update((s) => {
+                s.seniorPillar = target.value.slice(0, 60);
+            });
+            return;
+        }
+        if (target.dataset.input === 'sim-select') {
+            const key = target.dataset.id || '';
+            store.update((s) => {
+                if (updateSimulatorText(s.simInputs, key, target.value)) {
+                    s.seniorSimResult = '';
+                }
+            });
+            return;
+        }
         if (target.dataset.input === 'review-environment') {
             store.update((s) => {
                 s.gateAnswers.environment = target.value === 'dev' ? 'dev' : target.value === 'staging' ? 'staging' : 'prod';
@@ -923,6 +740,15 @@ root.addEventListener('change', (event) => {
             }, { persist: true });
             return;
         }
+    }
+    if (target instanceof HTMLInputElement && target.dataset.input === 'sim-bool') {
+        const key = target.dataset.id || '';
+        store.update((s) => {
+            if (updateSimulatorBoolean(s.simInputs, key, target.checked)) {
+                s.seniorSimResult = '';
+            }
+        });
+        return;
     }
     if (target instanceof HTMLInputElement && target.dataset.input === 'gate-check') {
         const key = target.dataset.id;

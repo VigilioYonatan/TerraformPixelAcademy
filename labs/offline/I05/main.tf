@@ -7,5 +7,5 @@ resource "terraform_data" "critico" {
 
 # Evidencia de la competencia específica de I05
 output "academy_evidence" {
-  value = terraform_data.critico.output
+  value = terraform_data.critico.input
 }

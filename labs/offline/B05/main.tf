@@ -1,5 +1,5 @@
 variable "ambiente" {
-  type = string
+  type    = string
   default = "dev"
 }
 resource "terraform_data" "ambiente" {

@@ -1,6 +1,7 @@
 import { defaultState, loadState, reconcileLessonCompletion, saveState } from './engine.js';
 import { emptyGateAnswers } from './releaseGate.js';
 import { reconcileSeniorCompletion } from './seniorProgress.js';
+import { defaultSimulatorInputs } from './simulators.js';
 const VALID_CASE_TABS = ['investigar', 'decision', 'review', 'evidencia', 'operaciones'];
 export function isCaseTabId(value) {
     return VALID_CASE_TABS.includes(value);
@@ -16,12 +17,16 @@ export function filterLessons(allLessons, level, query) {
         return haystack.includes(normalized);
     });
 }
-export function filterSeniorCases(allCases, query) {
+export function filterSeniorCases(allCases, query, severity = 'Todas', pillar = 'Todos') {
     const normalized = query.toLowerCase().trim();
-    if (!normalized)
-        return allCases;
     return allCases.filter((item) => {
-        const haystack = `${item.id} ${item.title} ${item.pillar} ${item.subtitle}`.toLowerCase();
+        if (severity !== 'Todas' && item.severity !== severity)
+            return false;
+        if (pillar !== 'Todos' && item.pillar !== pillar)
+            return false;
+        if (!normalized)
+            return true;
+        const haystack = `${item.id} ${item.title} ${item.pillar} ${item.severity} ${item.subtitle}`.toLowerCase();
         return haystack.includes(normalized);
     });
 }
@@ -76,6 +81,8 @@ export function createAcademyStore({ lessons, seniorCases, initialAcademy, persi
         activeLevel: 'Todos',
         lessonSearch: '',
         seniorSearch: '',
+        seniorSeverity: 'Todas',
+        seniorPillar: 'Todos',
         glossarySearch: '',
         labsCategory: 'Todos',
         labsSearch: '',
@@ -87,13 +94,7 @@ export function createAcademyStore({ lessons, seniorCases, initialAcademy, persi
         evals: {},
         showSeniorFix: false,
         seniorSimResult: '',
-        simInputs: {
-            cidrA: '10.40.0.0/16',
-            cidrB: '10.40.8.0/21',
-            approvedCommit: 'a1b2',
-            appliedCommit: 'c9d8',
-            simulatedReplicas: 6
-        },
+        simInputs: defaultSimulatorInputs(),
         cliManifest: null,
         cliManifestError: '',
         userPlan: null,

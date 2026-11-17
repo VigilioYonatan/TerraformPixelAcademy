@@ -7,5 +7,5 @@ resource "terraform_data" "ciclo" {
 
 # Evidencia de la competencia específica de B09
 output "academy_evidence" {
-  value = terraform_data.ciclo.output
+  value = terraform_data.ciclo.input
 }

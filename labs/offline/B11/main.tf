@@ -3,7 +3,7 @@ locals {
 }
 resource "terraform_data" "entorno" {
   for_each = local.entornos
-  input = each.key
+  input    = each.key
 }
 
 # Evidencia de la competencia específica de B11

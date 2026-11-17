@@ -1,5 +1,5 @@
 variable "service" {
-  type = string
+  type    = string
   default = "web"
 }
 resource "terraform_data" "service" {

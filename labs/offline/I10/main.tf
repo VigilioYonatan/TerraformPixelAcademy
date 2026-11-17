@@ -1,8 +1,8 @@
 variable "owner" {
   default = "platform-team"
-  type = string
+  type    = string
   validation {
-    condition = length(trimspace(var.owner)) > 0
+    condition     = length(trimspace(var.owner)) > 0
     error_message = "Owner obligatorio"
   }
 }

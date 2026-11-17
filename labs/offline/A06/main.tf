@@ -7,5 +7,5 @@ resource "terraform_data" "baseline" {
 
 # Evidencia de la competencia específica de A06
 output "academy_evidence" {
-  value = terraform_data.baseline.output
+  value = terraform_data.baseline.input
 }

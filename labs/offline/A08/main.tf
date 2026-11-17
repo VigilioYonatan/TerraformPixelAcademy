@@ -1,8 +1,8 @@
 variable "cost_center" {
   default = "CC-104"
-  type = string
+  type    = string
   validation {
-    condition = length(trimspace(var.cost_center)) >= 3
+    condition     = length(trimspace(var.cost_center)) >= 3
     error_message = "CostCenter requerido"
   }
 }

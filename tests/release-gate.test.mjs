@@ -13,6 +13,7 @@ const good = {
   rollbackDocumented: true,
   costReviewed: true
 };
+
 const fixture = (actions = ['create'], drift = []) =>
   inspectTerraformPlan({
     format_version: '1.2',
@@ -35,6 +36,7 @@ test('release gate blocks missing provenance and human approvals', () => {
   assert.ok(result.findings.some((f) => f.id === 'APPROVAL'));
   assert.equal(result.provenance, 'LOCAL_TRAINING_ONLY');
 });
+
 test('release gate never claims deploy authorization, even with six declarations', () => {
   const plan = inspectTerraformPlan({
     format_version: '1.2',
@@ -45,14 +47,17 @@ test('release gate never claims deploy authorization, even with six declarations
   assert.equal(result.checksPassed, 6);
   assert.doesNotMatch(exportGateReview(result), /GO APPROVED|DEPLOY ALLOWED|APPLY AUTORIZADO/);
 });
+
 test('unknown actions always block, even when all boxes are ticked', () => {
   assert.equal(evaluateReleaseGate(fixture(['rollover']), good).status, 'BLOCKED');
 });
+
 test('destructive actions require dedicated review', () => {
   const blocked = evaluateReleaseGate(fixture(['delete', 'create']), { ...good, destructiveReviewed: false });
   assert.equal(blocked.status, 'BLOCKED');
   assert.ok(blocked.findings.some((f) => f.id === 'DESTRUCTIVE'));
 });
+
 test('drift without investigation blocks; reviewed destructive drift remains flagged', () => {
   const drift = [{ address: 'terraform_data.drift', change: { actions: ['delete'] } }];
   assert.equal(
@@ -61,6 +66,7 @@ test('drift without investigation blocks; reviewed destructive drift remains fla
   );
   assert.equal(evaluateReleaseGate(fixture(['update'], drift), good).status, 'NEEDS_EVIDENCE');
 });
+
 test('report never includes before/after, variable values or resource credentials', () => {
   const result = evaluateReleaseGate(fixture(['delete']), good);
   const report = exportGateReview(result);
@@ -68,6 +74,35 @@ test('report never includes before/after, variable values or resource credential
   assert.ok(!report.includes('NEVER_EXPORT_RELEASE_GATE_SECRET'));
   assert.ok(!report.includes('terraform_data.sample'));
 });
+
 test('sensitive actions remain REVIEW even with all declarations', () => {
   assert.equal(evaluateReleaseGate(fixture(), good).status, 'NEEDS_EVIDENCE');
+});
+
+test('F4-03: forget actions emit STATE_FORGET review (not UNKNOWN block) and replacement order appears in gate report', () => {
+  const forgetPlan = inspectTerraformPlan({
+    format_version: '1.2',
+    terraform_version: '1.10.5',
+    resource_changes: [{ address: 'aws_s3_bucket.legacy', change: { actions: ['forget'] } }]
+  });
+  const gate = evaluateReleaseGate(forgetPlan, good);
+  assert.equal(gate.unknownActions, 0);
+  assert.equal(gate.forgottenCount, 1);
+  assert.equal(gate.status, 'NEEDS_EVIDENCE');
+  assert.ok(gate.findings.some((f) => f.id === 'STATE_FORGET' && f.severity === 'REVIEW'));
+
+  const mixedReplacePlan = inspectTerraformPlan({
+    format_version: '1.2',
+    terraform_version: '1.10.5',
+    resource_changes: [
+      { address: 'aws_db_instance.primary', change: { actions: ['delete', 'create'] } },
+      { address: 'aws_instance.worker', change: { actions: ['create', 'delete'] } }
+    ]
+  });
+  const unreviewed = evaluateReleaseGate(mixedReplacePlan, { ...good, destructiveReviewed: false });
+  assert.equal(unreviewed.status, 'BLOCKED');
+  assert.match(unreviewed.findings.find((f) => f.id === 'DESTRUCTIVE')?.message || '', /delete-then-create/);
+
+  const reviewedReport = exportGateReview(evaluateReleaseGate(mixedReplacePlan, good));
+  assert.match(reviewedReport, /delete→create: 1, create→delete: 1/);
 });

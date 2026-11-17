@@ -1,5 +1,5 @@
 variable "red" {
-  type = string
+  type    = string
   default = "10.42.0.0/16"
 }
 locals {
