@@ -200,6 +200,9 @@ html[data-font-scale="1.3"]{font-size:20.8px}
 .round-arrow{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--border-strong);background:var(--panel-2);color:var(--purple-bright);font-weight:900;transition:transform .16s steps(2,end),background .16s ease,border-color .16s ease}
 .level-card:hover .round-arrow{transform:translateX(3px);background:var(--purple);border-color:var(--purple);color:#fff}
 .live-dot{animation:pixelBlink 1.8s steps(2,end) infinite}
+.senior-toggle{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.nav-links .nav-link{gap:7px}
+.stats-strip > div{padding-inline:14px}
 .nav-px{flex:0 0 auto;display:block;transition:transform .16s steps(2,end)}
 .nav-link:hover .nav-px,.nav-link.active .nav-px,.senior-toggle:hover .nav-px,.header-icon:hover .nav-px{transform:translateY(-1px) scale(1.08)}
 .nav-link .nav-px{fill:currentColor}
