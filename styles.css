@@ -172,13 +172,17 @@ html[data-font-scale="1.3"]{font-size:20.8px}
 .hero-proof strong{color:#fff}
 .avatar-stack{display:flex;padding-left:6px}
 .avatar-stack span{display:grid;place-items:center;margin-left:-6px;background:#1a163d;border:2px solid #2b215a;width:28px;height:28px;border-radius:50%;font-size:12px;color:#e4ccff}
-.art-ring{position:absolute;border:1px dashed rgba(186,134,255,.28);width:320px;height:320px;border-radius:50%;pointer-events:none}
-.ring-one{animation:orbitSpin 28s linear infinite}
-.ring-two{width:245px;height:245px;border-style:solid;border-color:rgba(72,215,237,.16)}
+.hero-art{position:absolute;right:68px;top:50%;bottom:auto;transform:translateY(-50%);width:350px;height:350px;z-index:1;display:grid;place-items:center;pointer-events:none}
+.hero-terra{position:relative;z-index:2;width:215px;max-height:235px;object-fit:contain;filter:drop-shadow(0 14px 3px #0b071a88) drop-shadow(0 0 24px #934bff55);image-rendering:pixelated;animation:float 5s ease-in-out infinite}
+.hero-glow{position:absolute;width:180px;height:18px;bottom:42px;left:50%;transform:translateX(-50%);background:#8553fa;opacity:.5;filter:blur(22px)}
+.art-ring{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border:1px dashed rgba(186,134,255,.32);width:320px;height:320px;border-radius:50%;pointer-events:none}
+.ring-one{animation:orbitSpinCentered 28s linear infinite}
+.ring-two{width:244px;height:244px;border-style:solid;border-color:rgba(72,215,237,.2)}
+@keyframes orbitSpinCentered{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
 .orbit-chip{position:absolute;z-index:4;display:inline-flex;align-items:center;gap:7px;background:rgba(19,21,46,.92);border:1px solid #45417b;color:#f3eeff;border-radius:10px;padding:8px 11px;font-size:11px;font-family:ui-monospace,monospace;font-weight:800;box-shadow:0 12px 28px rgba(4,3,15,.45);white-space:nowrap}
-.chip-top{right:6%;top:9%;animation:floatBadge 4.4s ease-in-out infinite}
-.chip-left{left:-6%;top:46%;animation:floatBadge 5.1s ease-in-out infinite}
-.chip-bottom{right:2%;bottom:12%;animation:floatBadge 4.8s ease-in-out infinite}
+.chip-top{right:6px;top:14px;animation:floatBadge 4.4s ease-in-out infinite}
+.chip-left{left:-22px;top:44%;animation:floatBadge 5.1s ease-in-out infinite}
+.chip-bottom{right:-6px;bottom:22px;animation:floatBadge 4.8s ease-in-out infinite}
 .hero-side-label{position:absolute;right:18px;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;font:700 10px ui-monospace,monospace;letter-spacing:2.5px;color:#a599c8;opacity:.75;pointer-events:none}
 .stats-strip{margin-top:22px;padding:20px 24px;display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--border);border-radius:18px;background:linear-gradient(165deg,var(--panel),var(--panel-2))}
 .stats-strip > div{display:flex;align-items:center;justify-content:center;gap:11px;border-right:1px solid var(--border)}
@@ -189,7 +193,9 @@ html[data-font-scale="1.3"]{font-size:20.8px}
 .level-ghost-num{position:absolute;right:18px;top:10px;font-family:'Space Grotesk',sans-serif;font-size:56px;font-weight:800;line-height:1;color:var(--border-strong);opacity:.32;pointer-events:none}
 .round-arrow{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--border-strong);background:var(--panel-2);color:var(--purple-bright);font-weight:900;transition:transform .2s ease,background .2s ease,border-color .2s ease}
 .level-card:hover .round-arrow{transform:translateX(3px);background:var(--purple);border-color:var(--purple);color:#fff}
-@media(max-width:980px){.game-3d-layout{grid-template-columns:1fr}.game-3d-viewport{height:270px}.orbit-chip,.hero-side-label,.art-ring{display:none}.stats-strip{grid-template-columns:repeat(2,1fr);gap:14px}.stats-strip > div{border-right:0;justify-content:start}}
+@media(max-width:1230px){.hero-art{right:40px;width:320px;height:320px}.hero-terra{width:195px;max-height:215px}}
+@media(max-width:980px){.game-3d-layout{grid-template-columns:1fr}.game-3d-viewport{height:270px}.hero-art{right:24px;width:250px;height:250px}.hero-terra{width:180px;max-height:200px}.orbit-chip,.hero-side-label,.art-ring{display:none}.stats-strip{grid-template-columns:repeat(2,1fr);gap:14px}.stats-strip > div{border-right:0;justify-content:start}}
+@media(max-width:680px){.hero{min-height:auto;padding:31px 25px 28px}.hero-art{position:relative;top:auto;right:auto;bottom:auto;transform:none;width:220px;height:210px;margin:20px auto 0}.hero-terra{width:170px;max-height:185px}}
 @media(max-width:520px){.stats-strip{grid-template-columns:1fr}}
 /* Minimalist SVG Learning & Incident Flow Diagrams (dark + light token contrast, zero inline styles) */
 .diagram-card{margin-top:16px;padding:14px 16px;border:1px solid var(--border);border-radius:14px;background:var(--panel-2)}
