@@ -8,8 +8,8 @@
 
 ## 1. Dictamen Ejecutivo (Senior Mode — Verdad Operativa)
 
-**Estado global actual:** **~99 % completado funcionalmente (30/31 ítems `[x]` cerrados) · LISTO PARA F8-03 (`review-code-change` final sobre el diff completo).**  
-TerraPixel Academy `v2.0.0` (`MIT`) ha completado las fases `F0` a `F8-02`: **14/14 rutas + `404` en Preact declarativo puro**, **CodeMirror 6 HCL** offline sin estilos inline bajo **CSP estricta (`style-src 'self'`, `0` violaciones en Chromium real)**, **18/18 simuladores deterministas Senior**, **37/37 escenarios `Terraform v1.10.5` en `PASS` real**, **`TFLint` / `Trivy Config` / `Conftest` OPA en `PASS`**, **Vitest (`10/10`) + Node/BDD (`105/105`) + Playwright E2E HTTP (`19/19`) + WCAG 2.2 AA `@axe-core/playwright` (`0` violaciones en 30 pantallas `dark`+`light`)**, **4 workflows SHA-pinned validados con `actionlint v1.7.12` (`PASS`)**, **emblema `mark.svg` propio con bloqueo HTTP 404 de `concepto-aprobado.png`**, y **`SHA256SUMS.txt` verificado sobre extracción limpia (`0 problems`)**. Resta únicamente el cierre **`F8-03` (`review-code-change` independiente)**.
+**Estado global actual:** **100 % completado en alcance local verificable (31/31 ítems `[x]` cerrados) · `APROBADO — VERIFICADO EN ALCANCE` (`F8-03` emitido).**  
+TerraPixel Academy `v2.0.0` (`MIT`) ha completado las fases `F0` a `F8`: **14/14 rutas + `404` en Preact declarativo puro**, **CodeMirror 6 HCL** offline sin estilos inline bajo **CSP estricta (`style-src 'self'`, `0` violaciones en Chromium real)**, **18/18 simuladores deterministas Senior**, **37/37 escenarios `Terraform v1.10.5` en `PASS` real**, **`TFLint` / `Trivy Config` / `Conftest` OPA en `PASS`**, **Vitest (`10/10`) + Node/BDD (`105/105`) + Playwright E2E HTTP (`19/19`) + WCAG 2.2 AA `@axe-core/playwright` (`0` violaciones en 30 pantallas `dark`+`light`)**, **4 workflows SHA-pinned validados con `actionlint v1.7.12` (`PASS`)**, **emblema `mark.svg` propio con bloqueo HTTP 404 de `concepto-aprobado.png`**, **`SHA256SUMS.txt` verificado sobre extracción limpia (`0 problems`)** y **revisión final independiente de solo lectura (`review-code-change`) con veredicto `APPROVE` (`0` hallazgos `BLOQUEANTE`/`ALTA`/`MEDIA`)**. Los controles externos fuera del entorno local (CI remota en GitHub Actions, sandbox cloud AWS y lector de pantalla humano) permanecen explícitamente registrados como `NOT_RUN`.
 
 ### 1.1. Evidencia real ejecutada en esta auditoría (`PASS` / `FAIL` / `NOT_RUN` / `BLOCKED`)
 
@@ -364,7 +364,7 @@ En `src/main.ts` y `src/uiShell.ts`, **las 14 de 14 rutas + `404` + el shell usa
     - `npm run verify:preservation` -> `PASS`
     - `python scripts/release-audit.py` -> `PASS`
     - `python scripts/verify-release.py` -> `PASS` (`0 problems`)
-- [ ] **F8-03 · Ejecutar fase `REVIEW` independiente de solo lectura (`review-code-change`)**
+- [x] **F8-03 · Ejecutar fase `REVIEW` independiente de solo lectura (`review-code-change`)** *(VERIFICADO `PASS` — auditoría independiente sobre diff `3f67f81..f0e660a` conforme a `review-code-change/SKILL.md` y `references/review-format.md`: `0` hallazgos `BLOQUEANTE` / `ALTA` / `MEDIA`, veredicto `APPROVE` / `READY` en alcance local con registro honesto de `NOT_RUN` externos)*
   - **Tarea:** Correr auditoría independiente en modo solo lectura contra el diff completo (`git diff` desde baseline `v1.7.0`), verificando `0` hallazgos `BLOQUEANTE` / `ALTA` / `MEDIA` antes de emitir dictamen `APROBADO — VERIFICADO EN ALCANCE`.
   - **Archivos:** Solo lectura sobre diff Git y reportes de evidencia.
   - **Skills a usar:** `review-code-change`, `vigilio-auto-senior`.
