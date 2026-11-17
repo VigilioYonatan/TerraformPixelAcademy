@@ -562,6 +562,75 @@ function Capstone({ state }: Pick<SeniorCaseProps, 'state'>) {
   );
 }
 
+function SeniorIncidentDiagram({ scenario }: { scenario: Case }) {
+  const nodes = [
+    [`1. Señal · ${scenario.pillar}`, 'Trigger en config o pipeline'],
+    [`2. Riesgo · ${scenario.severity}`, 'Blast radius en state/infra'],
+    ['3. Control & ADR', '4 gates + evidencia trazable']
+  ] as const;
+
+  return h(
+    'div',
+    { className: 'diagram-card' },
+    h('div', { className: 'eyebrow mb-8' }, `DIAGRAMA DE INCIDENTE · ${scenario.id}`),
+    h(
+      'svg',
+      {
+        className: 'diagram-svg',
+        viewBox: '0 0 680 104',
+        role: 'img',
+        'aria-label': `Diagrama del incidente ${scenario.id}: ${scenario.pillar}, riesgo ${scenario.severity}, mitigación con 4 gates y ADR`
+      },
+      h(
+        'defs',
+        {},
+        h(
+          'marker',
+          {
+            id: `case-arrow-${scenario.id}`,
+            markerWidth: '8',
+            markerHeight: '8',
+            refX: '6',
+            refY: '4',
+            orient: 'auto'
+          },
+          h('path', { d: 'M 0 0 L 8 4 L 0 8 z', className: 'diagram-arrow-head' })
+        )
+      ),
+      ...nodes.flatMap(([title, sub], idx) => {
+        const x = 12 + idx * 232;
+        const els = [
+          h('rect', {
+            key: `crect-${idx}`,
+            x,
+            y: 12,
+            width: 192,
+            height: 78,
+            rx: 12,
+            className: idx === 1 ? 'diagram-node-warn' : idx === 2 ? 'diagram-node-ok' : 'diagram-node'
+          }),
+          h('text', { key: `ct-${idx}`, x: x + 16, y: 40, className: 'diagram-title' }, title),
+          h('text', { key: `cs-${idx}`, x: x + 16, y: 64, className: 'diagram-sub' }, sub)
+        ];
+        if (idx < 2) {
+          els.push(
+            h('line', {
+              key: `cline-${idx}`,
+              x1: x + 196,
+              y1: 51,
+              x2: x + 226,
+              y2: 51,
+              className: 'diagram-arrow',
+              'marker-end': `url(#case-arrow-${scenario.id})`
+            })
+          );
+        }
+        return els;
+      })
+    )
+  );
+}
+
 function TabContent(props: SeniorCaseProps) {
   const c = props.scenario;
   const decision = props.state.seniorDecisions[c.id];
@@ -575,6 +644,7 @@ function TabContent(props: SeniorCaseProps) {
       h('div', { className: 'eyebrow' }, 'ETAPA 01 · INVESTIGACIÓN'),
       h('h2', {}, '¿Qué está ocurriendo?'),
       h('p', {}, c.subtitle),
+      h(SeniorIncidentDiagram, { scenario: c }),
       reviewBox('Tu misión', c.mission),
       h('h3', {}, 'Artefactos del incidente'),
       h('p', {}, c.artifacts),

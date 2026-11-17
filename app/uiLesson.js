@@ -30,6 +30,58 @@ function progressBar(done, total, labelText) {
         'aria-valuemax': total
     });
 }
+function LessonFlowDiagram({ level, id }) {
+    const steps = level === 'Básico'
+        ? [
+            ['1. Bloque HCL', 'Declara recurso / variable'],
+            ['2. Reglas & Plan', 'Verifica estructura y diff'],
+            ['3. State & Output', `Evidencia ${id} local`]
+        ]
+        : level === 'Intermedio'
+            ? [
+                ['1. Módulo / Contrato', 'Entradas tipadas y validaciones'],
+                ['2. Validate & Test', 'Pruebas en copia aislada'],
+                ['3. State Seguro', `Aislamiento ${id} reproducible`]
+            ]
+            : [
+                ['1. OIDC & Policy', 'Identidad efímera y Rego'],
+                ['2. Release Gate', 'Revisión de drift y orden'],
+                ['3. Multi-Ambiente', `Control ${id} sin secretos`]
+            ];
+    return h('div', { className: 'diagram-card' }, h('div', { className: 'eyebrow mb-8' }, `MAPA VISUAL · ${level.toUpperCase()}`), h('svg', {
+        className: 'diagram-svg',
+        viewBox: '0 0 680 104',
+        role: 'img',
+        'aria-label': `Flujo conceptual de ${id}: ${steps.map((s) => s[0]).join(' hacia ')}`
+    }, h('defs', {}, h('marker', { id: `lesson-arrow-${id}`, markerWidth: '8', markerHeight: '8', refX: '6', refY: '4', orient: 'auto' }, h('path', { d: 'M 0 0 L 8 4 L 0 8 z', className: 'diagram-arrow-head' }))), ...steps.flatMap(([title, sub], idx) => {
+        const x = 12 + idx * 232;
+        const els = [
+            h('rect', {
+                key: `rect-${idx}`,
+                x,
+                y: 12,
+                width: 192,
+                height: 78,
+                rx: 12,
+                className: idx === 2 ? 'diagram-node-ok' : 'diagram-node'
+            }),
+            h('text', { key: `t-${idx}`, x: x + 16, y: 40, className: 'diagram-title' }, title),
+            h('text', { key: `s-${idx}`, x: x + 16, y: 64, className: 'diagram-sub' }, sub)
+        ];
+        if (idx < 2) {
+            els.push(h('line', {
+                key: `line-${idx}`,
+                x1: x + 196,
+                y1: 51,
+                x2: x + 226,
+                y2: 51,
+                className: 'diagram-arrow',
+                'marker-end': `url(#lesson-arrow-${id})`
+            }));
+        }
+        return els;
+    })));
+}
 export function EvaluationFeedback({ result }) {
     return h('div', {
         className: `feedback ${result.ok ? '' : 'fail'}`.trim(),
@@ -53,7 +105,7 @@ export function LessonClassroom({ lesson, lessons, state, evalResult }) {
         'data-action': 'favorite',
         'data-id': lesson.id,
         'aria-pressed': String(isFavorite)
-    }, isFavorite ? '★ Guardado' : '☆ Favorito')), h('h1', { className: 'page-title' }, lesson.title), h('p', { className: 'page-lead' }, lesson.subtitle), h('div', { className: 'space12' }), progressBar(levelCompletedCount, 12, `Progreso nivel ${lesson.level}`)), h('div', { className: 'lesson-layout' }, h('div', { className: 'lesson-main' }, h('section', { className: 'content-panel' }, h('div', { className: 'objective-strip' }, h('div', { className: 'flex-1' }, h('div', { className: 'eyebrow' }, `CONCEPTO · ${lesson.level.toUpperCase()}`), h('h2', { className: 'my-8' }, 'Lo que aprenderás'), h('p', { className: 'prose' }, lesson.concept)), h('img', { src: mascotUrl('leyendo'), alt: 'Terra leyendo un manual' })), h('div', { className: 'concept-grid' }, h('div', { className: 'concept-tile' }, h('strong', {}, '01 · Comprender'), lesson.subtitle), h('div', { className: 'concept-tile' }, h('strong', {}, '02 · Practicar'), 'Editar HCL y comprobar condiciones específicas de esta lección.'), h('div', { className: 'concept-tile' }, h('strong', {}, '03 · Verificar'), 'Resolver el quiz y, si aplica, ejecutar pruebas CLI en tu equipo.'))), h('div', { className: 'mission-banner' }, h('strong', {}, '🎯 TU MISIÓN'), 'Completa el bloque marcado como TODO para conseguir las condiciones esperadas. Después responde la pregunta de conocimiento. ', h('b', {}, 'La web no ejecuta HCL ni Terraform CLI.')), h('section', { className: 'editor-card' }, h('div', { className: 'editor-toolbar' }, h('div', { className: 'flex' }, h('span', { className: 'icon-file-tab', 'aria-hidden': 'true' }, '▣'), h('span', { className: 'file-tab' }, 'main.tf')), h('span', { className: 'editor-tag' }, 'HCL · editor de texto')), h('label', { className: 'sr-only', htmlFor: 'code-editor' }, `Editor HCL de ${lesson.id}`), h('textarea', {
+    }, isFavorite ? '★ Guardado' : '☆ Favorito')), h('h1', { className: 'page-title' }, lesson.title), h('p', { className: 'page-lead' }, lesson.subtitle), h('div', { className: 'space12' }), progressBar(levelCompletedCount, 12, `Progreso nivel ${lesson.level}`)), h('div', { className: 'lesson-layout' }, h('div', { className: 'lesson-main' }, h('section', { className: 'content-panel' }, h('div', { className: 'objective-strip' }, h('div', { className: 'flex-1' }, h('div', { className: 'eyebrow' }, `CONCEPTO · ${lesson.level.toUpperCase()}`), h('h2', { className: 'my-8' }, 'Lo que aprenderás'), h('p', { className: 'prose' }, lesson.concept)), h('img', { src: mascotUrl('leyendo'), alt: 'Terra leyendo un manual' })), h(LessonFlowDiagram, { level: lesson.level, id: lesson.id }), h('div', { className: 'concept-grid' }, h('div', { className: 'concept-tile' }, h('strong', {}, '01 · Comprender'), lesson.subtitle), h('div', { className: 'concept-tile' }, h('strong', {}, '02 · Practicar'), 'Editar HCL y comprobar condiciones específicas de esta lección.'), h('div', { className: 'concept-tile' }, h('strong', {}, '03 · Verificar'), 'Resolver el quiz y, si aplica, ejecutar pruebas CLI en tu equipo.'))), h('div', { className: 'mission-banner' }, h('strong', {}, '🎯 TU MISIÓN'), 'Completa el bloque marcado como TODO para conseguir las condiciones esperadas. Después responde la pregunta de conocimiento. ', h('b', {}, 'La web no ejecuta HCL ni Terraform CLI.')), h('section', { className: 'editor-card' }, h('div', { className: 'editor-toolbar' }, h('div', { className: 'flex' }, h('span', { className: 'icon-file-tab', 'aria-hidden': 'true' }, '▣'), h('span', { className: 'file-tab' }, 'main.tf')), h('span', { className: 'editor-tag' }, 'HCL · editor de texto')), h('label', { className: 'sr-only', htmlFor: 'code-editor' }, `Editor HCL de ${lesson.id}`), h('textarea', {
         id: 'code-editor',
         className: 'code-editor',
         'data-input': 'code',

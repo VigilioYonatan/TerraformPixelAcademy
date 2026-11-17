@@ -50,6 +50,81 @@ function progressBar(done: number, total: number, labelText: string) {
   });
 }
 
+function LessonFlowDiagram({ level, id }: { level: Lesson['level']; id: string }) {
+  const steps =
+    level === 'Básico'
+      ? [
+          ['1. Bloque HCL', 'Declara recurso / variable'],
+          ['2. Reglas & Plan', 'Verifica estructura y diff'],
+          ['3. State & Output', `Evidencia ${id} local`]
+        ]
+      : level === 'Intermedio'
+        ? [
+            ['1. Módulo / Contrato', 'Entradas tipadas y validaciones'],
+            ['2. Validate & Test', 'Pruebas en copia aislada'],
+            ['3. State Seguro', `Aislamiento ${id} reproducible`]
+          ]
+        : [
+            ['1. OIDC & Policy', 'Identidad efímera y Rego'],
+            ['2. Release Gate', 'Revisión de drift y orden'],
+            ['3. Multi-Ambiente', `Control ${id} sin secretos`]
+          ];
+
+  return h(
+    'div',
+    { className: 'diagram-card' },
+    h('div', { className: 'eyebrow mb-8' }, `MAPA VISUAL · ${level.toUpperCase()}`),
+    h(
+      'svg',
+      {
+        className: 'diagram-svg',
+        viewBox: '0 0 680 104',
+        role: 'img',
+        'aria-label': `Flujo conceptual de ${id}: ${steps.map((s) => s[0]).join(' hacia ')}`
+      },
+      h(
+        'defs',
+        {},
+        h(
+          'marker',
+          { id: `lesson-arrow-${id}`, markerWidth: '8', markerHeight: '8', refX: '6', refY: '4', orient: 'auto' },
+          h('path', { d: 'M 0 0 L 8 4 L 0 8 z', className: 'diagram-arrow-head' })
+        )
+      ),
+      ...steps.flatMap(([title, sub], idx) => {
+        const x = 12 + idx * 232;
+        const els = [
+          h('rect', {
+            key: `rect-${idx}`,
+            x,
+            y: 12,
+            width: 192,
+            height: 78,
+            rx: 12,
+            className: idx === 2 ? 'diagram-node-ok' : 'diagram-node'
+          }),
+          h('text', { key: `t-${idx}`, x: x + 16, y: 40, className: 'diagram-title' }, title),
+          h('text', { key: `s-${idx}`, x: x + 16, y: 64, className: 'diagram-sub' }, sub)
+        ];
+        if (idx < 2) {
+          els.push(
+            h('line', {
+              key: `line-${idx}`,
+              x1: x + 196,
+              y1: 51,
+              x2: x + 226,
+              y2: 51,
+              className: 'diagram-arrow',
+              'marker-end': `url(#lesson-arrow-${id})`
+            })
+          );
+        }
+        return els;
+      })
+    )
+  );
+}
+
 export function EvaluationFeedback({ result }: { result: EvalResult }) {
   return h(
     'div',
@@ -135,6 +210,7 @@ export function LessonClassroom({ lesson, lessons, state, evalResult }: LessonCl
             ),
             h('img', { src: mascotUrl('leyendo'), alt: 'Terra leyendo un manual' })
           ),
+          h(LessonFlowDiagram, { level: lesson.level, id: lesson.id }),
           h(
             'div',
             { className: 'concept-grid' },
