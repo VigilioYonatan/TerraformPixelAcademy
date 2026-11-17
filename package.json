@@ -12,10 +12,12 @@
     "typecheck": "node tools/typescript/bin/tsc -p tsconfig.json --noEmit",
     "test": "node --test tests/*.test.mjs",
     "qa": "npm run typecheck && npm run test && npm run security:local",
-    "build:vite": "node tools/typescript/bin/tsc -p tsconfig.json && vite build && node scripts/copy-static.mjs",
+    "build:vite": "node tools/typescript/bin/tsc -p tsconfig.json && vite build && node scripts/copy-static.mjs && node scripts/check-bundle-budget.mjs",
+    "bundle:budget": "node scripts/check-bundle-budget.mjs",
+    "preview:vite": "vite preview",
     "verify:browser:embedded": "python3 tests/browser-embedded.py",
     "verify:browser:senior": "python3 tests/browser-senior-v13.py",
-    "verify:terraform:local": "bash scripts/verify-terraform-labs.sh",
+    "verify:terraform:local": "node scripts/run-terraform-labs.mjs",
     "lint:biome": "biome ci .",
     "security:local": "node scripts/devsecops-audit.mjs",
     "release:gate": "npm run typecheck && npm run test && npm run security:local && python3 scripts/release-audit.py && npm run verify:preservation && npm run build",
@@ -24,9 +26,9 @@
     "verify:browser:gate": "python3 tests/browser-release-gate.py"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.6.8",
     "typescript": "5.8.3",
-    "vite": "^7.1.0",
-    "@biomejs/biome": "2.3.0"
+    "vite": "8.3.8"
   },
   "engines": {
     "node": ">=20.19.0"

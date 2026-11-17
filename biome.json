@@ -1,25 +1,25 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.0/schema.json",
-  "root": true,
-  "files": {
-    "includes": [
-      "src/**/*.ts",
-      "scripts/**/*.mjs",
-      "tests/**/*.mjs",
-      "vite.config.js",
-      "package.json",
-      "biome.json"
-    ],
-    "ignoreUnknown": true
-  },
-  "formatter": {"enabled": false},
-  "assist": {"actions": {"source": {"organizeImports": "off"}}},
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": false,
-      "suspicious": {"noDebugger": "error"},
-      "correctness": {"noUnreachable": "error"}
-    }
-  }
+	"$schema": "https://biomejs.dev/schemas/2.6.8/schema.json",
+	"root": true,
+	"files": {
+		"includes": [
+			"src/**/*.ts",
+			"scripts/**/*.mjs",
+			"tests/**/*.mjs",
+			"vite.config.js",
+			"package.json",
+			"biome.json"
+		],
+		"ignoreUnknown": true
+	},
+	"formatter": { "enabled": false },
+	"assist": { "actions": { "source": { "organizeImports": "off" } } },
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"preset": "none",
+			"suspicious": { "noDebugger": "error" },
+			"correctness": { "noUnreachable": "error" }
+		}
+	}
 }

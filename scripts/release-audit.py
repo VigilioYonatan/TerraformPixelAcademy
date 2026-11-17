@@ -49,8 +49,10 @@ for num in range(1,19):
    if path in bundle.namelist():require(bundle.read(path)==file.read_bytes(),f'divergent Senior {path}')
 for file in (ROOT/'assets/terra').glob('*.png'):
  require(file.read_bytes().startswith(b'\x89PNG\r\n\x1a\n'),f'bad PNG {file}')
+IGNORED_ROOTS = {'.git', 'node_modules', 'dist', 'coverage', 'playwright-report', 'test-results', 'terraform-verification-results', '.tools'}
 for file in ROOT.rglob('*'):
- if file.is_file() and not ('dist' in file.parts):
+ rel_parts = file.relative_to(ROOT).parts
+ if file.is_file() and (not rel_parts or rel_parts[0] not in IGNORED_ROOTS):
   if re.search(rb'-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|ghp_[A-Za-z0-9]{36}|AKIA[0-9A-Z]{16}',file.read_bytes()[:5_000_000]):errors.append(f'potential key material {file}')
 print(f'{checks} structural/archive validations: {"PASS" if not errors else "FAIL"}')
 for err in errors: print('FAIL:',err)

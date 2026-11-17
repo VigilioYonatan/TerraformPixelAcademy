@@ -25,6 +25,7 @@ check_lab(){
   else
     (
       cd "$sandbox"
+      export TF_IN_AUTOMATION=1
       echo "Verifying $id on an isolated temporary COPY. Project sources are not changed."
       if ! terraform fmt -check -recursive -no-color >/dev/null 2>&1; then
         echo 'SOURCE_FORMAT_FAIL: la fuente original no pasa terraform fmt -check.'
@@ -49,5 +50,6 @@ for prefix in B I A;do
 done
 check_lab S18 "$ROOT/labs/senior/S18/capstone"
 printf '\nFinished: PASS=%s FAIL=%s (expected 37)\n' "$pass" "$fail" | tee -a "$REPORT_DIR/SUMMARY.txt"
-node "$ROOT/scripts/create-evidence-manifest.mjs" "$REPORT_DIR"
+NODE_BIN="${NODE_BINARY:-$(command -v node || command -v node.exe || echo node)}"
+"$NODE_BIN" "$ROOT/scripts/create-evidence-manifest.mjs" "$REPORT_DIR"
 if [[ "$fail" -gt 0 ]];then exit 1;fi

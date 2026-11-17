@@ -1,6 +1,9 @@
-import {cp,mkdir} from 'node:fs/promises';
-await mkdir('dist',{recursive:true});
-await cp('assets','dist/assets',{recursive:true,force:true});
-await mkdir('dist/docs',{recursive:true});
-await cp('docs/TERRAFORM_ACADEMY_MASTER_SPEC_V1_1_AUDITADA.md','dist/docs/TERRAFORM_ACADEMY_MASTER_SPEC_V1_1_AUDITADA.md',{recursive:true,force:true});
-console.log('Assets/terra, packs ZIP y especificación copiados a dist/.');
+import {cp, mkdir} from 'node:fs/promises';
+
+await mkdir('dist', {recursive: true});
+// Merge static assets, labs, docs and offline ESM fallback alongside Vite hashed chunks
+for (const folder of ['assets', 'docs', 'app']) {
+  await cp(folder, `dist/${folder}`, {recursive: true, force: true});
+}
+await cp('styles.css', 'dist/styles.css', {force: true});
+console.log('Assets/terra, 54 packs ZIP, docs y modulos offline sincronizados en dist/.');

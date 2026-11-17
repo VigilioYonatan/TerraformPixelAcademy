@@ -17,7 +17,8 @@ for line in index.read_text(encoding='utf8').splitlines():
     if relative.is_absolute() or '..' in relative.parts or path=='SHA256SUMS.txt' or path in expected:
         sys.exit(f'FAIL: ruta inválida o repetida en manifiesto: {path}')
     expected[path]=digest
-current={p.relative_to(ROOT).as_posix() for p in ROOT.rglob('*') if p.is_file() and p!=index}
+IGNORED_ROOTS={'.git','node_modules','coverage','playwright-report','test-results','terraform-verification-results','.tools'}
+current={p.relative_to(ROOT).as_posix() for p in ROOT.rglob('*') if p.is_file() and p!=index and p.relative_to(ROOT).parts[0] not in IGNORED_ROOTS}
 issues=[]
 for name in sorted(current^expected.keys()):
     issues.append(f'file absent from index or tree: {name}')

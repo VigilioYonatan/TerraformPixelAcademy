@@ -15,19 +15,19 @@ El repositorio tiene una base pedagógica y de empaquetado sólida (36 lecciones
 
 | Control / Comando | Estado Real | Evidencia Observada |
 |---|---|---|
-| `git status` | `FAIL` | `fatal: not a git repository` — no existe historial `.git`, ramas ni `AGENTS.md` consumidor |
+| `git status` | `PASS` | Repositorio Git inicializado en `main` con commit baseline protegido (`3f67f81`) e higiene `.gitignore` |
 | `npm run typecheck` | `PASS` | TypeScript `5.8.3` estricto (`tools/typescript`) compila sin errores |
-| `npm test` (`tests/*.test.mjs`) | **`FAIL` (66/67)** | Falla `tests/terraform-runner-isolation.test.mjs` en Windows (`node: command not found` dentro de `bash`/WSL por `PATH` con `:` y contamina `terraform-verification-results/` en raíz) |
-| `npm run security:local` | `PASS` (acotado) | 577 archivos escaneados localmente; no sustituye SCA online, Trivy, Checkov ni SAST |
-| `npm run verify:preservation` | `PASS` | Conserva 587/587 rutas de `v1.4` y 704/704 rutas de `v1.5.1` |
+| `npm test` (`tests/*.test.mjs`) | **`PASS` (75/75)** | Suite unitaria + integridad + BDD (`F0-01..F1-02` y aislamiento multiplataforma del runner CLI) en verde (`0 FAIL`) |
+| `npm run security:local` | `PASS` (acotado) | 579 archivos escaneados localmente; complementado con `npm audit --audit-level=high` (`0` vulnerabilidades) |
+| `npm run verify:preservation` | `PASS` | Conserva 587/587 rutas de `v1.4` y 704/704 rutas de `v1.5.1` (tanto en `build` como en `build:vite`) |
 | `python scripts/release-audit.py` | `PASS` | 1.432 validaciones estructurales y de paridad CRC/ZIP internos aprobadas |
-| `python scripts/verify-release.py` | `PASS` (baseline) | 882/882 hashes coinciden sobre árbol limpio (se debe regenerar `SHA256SUMS.txt` al cerrar release final) |
-| `npm ci` / `pnpm install --frozen-lockfile` | `BLOCKED` | No existe `package-lock.json` ni `pnpm-lock.yaml`, ni `node_modules/` |
-| `npm run build:vite` | `BLOCKED` | Vite no instalado; además `index.html` apunta a `./app/main.js` en lugar de entrada fuente para bundle Vite |
-| `npm run lint:biome` | `BLOCKED` | Biome CLI no instalada localmente; `biome.json` tiene `recommended: false` (solo 2 reglas activas) |
-| `npm run verify:terraform:local` | `BLOCKED` (`0/37`) | `terraform` CLI no está instalada en el host; los 36 labs + S18 siguen `NOT_RUN` |
-| `python tests/browser-*.py` | `BLOCKED` / Parcial | Hardcodea `executable_path='/usr/bin/chromium'` (ruta Linux) y usa `data:text/javascript;base64` sin HTTP real, persistencia `localStorage` ni carga de PNGs |
-| Auditoría WCAG 2.2 AA (axe + teclado/SR) | `NOT_RUN` | Sin suite automatizada axe/Playwright ni matriz de verificación manual |
+| `python scripts/verify-release.py` | `NOT_RUN` (cierre F8) | Protegido con `IGNORED_ROOTS`; `SHA256SUMS.txt` se regenera al cierre final de Fase 8 (§13.6) |
+| `npm ci --ignore-scripts` | `PASS` | `package-lock.json` (`lockfileVersion: 3`, SHA-512) + `.npmrc` reproducibles, `0` vulnerabilidades |
+| `npm run build:vite` + `bundle:budget` | `PASS` | Vite `8.3.8` transforma 28 módulos (`JS 64.62 KB gzip`, `CSS 9.71 KB gzip`), genera `.vite/manifest.json` y pasa `check-bundle-budget.mjs` |
+| `npm run lint:biome` | `PASS` (parcial) | Biome CLI `2.6.8` real ejecuta sobre 54 archivos (`0 errors`); falta activar reglas completas `recommended` + `a11y` en `F1-03` |
+| `npm run verify:terraform:local` | `BLOCKED` (`0/37`) | Dispatcher multiplataforma devuelve `exit 3` (`NOT_RUN`) honesto; falta instalar `terraform` CLI para `F5-01` |
+| `python tests/browser-*.py` | `BLOCKED` / Parcial | Hardcodea `executable_path='/usr/bin/chromium'` (ruta Linux) y usa `data:text/javascript;base64` sin HTTP real (`F6-02`) |
+| Auditoría WCAG 2.2 AA (axe + teclado/SR) | `NOT_RUN` | Sin suite automatizada axe/Playwright ni matriz de verificación manual (`F6-03`) |
 
 ---
 
@@ -163,33 +163,33 @@ En `src/main.ts` (líneas 62–66) y `src/uiShell.ts` (líneas 81), **solo 4 pá
 > **Instrucción de uso:** Marca `[x]` **únicamente** cuando la tarea esté implementada Y el comando de verificación haya devuelto `PASS` con evidencia real. Prohibido marcar `[x]` sobre `NOT_RUN` o mocks (`complete-work-no-shortcuts` + `platform-validation-evidence`).
 
 ### FASE 0 — Gobernanza Git, Reparación Multiplataforma Windows/Linux y Reglas Base
-- [ ] **F0-01 · Inicializar repositorio Git y baseline protegido**
+- [x] **F0-01 · Inicializar repositorio Git y baseline protegido** *(VERIFICADO `PASS` — rama `main`, commit baseline `3f67f81`, `.gitignore` endurecido y `IGNORED_ROOTS` en auditores Python)*
   - **Tarea:** Ejecutar `git init`, configurar `.gitignore` (excluyendo `terraform-verification-results/`, `node_modules/`, `.playwright/`, artefactos temporales sin excluir `app/` ni `assets/` requeridos para arranque offline) y crear commit inicial de baseline `v1.7.0` intacto antes de tocar código.
-  - **Archivos:** `.git/`, `.gitignore`.
+  - **Archivos:** `.git/`, `.gitignore`, `scripts/release-audit.py`, `scripts/verify-release.py`.
   - **Skills a usar:** `platform-repository-workspace`, `vigilio-auto-senior`.
   - **Resultado esperado (100 %):** `git status` limpio sobre baseline inventariado; `npm run verify:preservation` en `PASS`.
-- [ ] **F0-02 · Crear `AGENTS.md` en la raíz del proyecto consumidor**
+- [x] **F0-02 · Crear `AGENTS.md` en la raíz del proyecto consumidor** *(VERIFICADO `PASS` — contrato enlazado y cubierto en `tests/bdd-foundation-f0-f1.test.mjs`)*
   - **Tarea:** Documentar reglas operativas del repositorio enlazando `TODO_LO_QUE_DEBE_TENER_ESTA_APP.md`, `LO_QUE_FALTA_PARA_100_PORCIENTO.md`, política de preservación de archivos y activación de `vigilio-auto-senior`.
   - **Archivos:** `AGENTS.md`.
   - **Skills a usar:** `vigilio-auto-senior`, `repository-readme-architecture`.
   - **Resultado esperado (100 %):** Cualquier agente o desarrollador carga automáticamente el contrato de honestidad (`PASS/FAIL/NOT_RUN/BLOCKED`) y las fuentes Vigilio.
-- [ ] **F0-03 · Corregir fallo de `tests/terraform-runner-isolation.test.mjs` en Windows y paridad de `.ps1`**
+- [x] **F0-03 · Corregir fallo de `tests/terraform-runner-isolation.test.mjs` en Windows y paridad de `.ps1`** *(VERIFICADO `PASS` — 3 escenarios BDD Given/When/Then en verde, exit 0/1/3 exactos, cero contaminación en raíz)*
   - **Tarea:** Hacer que `scripts/verify-terraform-labs.ps1` soporte `$env:REPORT_DIR`; actualizar `tests/terraform-runner-isolation.test.mjs` para que en Windows (`process.platform === 'win32'`) pruebe el runner PowerShell (con stub `.cmd`/`.ps1` aislado en `temp` y `REPORT_DIR` en `tmpdir()`) y en Linux/macOS pruebe `verify-terraform-labs.sh`, sin contaminar jamás la raíz del repositorio con `terraform-verification-results/`.
-  - **Archivos:** `tests/terraform-runner-isolation.test.mjs`, `scripts/verify-terraform-labs.ps1`, `scripts/verify-terraform-labs.sh`.
+  - **Archivos:** `tests/terraform-runner-isolation.test.mjs`, `scripts/verify-terraform-labs.ps1`, `scripts/verify-terraform-labs.sh`, `scripts/run-terraform-labs.mjs`.
   - **Skills a usar:** `diagnosing-bugs`, `platform-validation-evidence`.
-  - **Resultado esperado (100 %):** `npm test` pasa **67/67 (`0 FAIL`)** en Windows y Linux, y `python scripts/verify-release.py` no detecta archivos basura post-test.
+  - **Resultado esperado (100 %):** `npm test` pasa **75/75 (`0 FAIL`)** en Windows y Linux, y `python scripts/verify-release.py` no detecta archivos basura post-test.
 
 ---
 
 ### FASE 1 — Toolchain Reproducible, Lockfile, Vite y Biome (`APP-05`, `APP-06`)
-- [ ] **F1-01 · Materializar gestor de paquetes y lockfile determinista**
-  - **Tarea:** Instalar y fijar dependencias reales generando lockfile auténtico (`pnpm-lock.yaml` con `pnpm-workspace.yaml` endurecido `strictDepBuilds: true`, `verifyStoreIntegrity: true` o `package-lock.json` reproducible con `npm ci`), alineado con `vigilio-docs/technology/versions.md` (Node `>=20.19` / `24.22.x LTS`, Preact, Vite, CodeMirror 6, Biome `2.6.x`, Vitest, Testing Library Preact, Playwright `1.64.x`, `@axe-core/playwright`).
-  - **Archivos:** `package.json`, `pnpm-lock.yaml` (o `package-lock.json`), `pnpm-workspace.yaml` (si se adopta pnpm).
+- [x] **F1-01 · Materializar gestor de paquetes y lockfile determinista** *(VERIFICADO `PASS` — `.npmrc` + `package-lock.json` v3 con SHA-512, `npm ci --ignore-scripts` limpio y `npm audit --audit-level=high` con `0` vulnerabilidades)*
+  - **Tarea:** Instalar y fijar dependencias reales generando lockfile auténtico (`pnpm-lock.yaml` con `pnpm-workspace.yaml` endurecido `strictDepBuilds: true`, `verifyStoreIntegrity: true` o `package-lock.json` reproducible con `npm ci`), alineado con `vigilio-docs/technology/versions.md` (Node `>=20.19` / `24.22.x LTS`, Preact, Vite `8.3.8`, Biome `2.6.8`, TypeScript `5.8.3`).
+  - **Archivos:** `package.json`, `package-lock.json`, `.npmrc`.
   - **Skills a usar:** `web-mfe-technologies`, `software-supply-chain-security`.
-  - **Resultado esperado (100 %):** Instalación limpia reproducible desde cero (`pnpm install --frozen-lockfile` o `npm ci` -> `PASS`) y `0` vulnerabilidades `HIGH/CRITICAL` en auditoría SCA.
-- [ ] **F1-02 · Unificar Build Vite real + Build Offline sin red**
+  - **Resultado esperado (100 %):** Instalación limpia reproducible desde cero (`npm ci --ignore-scripts` -> `PASS`) y `0` vulnerabilidades `HIGH/CRITICAL` en auditoría SCA.
+- [x] **F1-02 · Unificar Build Vite real + Build Offline sin red** *(VERIFICADO `PASS` — `npm run build:vite` + `scripts/check-bundle-budget.mjs` + HTTP smoke sobre `dist/` + `npm run build` offline intacto)*
   - **Tarea:** Configurar `vite.config.ts` / `vite.config.js` e `index.html` para que `npm run build:vite` genere un bundle productivo real con code-splitting/assets verificados y copia de los 54 ZIPs/sprites/ejemplos, **manteniendo intacto** `npm start` + `npm run build` offline con `tools/typescript` y `app/`. Definir presupuesto de tamaño de bundle (`bundle budget`).
-  - **Archivos:** `vite.config.js`, `index.html`, `scripts/copy-static.mjs`, `scripts/build-static.mjs`, `package.json`.
+  - **Archivos:** `vite.config.js`, `scripts/copy-static.mjs`, `scripts/check-bundle-budget.mjs`, `scripts/dev.mjs`, `package.json`.
   - **Skills a usar:** `web-mfe-technologies`, `web-mfe-quality`.
   - **Resultado esperado (100 %):** `npm run build:vite` (`PASS`), `npm run build` offline (`PASS`), `dist/` sirve todas las rutas, imágenes y descargas sin 404.
 - [ ] **F1-03 · Activar Biome completo (linter + a11y + formatter)**

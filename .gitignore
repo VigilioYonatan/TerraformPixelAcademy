@@ -1,23 +1,31 @@
+# Dependencies and local toolchains
 node_modules/
+.tools/
+
+# Generated build and test artifacts
 dist/
-.terraform/
-*.tfstate
-*.tfstate.*
-*.tfplan
-*.tfvars
-!*.tfvars.example
+.vite/
+coverage/
+playwright-report/
+test-results/
+*.log
+
+# Local environment and secrets
 .env
 .env.*
 !.env.example
-.DS_Store
-playwright-report/
-test-results/
 
-# Generated when running real Terraform CLI locally; never distribute state/credentials.
+# Generated when running real Terraform CLI locally; never distribute state/credentials
 .terraform/
 **/.terraform/
 *.tfstate
 *.tfstate.*
 *.tfplan
 *.tfplan.*
+*.tfvars
+!*.tfvars.example
 terraform-verification-results/
+
+# OS metadata
+.DS_Store
+Thumbs.db
