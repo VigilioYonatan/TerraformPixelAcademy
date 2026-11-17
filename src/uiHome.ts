@@ -5,13 +5,56 @@
  */
 import type { Lesson } from './curriculum.js';
 import { calculateXP, type AcademyState } from './engine.js';
+import type { HomeShowcaseTab } from './store.js';
 import { ROUTES, mascotUrl } from './uiShared.js';
 import { h } from './vendor/preact.mjs';
 
 export interface HomeProps {
   state: AcademyState;
   lessons: readonly Lesson[];
+  showcaseTab?: HomeShowcaseTab;
 }
+
+const SHOWCASE_PANELS: Record<
+  HomeShowcaseTab,
+  {
+    badge: string;
+    title: string;
+    summary: string;
+    code: string;
+    ctaLabel: string;
+    ctaHref: string;
+    status: string;
+  }
+> = {
+  hcl: {
+    badge: 'CodeMirror 6 · Offline ESM',
+    title: 'Edita HCL con validación inmediata y salida Esc + Tab',
+    summary: 'Resaltado de sintaxis HCL, deshacer/rehacer y reglas didácticas sin enviar código a ningún servidor.',
+    code: 'resource "terraform_data" "service" {\n  input = "cluster-prod-v2"\n}\noutput "academy_evidence" {\n  value = terraform_data.service.output\n}',
+    ctaLabel: 'Abrir editor en B04 →',
+    ctaHref: '#/leccion/B04',
+    status: '37/37 labs PASS con Terraform v1.10.5'
+  },
+  plan: {
+    badge: 'Release Gate · Cero fuga de secretos',
+    title: 'Inspecciona terraform show -json con orden y drift',
+    summary: 'Distingue delete-then-create, create-before-destroy y forget sin leer before/after ni credenciales.',
+    code: 'PLAN SUMMARY · USER_SUPPLIED_JSON\n  + create: 2   -/+ replace (delete-then-create): 1\n  ~ drift: 1    * forget (STATE_FORGET): 1\n  GATE => READY_FOR_HUMAN_REVIEW (nunca auto-apply)',
+    ctaLabel: 'Probar Inspector & Gate →',
+    ctaHref: '#/planes',
+    status: '50 rondas fuzzing anti-secretos PASS'
+  },
+  arena: {
+    badge: 'Three.js · WebGL Interactivo',
+    title: 'Resuelve escenarios IaC en Arena 3D por mouse o teclado',
+    summary: '5 topologías 3D con inspección raycasted de módulos, atajos 1/2/3 y feedback visual en vivo.',
+    code: 'ARENA 3D · TOPOLOGÍA ORBITAL\n  [1] terraform init      -> Estabiliza Provider Core\n  [2] terraform output    -> Solo lee outputs\n  [3] terraform fmt       -> Solo formatea HCL',
+    ctaLabel: 'Entrar a Arena 3D →',
+    ctaHref: '#/juegos',
+    status: '5 arenas 3D · 0 violaciones CSP/Axe'
+  }
+};
 
 const LEVEL_META = [
   {
@@ -56,13 +99,14 @@ export function findNextLesson(lessons: readonly Lesson[], completed: readonly s
   return lessons.find((item) => !completed.includes(item.id)) || lessons[0];
 }
 
-export function HomePage({ state, lessons }: HomeProps) {
+export function HomePage({ state, lessons, showcaseTab = 'hcl' }: HomeProps) {
   const done = state.completed.length;
   const seniorDone = state.seniorCompleted.length;
   const totalGamesWon = Object.values(state.gameWins).reduce((sum, count) => sum + count, 0);
   const next = findNextLesson(lessons, state.completed);
   const primaryHref = done > 0 ? `#/leccion/${next.id}` : ROUTES.learn;
   const primaryLabel = done > 0 ? '▶  Continuar mi ruta' : '▶  Empezar gratis';
+  const activeShowcase = SHOWCASE_PANELS[showcaseTab] || SHOWCASE_PANELS.hcl;
 
   return h(
     'div',
@@ -311,6 +355,79 @@ export function HomePage({ state, lessons }: HomeProps) {
           h('a', { href: ROUTES.senior, className: 'btn btn-primary' }, 'Abrir los 18 casos →')
         ),
         h('img', { src: mascotUrl('senior'), alt: 'Mascota Terra con corona' })
+      )
+    ),
+    h(
+      'section',
+      { className: 'section' },
+      h(
+        'div',
+        { className: 'section-heading' },
+        h(
+          'div',
+          {},
+          h('div', { className: 'eyebrow' }, 'FLUJO EN VIVO · SIN FRICCIÓN'),
+          h('h2', {}, 'Explora la plataforma antes de empezar')
+        )
+      ),
+      h(
+        'div',
+        { className: 'showcase-card' },
+        h(
+          'div',
+          { className: 'tabs tabs-flush' },
+          h(
+            'button',
+            {
+              type: 'button',
+              className: `tab ${showcaseTab === 'hcl' ? 'active' : ''}`.trim(),
+              'data-action': 'home-showcase',
+              'data-id': 'hcl',
+              'aria-pressed': String(showcaseTab === 'hcl')
+            },
+            '01 · Editor HCL'
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: `tab ${showcaseTab === 'plan' ? 'active' : ''}`.trim(),
+              'data-action': 'home-showcase',
+              'data-id': 'plan',
+              'aria-pressed': String(showcaseTab === 'plan')
+            },
+            '02 · Plan & Gate'
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              className: `tab ${showcaseTab === 'arena' ? 'active' : ''}`.trim(),
+              'data-action': 'home-showcase',
+              'data-id': 'arena',
+              'aria-pressed': String(showcaseTab === 'arena')
+            },
+            '03 · Arena 3D'
+          )
+        ),
+        h(
+          'div',
+          { className: 'showcase-grid mt-14' },
+          h(
+            'div',
+            {},
+            chip(activeShowcase.badge, 'cyan'),
+            h('h3', { className: 'heading-21 mt-10' }, activeShowcase.title),
+            h('p', { className: 'prose mt-8' }, activeShowcase.summary),
+            h('div', { className: 'flex-wrap mt-14' }, chip(activeShowcase.status, 'green')),
+            h(
+              'div',
+              { className: 'mt-18' },
+              h('a', { href: activeShowcase.ctaHref, className: 'btn btn-primary btn-sm' }, activeShowcase.ctaLabel)
+            )
+          ),
+          h('pre', { className: 'code-preview' }, h('code', {}, activeShowcase.code))
+        )
       )
     )
   );

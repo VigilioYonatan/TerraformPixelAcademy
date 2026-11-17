@@ -87,6 +87,7 @@ export function createAcademyStore({ lessons, seniorCases, initialAcademy, persi
         labsCategory: 'Todos',
         labsSearch: '',
         caseTab: 'investigar',
+        homeShowcaseTab: 'hcl',
         selectedPlan: 'p2',
         selectedGraph: 'network',
         selectedNode: '',

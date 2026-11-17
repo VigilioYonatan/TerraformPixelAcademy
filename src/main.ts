@@ -116,7 +116,7 @@ function render(): void {
 
   const view =
     page === 'inicio'
-      ? h(HomePage, { state, lessons })
+      ? h(HomePage, { state, lessons, showcaseTab: s.homeShowcaseTab })
       : page === 'aprender'
         ? h(LearningCatalog, {
             lessons,
@@ -496,6 +496,13 @@ async function handleAction(action: string, id: string, index: number, element: 
       store.update((s) => {
         s.gameSession = resolveGameSession(null, id);
       });
+      return;
+    case 'home-showcase':
+      if (id === 'hcl' || id === 'plan' || id === 'arena') {
+        store.update((s) => {
+          s.homeShowcaseTab = id;
+        });
+      }
       return;
     case 'game-cam-iso':
       activeArena3D?.setView('iso');

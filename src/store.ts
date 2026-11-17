@@ -22,6 +22,7 @@ import { defaultSimulatorInputs, type SimulatorInputs } from './simulators.js';
 export type { SimulatorInputs };
 export type CaseTabId = 'investigar' | 'decision' | 'review' | 'evidencia' | 'operaciones';
 export type LabsCategory = 'Todos' | 'Básico' | 'Intermedio' | 'Avanzado' | 'Senior';
+export type HomeShowcaseTab = 'hcl' | 'plan' | 'arena';
 
 export interface GameSession {
   id: string;
@@ -49,6 +50,7 @@ export interface AcademyStoreState {
   labsCategory: LabsCategory;
   labsSearch: string;
   caseTab: CaseTabId;
+  homeShowcaseTab: HomeShowcaseTab;
   selectedPlan: string;
   selectedGraph: string;
   selectedNode: string;
@@ -191,6 +193,7 @@ export function createAcademyStore({
     labsCategory: 'Todos',
     labsSearch: '',
     caseTab: 'investigar',
+    homeShowcaseTab: 'hcl',
     selectedPlan: 'p2',
     selectedGraph: 'network',
     selectedNode: '',

@@ -82,6 +82,7 @@ test.describe('F6-02: Complete Real HTTP E2E Journeys (Server + Compiled dist/)'
     await expect(page.locator('.hero-title')).toContainText('TerraPixel');
 
     await page.goto('/#/leccion/B04');
+    await expect(page.locator('.cm-editor')).toBeVisible();
     const cmContent = page.getByRole('textbox', { name: 'Editor main.tf' });
     await expect(cmContent).toBeVisible();
 
