@@ -117,7 +117,12 @@ export function HomePage({ state, lessons, showcaseTab = 'hcl' }: HomeProps) {
       h(
         'div',
         { className: 'hero-content' },
-        h('div', { className: 'hero-flag' }, '✦   TU AVENTURA EN INFRASTRUCTURE AS CODE'),
+        h(
+          'div',
+          { className: 'hero-flag' },
+          h('span', { className: 'live-dot', 'aria-hidden': 'true' }),
+          'TU AVENTURA EN INFRASTRUCTURE AS CODE'
+        ),
         h('h1', { className: 'hero-title' }, 'Terra', h('span', {}, 'Pixel'), h('br', {}), 'Academy'),
         h('div', { className: 'hero-subtitle' }, 'Construye, versiona y entrega infraestructura como código.'),
         h(
@@ -129,30 +134,68 @@ export function HomePage({ state, lessons, showcaseTab = 'hcl' }: HomeProps) {
           'div',
           { className: 'hero-buttons' },
           h('a', { href: primaryHref, className: 'btn btn-primary btn-lg' }, primaryLabel),
-          h('a', { href: ROUTES.senior, className: 'btn btn-ghost btn-lg' }, 'Explorar Senior Mode ↗')
+          h('a', { href: ROUTES.senior, className: 'btn btn-ghost btn-lg' }, '♛ Explorar Senior Mode ↗')
         ),
         h(
           'div',
-          { className: 'hero-numbers' },
-          h('div', {}, h('b', {}, '36'), h('span', {}, 'Lecciones')),
-          h('div', {}, h('b', {}, '18'), h('span', {}, 'Senior')),
-          h('div', {}, h('b', {}, '8'), h('span', {}, 'Rutas')),
-          h('div', {}, h('b', {}, '5'), h('span', {}, 'Juegos'))
+          { className: 'hero-proof' },
+          h(
+            'div',
+            { className: 'avatar-stack', 'aria-hidden': 'true' },
+            h('span', {}, '⌘'),
+            h('span', {}, '◈'),
+            h('span', {}, '♛')
+          ),
+          h('span', {}, h('strong', {}, '36 lecciones'), ' · 54 packs ZIP · 18 casos Senior · Arena 3D')
         )
       ),
       h(
         'div',
         { className: 'hero-art' },
-        h('div', { className: 'hero-orbit' }),
-        h('span', { className: 'hero-cloud', 'aria-hidden': 'true' }, '☁'),
-        h('span', { className: 'hero-cloud left', 'aria-hidden': 'true' }, '☁'),
+        h('div', { className: 'art-ring ring-one', 'aria-hidden': 'true' }),
+        h('div', { className: 'art-ring ring-two', 'aria-hidden': 'true' }),
+        h('span', { className: 'orbit-chip chip-top', 'aria-hidden': 'true' }, '◈ CM6 · HCL'),
+        h('span', { className: 'orbit-chip chip-left', 'aria-hidden': 'true' }, '✓ 37/37 TF CLI'),
+        h('span', { className: 'orbit-chip chip-bottom', 'aria-hidden': 'true' }, '♛ 18 Senior'),
         h('img', {
           className: 'hero-terra',
           src: mascotUrl('hola'),
           alt: 'Terra, mascota pixel-art de TerraPixel Academy con casco de ingeniería'
         }),
-        h('div', { className: 'hero-floating' }, 'resource ', h('span', {}, '"terraform_data"'), ' { }'),
         h('div', { className: 'hero-glow' })
+      ),
+      h('div', { className: 'hero-side-label', 'aria-hidden': 'true' }, 'TERRAFORM IAC / EDICIÓN 2026')
+    ),
+    h(
+      'section',
+      { className: 'stats-strip', 'aria-label': 'Resumen de contenido de la academia' },
+      h(
+        'div',
+        {},
+        h('span', { className: 'stat-symbol', 'aria-hidden': 'true' }, '▣'),
+        h('strong', {}, '36'),
+        h('small', {}, 'LECCIONES')
+      ),
+      h(
+        'div',
+        {},
+        h('span', { className: 'stat-symbol', 'aria-hidden': 'true' }, '♛'),
+        h('strong', {}, '18'),
+        h('small', {}, 'CASOS SENIOR')
+      ),
+      h(
+        'div',
+        {},
+        h('span', { className: 'stat-symbol', 'aria-hidden': 'true' }, '⑂'),
+        h('strong', {}, '8'),
+        h('small', {}, 'ITINERARIOS')
+      ),
+      h(
+        'div',
+        {},
+        h('span', { className: 'stat-symbol', 'aria-hidden': 'true' }, '◆'),
+        h('strong', {}, '5'),
+        h('small', {}, 'ARENAS 3D')
       )
     ),
     h(
@@ -167,7 +210,7 @@ export function HomePage({ state, lessons, showcaseTab = 'hcl' }: HomeProps) {
       h(
         'div',
         { className: 'level-grid' },
-        ...LEVEL_META.map((meta) => {
+        ...LEVEL_META.map((meta, idx) => {
           const levelItems = lessons.filter((item) => item.level === meta.level);
           const finished = levelItems.filter((item) => state.completed.includes(item.id)).length;
           return h(
@@ -177,6 +220,7 @@ export function HomePage({ state, lessons, showcaseTab = 'hcl' }: HomeProps) {
               className: `level-card ${meta.modifier}`.trim(),
               href: `${ROUTES.learn}?nivel=${encodeURIComponent(meta.level)}`
             },
+            h('div', { className: 'level-ghost-num', 'aria-hidden': 'true' }, `0${idx + 1}`),
             h(
               'div',
               { className: 'flex space-between' },
@@ -190,7 +234,7 @@ export function HomePage({ state, lessons, showcaseTab = 'hcl' }: HomeProps) {
               'div',
               { className: 'flex space-between mt-18' },
               h('span', { className: 'mini-strong' }, '12 lecciones'),
-              h('span', { className: 'color-purple' }, 'Explorar →')
+              h('span', { className: 'round-arrow', 'aria-hidden': 'true' }, '→')
             )
           );
         })
