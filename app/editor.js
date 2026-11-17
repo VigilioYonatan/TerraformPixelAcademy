@@ -1,69 +1,155 @@
-const assetBase = './assets/vendor/codemirror5/';
-let loader = null;
-let active = null;
-let pending = 0;
-let initialized = false;
-function loadScript(name) {
-    return new Promise((resolve, reject) => {
-        const element = document.createElement('script');
-        element.src = assetBase + name;
-        element.async = false;
-        element.onload = () => resolve();
-        element.onerror = () => reject(new Error(`No se pudo cargar el editor: ${name}`));
-        document.head.append(element);
-    });
+/**
+ * Authentic CodeMirror 6 offline-safe HCL editor with dynamic Dark/Light theme Compartment,
+ * undo/redo history, bracket matching/closing, 2-space indentation, WCAG 2.1.2 Escape-then-Tab
+ * focus release, and resilient `<textarea>` fallback.
+ */
+import { hclStreamParser } from './hclLanguage.js';
+let cm6Loader = null;
+let activeSession = null;
+let activationToken = 0;
+function loadCm6() {
+    if (!cm6Loader) {
+        cm6Loader = import('./vendor/codemirror6.mjs').catch((error) => {
+            console.warn('[TerraPixel] CodeMirror 6 no disponible; se conserva textarea accesible.', error);
+            return null;
+        });
+    }
+    return cm6Loader;
 }
-function ensureLoaded() {
-    if (window.CodeMirror?.modes?.['terrapixel-hcl'])
-        return Promise.resolve(true);
-    if (loader)
-        return loader;
-    loader = (async () => {
-        try {
-            if (!initialized) {
-                await loadScript('codemirror.js');
-                await loadScript('mode-hcl.js');
-                await loadScript('matchbrackets.js');
-                await loadScript('closebrackets.js');
-                initialized = true;
-            }
-            return typeof window.CodeMirror?.fromTextArea === 'function';
-        }
-        catch (error) {
-            console.warn('[TerraPixel] Editor avanzado no disponible; se usará textarea.', error);
-            return false;
-        }
-    })();
-    return loader;
+function buildThemeExtension(cm, theme) {
+    return [
+        cm.EditorView.darkTheme.of(theme === 'dark'),
+        cm.EditorView.editorAttributes.of({
+            class: theme === 'light' ? 'cm-terrapixel cm-terrapixel-light' : 'cm-terrapixel cm-terrapixel-dark',
+            'data-editor-theme': theme
+        })
+    ];
 }
 export function disposeCodeEditor() {
-    pending++;
-    if (active) {
-        try {
-            active.toTextArea();
-        }
-        catch { /* Elemento ya retirado. */ }
-        active = null;
+    activationToken++;
+    if (!activeSession)
+        return;
+    const { view, textarea, host } = activeSession;
+    activeSession = null;
+    try {
+        view.destroy();
     }
+    catch {
+        // View already detached during route transition.
+    }
+    host.remove();
+    textarea.hidden = false;
 }
-/** Call after a view is rendered; old async loads are discarded on navigation. */
+export function updateEditorTheme(theme) {
+    if (!activeSession)
+        return false;
+    if (activeSession.theme === theme)
+        return true;
+    activeSession.theme = theme;
+    activeSession.view.dispatch({
+        effects: activeSession.themeCompartment.reconfigure(buildThemeExtension(activeSession.cm, theme))
+    });
+    return true;
+}
+export function getActiveEditorState() {
+    if (!activeSession) {
+        return { active: false, theme: null, value: '' };
+    }
+    return {
+        active: true,
+        theme: activeSession.theme,
+        value: activeSession.view.state.doc.toString()
+    };
+}
+export function undoEditorChange() {
+    if (!activeSession)
+        return false;
+    return activeSession.cm.undo(activeSession.view);
+}
+export function redoEditorChange() {
+    if (!activeSession)
+        return false;
+    return activeSession.cm.redo(activeSession.view);
+}
+/**
+ * Mounts CodeMirror 6 over `#code-editor` after view render.
+ * Stale async activations from superseded route transitions are safely discarded.
+ */
 export async function activateCodeEditor(onChange, theme) {
-    const token = ++pending;
     const textarea = document.querySelector('#code-editor');
     if (!textarea)
         return false;
-    if (!await ensureLoaded() || token !== pending || !textarea.isConnected || !window.CodeMirror)
+    // If an active CM6 instance is already bound to this exact textarea, sync theme & external doc updates
+    if (activeSession && activeSession.textarea === textarea && textarea.isConnected) {
+        updateEditorTheme(theme);
+        const currentDoc = activeSession.view.state.doc.toString();
+        if (currentDoc !== textarea.value) {
+            activeSession.view.dispatch({
+                changes: { from: 0, to: currentDoc.length, insert: textarea.value }
+            });
+        }
+        return true;
+    }
+    disposeCodeEditor();
+    const myToken = ++activationToken;
+    const cm = await loadCm6();
+    if (!cm || myToken !== activationToken || !textarea.isConnected) {
         return false;
-    const editor = window.CodeMirror.fromTextArea(textarea, {
-        mode: 'terrapixel-hcl', lineNumbers: true, lineWrapping: false,
-        indentUnit: 2, tabSize: 2, indentWithTabs: false, matchBrackets: true, autoCloseBrackets: true,
-        extraKeys: { Tab: (cm) => cm.replaceSelection('  ') }
+    }
+    const host = document.createElement('div');
+    host.className = 'cm6-mount';
+    host.dataset.testid = 'cm6-editor-host';
+    textarea.after(host);
+    textarea.hidden = true;
+    const themeCompartment = new cm.Compartment();
+    const hclLanguage = cm.StreamLanguage.define(hclStreamParser);
+    const ariaLabel = textarea.getAttribute('aria-label') || 'Editor main.tf';
+    const state = cm.EditorState.create({
+        doc: textarea.value,
+        extensions: [
+            cm.lineNumbers(),
+            cm.highlightActiveLineGutter(),
+            cm.highlightActiveLine(),
+            cm.drawSelection(),
+            cm.history(),
+            cm.bracketMatching(),
+            cm.closeBrackets(),
+            cm.EditorState.tabSize.of(2),
+            cm.indentUnit.of('  '),
+            hclLanguage.extension,
+            cm.syntaxHighlighting(cm.classHighlighter),
+            cm.EditorView.contentAttributes.of({
+                'aria-label': ariaLabel,
+                spellcheck: 'false',
+                autocapitalize: 'off',
+                autocorrect: 'off'
+            }),
+            cm.keymap.of([...cm.closeBracketsKeymap, ...cm.defaultKeymap, ...cm.historyKeymap, cm.indentWithTab]),
+            themeCompartment.of(buildThemeExtension(cm, theme)),
+            cm.EditorView.updateListener.of((update) => {
+                if (!update.docChanged)
+                    return;
+                const nextValue = update.state.doc.toString();
+                textarea.value = nextValue;
+                onChange(nextValue);
+            })
+        ]
     });
-    active = editor;
-    editor.on('change', () => onChange(editor.getValue()));
-    editor.setOption('theme', theme === 'light' ? 'default' : 'default');
+    const view = new cm.EditorView({
+        state,
+        parent: host
+    });
+    activeSession = {
+        view,
+        textarea,
+        host,
+        themeCompartment,
+        theme,
+        cm
+    };
     const indicator = document.querySelector('.editor-tag');
-    if (indicator)
-        indicator.textContent = 'HCL · CodeMirror offline (v5)';
+    if (indicator) {
+        indicator.textContent = 'HCL · CodeMirror 6 offline (Esc + Tab para salir)';
+    }
     return true;
 }

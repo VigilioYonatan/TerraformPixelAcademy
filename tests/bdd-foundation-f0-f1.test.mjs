@@ -1,11 +1,11 @@
-import {describe, it} from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import {spawnSync} from 'node:child_process';
-import {createServer} from 'node:http';
-import {mkdtemp, mkdir, readFile, rm, stat, writeFile} from 'node:fs/promises';
-import {tmpdir} from 'node:os';
-import {extname, join, resolve} from 'node:path';
-import {fileURLToPath} from 'node:url';
+import { spawnSync } from 'node:child_process';
+import { createServer } from 'node:http';
+import { mkdtemp, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { extname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const readText = (rel) => readFile(join(root, rel), 'utf8');
@@ -20,11 +20,15 @@ const fileExists = async (rel) => {
 describe('BDD Suite F0-F1: Repository Governance, AGENTS.md, Lockfile Supply-Chain & Dual Vite/Offline Build', () => {
   describe('Feature F0-01: Git Repository & Workspace Boundaries', () => {
     it('Given the repository workspace, When checking Git metadata and .gitignore, Then main branch, baseline history, and artifact exclusions are enforced', async () => {
-      const topLevel = spawnSync('git', ['rev-parse', '--show-toplevel'], {cwd: root, encoding: 'utf8'});
+      const topLevel = spawnSync('git', ['rev-parse', '--show-toplevel'], { cwd: root, encoding: 'utf8' });
       assert.equal(topLevel.status, 0, topLevel.stderr);
-      assert.equal(resolve(topLevel.stdout.trim()).toLowerCase(), resolve(root).toLowerCase(), 'Git root must be TerraPixel-Academy itself, not a parent folder');
+      assert.equal(
+        resolve(topLevel.stdout.trim()).toLowerCase(),
+        resolve(root).toLowerCase(),
+        'Git root must be TerraPixel-Academy itself, not a parent folder'
+      );
 
-      const logCheck = spawnSync('git', ['log', '--oneline', '-n', '1'], {cwd: root, encoding: 'utf8'});
+      const logCheck = spawnSync('git', ['log', '--oneline', '-n', '1'], { cwd: root, encoding: 'utf8' });
       assert.equal(logCheck.status, 0);
       assert.ok(logCheck.stdout.trim().length > 7, 'At least one baseline commit must exist');
 
@@ -84,16 +88,27 @@ describe('BDD Suite F0-F1: Repository Governance, AGENTS.md, Lockfile Supply-Cha
 
       const pkg = JSON.parse(await readText('package.json'));
       for (const [depName, depVersion] of Object.entries(pkg.devDependencies || {})) {
-        assert.doesNotMatch(String(depVersion), /^[\^~><*]/, `Dependency ${depName} must be pinned to exact version, got ${depVersion}`);
+        assert.doesNotMatch(
+          String(depVersion),
+          /^[\^~><*]/,
+          `Dependency ${depName} must be pinned to exact version, got ${depVersion}`
+        );
       }
 
       const vendoredTsPkg = JSON.parse(await readText('tools/typescript/package.json'));
-      assert.equal(pkg.devDependencies.typescript, vendoredTsPkg.version, 'Pinned TypeScript must match vendored offline compiler');
+      assert.equal(
+        pkg.devDependencies.typescript,
+        vendoredTsPkg.version,
+        'Pinned TypeScript must match vendored offline compiler'
+      );
 
       assert.equal(await fileExists('package-lock.json'), true, 'package-lock.json must be committed and real');
       const lock = JSON.parse(await readText('package-lock.json'));
       assert.equal(lock.lockfileVersion, 3);
-      assert.ok(lock.packages && Object.keys(lock.packages).length >= 4, 'package-lock.json must contain resolved dependency graph');
+      assert.ok(
+        lock.packages && Object.keys(lock.packages).length >= 4,
+        'package-lock.json must contain resolved dependency graph'
+      );
 
       for (const requiredPkg of ['node_modules/vite', 'node_modules/@biomejs/biome', 'node_modules/typescript']) {
         const entry = lock.packages[requiredPkg];
@@ -110,27 +125,35 @@ describe('BDD Suite F0-F1: Repository Governance, AGENTS.md, Lockfile Supply-Cha
       try {
         // Case 1: Missing .vite/manifest.json
         const emptyDist = join(tempRoot, 'empty-dist');
-        await mkdir(emptyDist, {recursive: true});
+        await mkdir(emptyDist, { recursive: true });
         const missingRun = spawnSync(process.execPath, [budgetScript], {
           cwd: root,
-          env: {...process.env, DIST_DIR: emptyDist},
+          env: { ...process.env, DIST_DIR: emptyDist },
           encoding: 'utf8'
         });
         assert.notEqual(missingRun.status, 0);
         assert.match(missingRun.stderr, /manifest\.json/);
 
         // Helper to scaffold minimal valid fixture before injecting specific faults
-        const createFixtureDist = async (name, {jsContent = 'console.log("ok");', htmlContent = '<script type="module" src="./assets/index-abc.js"></script>'} = {}) => {
+        const createFixtureDist = async (
+          name,
+          {
+            jsContent = 'console.log("ok");',
+            htmlContent = '<script type="module" src="./assets/index-abc.js"></script>'
+          } = {}
+        ) => {
           const dir = join(tempRoot, name);
-          await mkdir(join(dir, '.vite'), {recursive: true});
-          await mkdir(join(dir, 'assets', 'terra'), {recursive: true});
-          await mkdir(join(dir, 'assets', 'labs'), {recursive: true});
-          await mkdir(join(dir, 'assets', 'senior'), {recursive: true});
-          await mkdir(join(dir, 'assets', 'vendor', 'codemirror5'), {recursive: true});
-          await mkdir(join(dir, 'docs'), {recursive: true});
+          await mkdir(join(dir, '.vite'), { recursive: true });
+          await mkdir(join(dir, 'assets', 'terra'), { recursive: true });
+          await mkdir(join(dir, 'assets', 'labs'), { recursive: true });
+          await mkdir(join(dir, 'assets', 'senior'), { recursive: true });
+          await mkdir(join(dir, 'assets', 'vendor', 'codemirror5'), { recursive: true });
+          await mkdir(join(dir, 'docs'), { recursive: true });
           await writeFile(
             join(dir, '.vite', 'manifest.json'),
-            JSON.stringify({'index.html': {file: 'assets/index-abc.js', src: 'index.html', isEntry: true, css: ['assets/style.css']}}),
+            JSON.stringify({
+              'index.html': { file: 'assets/index-abc.js', src: 'index.html', isEntry: true, css: ['assets/style.css'] }
+            }),
             'utf8'
           );
           await writeFile(join(dir, 'assets', 'index-abc.js'), jsContent, 'utf8');
@@ -150,7 +173,7 @@ describe('BDD Suite F0-F1: Repository Governance, AGENTS.md, Lockfile Supply-Cha
         });
         const secretRun = spawnSync(process.execPath, [budgetScript], {
           cwd: root,
-          env: {...process.env, DIST_DIR: secretDist},
+          env: { ...process.env, DIST_DIR: secretDist },
           encoding: 'utf8'
         });
         assert.notEqual(secretRun.status, 0);
@@ -158,11 +181,12 @@ describe('BDD Suite F0-F1: Repository Governance, AGENTS.md, Lockfile Supply-Cha
 
         // Case 3: External remote script in dist/index.html
         const remoteDist = await createFixtureDist('remote-dist', {
-          htmlContent: '<script src="https://cdn.example.com/evil.js"></script><script type="module" src="./assets/index-abc.js"></script>'
+          htmlContent:
+            '<script src="https://cdn.example.com/evil.js"></script><script type="module" src="./assets/index-abc.js"></script>'
         });
         const remoteRun = spawnSync(process.execPath, [budgetScript], {
           cwd: root,
-          env: {...process.env, DIST_DIR: remoteDist},
+          env: { ...process.env, DIST_DIR: remoteDist },
           encoding: 'utf8'
         });
         assert.notEqual(remoteRun.status, 0);
@@ -174,13 +198,13 @@ describe('BDD Suite F0-F1: Repository Governance, AGENTS.md, Lockfile Supply-Cha
         });
         const hugeRun = spawnSync(process.execPath, [budgetScript], {
           cwd: root,
-          env: {...process.env, DIST_DIR: hugeDist},
+          env: { ...process.env, DIST_DIR: hugeDist },
           encoding: 'utf8'
         });
         assert.notEqual(hugeRun.status, 0);
         assert.match(hugeRun.stderr, /supera presupuesto/);
       } finally {
-        await rm(tempRoot, {recursive: true, force: true});
+        await rm(tempRoot, { recursive: true, force: true });
       }
     });
 
@@ -219,11 +243,17 @@ describe('BDD Suite F0-F1: Repository Governance, AGENTS.md, Lockfile Supply-Cha
 
       // Serve built dist/ over real local HTTP server and verify hashed chunks + static assets
       const manifest = JSON.parse(await readText('dist/.vite/manifest.json'));
-      const entry = Object.values(manifest).find((m) => m && m.isEntry);
+      const entry = Object.values(manifest).find((m) => m?.isEntry);
       assert.ok(entry && typeof entry.file === 'string', 'Vite manifest must expose entry JS chunk');
 
       const distRoot = join(root, 'dist');
-      const mimeMap = {'.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.zip': 'application/zip'};
+      const mimeMap = {
+        '.html': 'text/html',
+        '.js': 'text/javascript',
+        '.css': 'text/css',
+        '.png': 'image/png',
+        '.zip': 'application/zip'
+      };
       const srv = createServer(async (req, res) => {
         try {
           const urlPath = (req.url || '/').split('?')[0];
@@ -235,7 +265,7 @@ describe('BDD Suite F0-F1: Repository Governance, AGENTS.md, Lockfile Supply-Cha
             return;
           }
           const data = await readFile(target);
-          res.writeHead(200, {'Content-Type': mimeMap[extname(target)] || 'application/octet-stream'});
+          res.writeHead(200, { 'Content-Type': mimeMap[extname(target)] || 'application/octet-stream' });
           res.end(data);
         } catch {
           res.writeHead(404);
@@ -247,7 +277,14 @@ describe('BDD Suite F0-F1: Repository Governance, AGENTS.md, Lockfile Supply-Cha
       const address = srv.address();
       const port = typeof address === 'object' && address ? address.port : 0;
       try {
-        for (const route of ['/', `/${entry.file}`, '/assets/terra/hola.png', '/assets/labs/B04.zip', '/assets/senior/S18.zip', '/app/main.js']) {
+        for (const route of [
+          '/',
+          `/${entry.file}`,
+          '/assets/terra/hola.png',
+          '/assets/labs/B04.zip',
+          '/assets/senior/S18.zip',
+          '/app/main.js'
+        ]) {
           const res = await fetch(`http://127.0.0.1:${port}${route}`);
           assert.equal(res.status, 200, `Expected 200 from built dist/ for ${route}`);
           assert.ok((await res.arrayBuffer()).byteLength > 50, `Empty payload for ${route}`);

@@ -1,5 +1,10 @@
-const oneLine = (value) => value.replace(/[\r\n\u0000-\u001f]/g, ' ').replace(/[|`]/g, '-').slice(0, 260);
-const printChanges = (changes) => changes.map(item => `| ${oneLine(item.kind)} | ${oneLine(item.address)} | ${oneLine(item.provider)} | ${item.sensitive ? 'sí' : 'no'} |`).join('\n') || '| — | Sin cambios listados | — | — |';
+const oneLine = (value) => value
+    .replace(/\p{Cc}/gu, ' ')
+    .replace(/[|`]/g, '-')
+    .slice(0, 260);
+const printChanges = (changes) => changes
+    .map((item) => `| ${oneLine(item.kind)} | ${oneLine(item.address)} | ${oneLine(item.provider)} | ${item.sensitive ? 'sí' : 'no'} |`)
+    .join('\n') || '| — | Sin cambios listados | — | — |';
 export function buildPlanReviewMarkdown(plan) {
     return `# Revisión local de plan Terraform — TerraPixel Academy
 
@@ -18,7 +23,9 @@ export function buildPlanReviewMarkdown(plan) {
 
 ## Operaciones declaradas
 
-${Object.entries(plan.summary).map(([kind, count]) => `- ${oneLine(kind)}: ${count}`).join('\n')}
+${Object.entries(plan.summary)
+        .map(([kind, count]) => `- ${oneLine(kind)}: ${count}`)
+        .join('\n')}
 
 ## Recursos del plan (solo metadatos)
 
@@ -34,7 +41,7 @@ ${printChanges(plan.drift)}
 
 ## Advertencias
 
-${plan.notices.map(note => `- ${oneLine(note)}`).join('\n')}
+${plan.notices.map((note) => `- ${oneLine(note)}`).join('\n')}
 
 ## Revisión humana requerida
 

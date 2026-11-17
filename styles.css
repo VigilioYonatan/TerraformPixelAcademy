@@ -77,3 +77,48 @@ body[data-theme="light"] .editor-card .cm-string{color:#227940}
 #cli-evidence-dashboard .content-panel{min-width:0}
 @media(max-width:760px){.evidence-grid{grid-template-columns:minmax(0,1fr)}#cli-evidence-dashboard .cards-4{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:400px){#cli-evidence-dashboard .cards-4{grid-template-columns:minmax(0,1fr)}}
+
+/* CodeMirror 6 HCL editor — Dark & Light accessible WCAG AA token themes. */
+.cm6-mount{width:100%;max-width:100%}
+.editor-card .cm-editor{height:385px;max-width:100%;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;line-height:1.65}
+.editor-card .cm-scroller{overflow:auto;font-family:inherit;line-height:inherit}
+.editor-card .cm-content{padding:14px 0;caret-color:#fff}
+.editor-card .cm-line{padding:0 16px}
+.editor-card .cm-editor.cm-focused{outline:2px solid var(--purple-bright);outline-offset:-2px}
+.editor-card .cm-terrapixel-dark{background:#0d1022;color:#eae8ff}
+.editor-card .cm-terrapixel-dark .cm-gutters{background:#11162c;color:#9399b8;border-right:1px solid #2d3158}
+.editor-card .cm-terrapixel-dark .cm-activeLineGutter{background:#1b2142;color:#dfd6ff}
+.editor-card .cm-terrapixel-dark .cm-activeLine{background:#8a62e91a}
+.editor-card .cm-terrapixel-dark .cm-selectionBackground,.editor-card .cm-terrapixel-dark.cm-focused .cm-selectionBackground{background:#553c8b!important}
+.editor-card .cm-terrapixel-dark .cm-matchingBracket{background:#6d4aff45;color:#fff;outline:1px solid #b794ff}
+.editor-card .cm-terrapixel-dark .tok-keyword{color:#c79dff;font-weight:700}
+.editor-card .cm-terrapixel-dark .tok-typeName{color:#63e2f0;font-weight:600}
+.editor-card .cm-terrapixel-dark .tok-propertyName{color:#8ad8ff}
+.editor-card .cm-terrapixel-dark .tok-variableName{color:#ebe5ff}
+.editor-card .cm-terrapixel-dark .tok-string{color:#86efac}
+.editor-card .cm-terrapixel-dark .tok-number,.editor-card .cm-terrapixel-dark .tok-atom,.editor-card .cm-terrapixel-dark .tok-bool{color:#fcd34d}
+.editor-card .cm-terrapixel-dark .tok-comment{color:#94a3b8;font-style:italic}
+.editor-card .cm-terrapixel-dark .tok-operator,.editor-card .cm-terrapixel-dark .tok-punctuation{color:#cbd5e1}
+
+body[data-theme="light"] .editor-card{background:#f8f9ff;border-color:var(--border-strong)}
+body[data-theme="light"] .editor-toolbar{background:#ede9fb;border-bottom-color:#d1c7ec}
+body[data-theme="light"] .file-tab{color:#321b68}
+body[data-theme="light"] .editor-tag{color:#5824b8;background:#743cd71c}
+body[data-theme="light"] .editor-bottom{background:#f1eefb;border-top-color:#d5ccef}
+body[data-theme="light"] .code-editor{background:#f8f9ff;color:#1d1740}
+.editor-card .cm-terrapixel-light{background:#f8f9ff;color:#1d1740}
+.editor-card .cm-terrapixel-light .cm-content{caret-color:#1d1740}
+.editor-card .cm-terrapixel-light .cm-gutters{background:#ece9f9;color:#52587a;border-right:1px solid #d2cbe8}
+.editor-card .cm-terrapixel-light .cm-activeLineGutter{background:#dfd9f6;color:#2c1d62}
+.editor-card .cm-terrapixel-light .cm-activeLine{background:#743cd712}
+.editor-card .cm-terrapixel-light .cm-selectionBackground,.editor-card .cm-terrapixel-light.cm-focused .cm-selectionBackground{background:#d4c4fb!important}
+.editor-card .cm-terrapixel-light .cm-matchingBracket{background:#c4b5fd66;color:#1e1b4b;outline:1px solid #6d28d9}
+.editor-card .cm-terrapixel-light .tok-keyword{color:#6b21a8;font-weight:700}
+.editor-card .cm-terrapixel-light .tok-typeName{color:#0f766e;font-weight:600}
+.editor-card .cm-terrapixel-light .tok-propertyName{color:#0369a1}
+.editor-card .cm-terrapixel-light .tok-variableName{color:#2e1065}
+.editor-card .cm-terrapixel-light .tok-string{color:#166534}
+.editor-card .cm-terrapixel-light .tok-number,.editor-card .cm-terrapixel-light .tok-atom,.editor-card .cm-terrapixel-light .tok-bool{color:#9a3412}
+.editor-card .cm-terrapixel-light .tok-comment{color:#475569;font-style:italic}
+.editor-card .cm-terrapixel-light .tok-operator,.editor-card .cm-terrapixel-light .tok-punctuation{color:#334155}
+@media(max-width:680px){.editor-card .cm-editor{height:315px;font-size:12px}}

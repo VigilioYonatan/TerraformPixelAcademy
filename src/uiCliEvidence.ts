@@ -1,55 +1,177 @@
 /** Fully declarative Preact Senior evidence dashboard. No secret logs are parsed. */
-import {h} from './vendor/preact.mjs';
-import {cliStats,type CliManifest} from './cliEvidence.js';
-interface EvidenceProps {manifest:CliManifest|null;error:string}
-const chip=(text:string,tone='purple')=>h('span',{className:`chip chip-${tone}`},text);
-export function CliEvidenceDashboard({manifest,error}:EvidenceProps){
-  const stats=manifest?cliStats(manifest):null;
-  return h('div',{id:'cli-evidence-dashboard'},
-    h('div',{className:'breadcrumb'},h('a',{href:'#/inicio'},'Inicio'),' / ',h('a',{href:'#/senior'},'Senior Mode'),' / Evidencia CLI'),
-    h('div',{className:'eyebrow'},'SENIOR MODE · EVIDENCIA REPRODUCIBLE'),
-    h('h1',{className:'page-title'},'Resultados de Terraform CLI'),
-    h('p',{className:'page-lead'},'Compara tus 36 laboratorios y el capstone S18 con un manifiesto generado por el runner local. Se cargan metadatos, no logs ni variables privadas.'),
-    h('div',{className:'space24'}),
-    h('section',{className:'content-panel'},
-      h('div',{className:'flex space-between'},h('div',{},h('h2',{},'Importa tus resultados locales'),h('p',{className:'small-note'},'Usa el archivo terraform-verification-results/CLI-EVIDENCE-MANIFEST.json generado después de ejecutar el script de pruebas en tu equipo.')),
-        chip('DATOS LOCALES','green')),
-      h('div',{className:'space16'}),
-      h('label',{className:'field-label',htmlFor:'cli-manifest-file'},'Seleccionar manifiesto JSON (máx. 200 KB)'),
-      h('input',{id:'cli-manifest-file',type:'file',accept:'.json,application/json','aria-label':'Cargar evidencias locales de Terraform CLI'}),
-      h('div',{className:'space16'}),
-      h('div',{className:'flex-wrap'},
-        h('button',{type:'button',className:'btn btn-soft','data-action':'clear-cli-manifest'},'Olvidar resultados cargados'),
-        ...(manifest?[h('button',{type:'button',className:'btn btn-primary','data-action':'export-cli-manifest'},'↓ Exportar índice de evidencias (.md)')]:[]),
-        h('a',{className:'btn btn-soft',href:'./assets/examples/cli-evidence-synthetic.json',download:'cli-evidence-synthetic.json'},'↓ Ejemplo sintético')
-      ),
-      error?h('div',{className:'alert',role:'alert'},error):null,
-      h('div',{className:'notice',style:'margin-top:18px'},
-        'Importar el manifiesto NO autentica al ejecutor, no comprueba hashes frente a logs originales y nunca concede aprobación de despliegue. ',
-        'Los logs reales pueden contener información privada: no los subas a la academia.')
+import { h } from './vendor/preact.mjs';
+import { cliStats, type CliManifest } from './cliEvidence.js';
+interface EvidenceProps {
+  manifest: CliManifest | null;
+  error: string;
+}
+const chip = (text: string, tone = 'purple') => h('span', { className: `chip chip-${tone}` }, text);
+export function CliEvidenceDashboard({ manifest, error }: EvidenceProps) {
+  const stats = manifest ? cliStats(manifest) : null;
+  return h(
+    'div',
+    { id: 'cli-evidence-dashboard' },
+    h(
+      'div',
+      { className: 'breadcrumb' },
+      h('a', { href: '#/inicio' }, 'Inicio'),
+      ' / ',
+      h('a', { href: '#/senior' }, 'Senior Mode'),
+      ' / Evidencia CLI'
     ),
-    manifest?h('section',{className:'section'},
-      h('div',{className:'flex space-between'},h('h2',{},'Resultados declarados'),chip(manifest.origin==='SYNTHETIC_EXAMPLE'?'SIMULACIÓN':'SIN ATESTACIÓN EXTERNA',manifest.origin==='SYNTHETIC_EXAMPLE'?'yellow':'purple')),
-      h('div',{className:'space16'}),
-      h('div',{className:'cards-4'},
-        ...([['PASS',stats!.pass,'green'],['FAIL',stats!.fail,'red'],['NOT_RUN',stats!.notRun,'yellow'],['SIN RESULTADO',stats!.missing,'purple']] as const).map(([name,count,tone])=>
-          h('div',{className:'stat-pill'},h('div',{},h('div',{className:'number'},String(count)),chip(name,tone))))
+    h('div', { className: 'eyebrow' }, 'SENIOR MODE · EVIDENCIA REPRODUCIBLE'),
+    h('h1', { className: 'page-title' }, 'Resultados de Terraform CLI'),
+    h(
+      'p',
+      { className: 'page-lead' },
+      'Compara tus 36 laboratorios y el capstone S18 con un manifiesto generado por el runner local. Se cargan metadatos, no logs ni variables privadas.'
+    ),
+    h('div', { className: 'space24' }),
+    h(
+      'section',
+      { className: 'content-panel' },
+      h(
+        'div',
+        { className: 'flex space-between' },
+        h(
+          'div',
+          {},
+          h('h2', {}, 'Importa tus resultados locales'),
+          h(
+            'p',
+            { className: 'small-note' },
+            'Usa el archivo terraform-verification-results/CLI-EVIDENCE-MANIFEST.json generado después de ejecutar el script de pruebas en tu equipo.'
+          )
+        ),
+        chip('DATOS LOCALES', 'green')
       ),
-      h('div',{className:'space16'}),
-      h('div',{className:'content-panel'},
-        h('p',{className:'small-note'},`Terraform declarado: ${manifest.terraformVersion} · ${manifest.generatedAt} · Id: ${manifest.runId}`),
-        h('div',{className:'space16'}),
-        h('div',{className:'evidence-grid'},
-          ...manifest.results.map(r=>h('div',{className:'evidence-row',key:r.id},
-            h('a',{href:r.id==='S18'?'#/senior/S18':`#/leccion/${r.id}`,className:'mini-strong'},r.id),
-            chip(r.status,r.status==='PASS'?'green':r.status==='FAIL'?'red':'yellow'),
-            h('span',{className:'small-note'},r.logSha256?`SHA-256 declarado: ${r.logSha256.slice(0,16)}…`:'Sin log')
-          ))
+      h('div', { className: 'space16' }),
+      h(
+        'label',
+        { className: 'field-label', htmlFor: 'cli-manifest-file' },
+        'Seleccionar manifiesto JSON (máx. 200 KB)'
+      ),
+      h('input', {
+        id: 'cli-manifest-file',
+        type: 'file',
+        accept: '.json,application/json',
+        'aria-label': 'Cargar evidencias locales de Terraform CLI'
+      }),
+      h('div', { className: 'space16' }),
+      h(
+        'div',
+        { className: 'flex-wrap' },
+        h(
+          'button',
+          { type: 'button', className: 'btn btn-soft', 'data-action': 'clear-cli-manifest' },
+          'Olvidar resultados cargados'
+        ),
+        ...(manifest
+          ? [
+              h(
+                'button',
+                { type: 'button', className: 'btn btn-primary', 'data-action': 'export-cli-manifest' },
+                '↓ Exportar índice de evidencias (.md)'
+              )
+            ]
+          : []),
+        h(
+          'a',
+          {
+            className: 'btn btn-soft',
+            href: './assets/examples/cli-evidence-synthetic.json',
+            download: 'cli-evidence-synthetic.json'
+          },
+          '↓ Ejemplo sintético'
         )
+      ),
+      error ? h('div', { className: 'alert', role: 'alert' }, error) : null,
+      h(
+        'div',
+        { className: 'notice', style: 'margin-top:18px' },
+        'Importar el manifiesto NO autentica al ejecutor, no comprueba hashes frente a logs originales y nunca concede aprobación de despliegue. ',
+        'Los logs reales pueden contener información privada: no los subas a la academia.'
       )
-    ):h('section',{className:'section'},
-      h('div',{className:'card'},h('h3',{},'Aún no hay resultados importados'),h('p',{className:'card-desc'},
-      'Los 37 tests Terraform CLI siguen NOT_RUN en este navegador hasta que importes un manifiesto local. Puedes empezar por B01 y el laboratorio S18.'),
-      h('a',{href:'#/laboratorios',className:'btn btn-soft'},'Descargar laboratorios →')))
+    ),
+    manifest && stats
+      ? h(
+          'section',
+          { className: 'section' },
+          h(
+            'div',
+            { className: 'flex space-between' },
+            h('h2', {}, 'Resultados declarados'),
+            chip(
+              manifest.origin === 'SYNTHETIC_EXAMPLE' ? 'SIMULACIÓN' : 'SIN ATESTACIÓN EXTERNA',
+              manifest.origin === 'SYNTHETIC_EXAMPLE' ? 'yellow' : 'purple'
+            )
+          ),
+          h('div', { className: 'space16' }),
+          h(
+            'div',
+            { className: 'cards-4' },
+            ...(
+              [
+                ['PASS', stats.pass, 'green'],
+                ['FAIL', stats.fail, 'red'],
+                ['NOT_RUN', stats.notRun, 'yellow'],
+                ['SIN RESULTADO', stats.missing, 'purple']
+              ] as const
+            ).map(([name, count, tone]) =>
+              h(
+                'div',
+                { className: 'stat-pill' },
+                h('div', {}, h('div', { className: 'number' }, String(count)), chip(name, tone))
+              )
+            )
+          ),
+          h('div', { className: 'space16' }),
+          h(
+            'div',
+            { className: 'content-panel' },
+            h(
+              'p',
+              { className: 'small-note' },
+              `Terraform declarado: ${manifest.terraformVersion} · ${manifest.generatedAt} · Id: ${manifest.runId}`
+            ),
+            h('div', { className: 'space16' }),
+            h(
+              'div',
+              { className: 'evidence-grid' },
+              ...manifest.results.map((r) =>
+                h(
+                  'div',
+                  { className: 'evidence-row', key: r.id },
+                  h(
+                    'a',
+                    { href: r.id === 'S18' ? '#/senior/S18' : `#/leccion/${r.id}`, className: 'mini-strong' },
+                    r.id
+                  ),
+                  chip(r.status, r.status === 'PASS' ? 'green' : r.status === 'FAIL' ? 'red' : 'yellow'),
+                  h(
+                    'span',
+                    { className: 'small-note' },
+                    r.logSha256 ? `SHA-256 declarado: ${r.logSha256.slice(0, 16)}…` : 'Sin log'
+                  )
+                )
+              )
+            )
+          )
+        )
+      : h(
+          'section',
+          { className: 'section' },
+          h(
+            'div',
+            { className: 'card' },
+            h('h3', {}, 'Aún no hay resultados importados'),
+            h(
+              'p',
+              { className: 'card-desc' },
+              'Los 37 tests Terraform CLI siguen NOT_RUN en este navegador hasta que importes un manifiesto local. Puedes empezar por B01 y el laboratorio S18.'
+            ),
+            h('a', { href: '#/laboratorios', className: 'btn btn-soft' }, 'Descargar laboratorios →')
+          )
+        )
   );
 }

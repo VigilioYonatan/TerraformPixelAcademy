@@ -1,9 +1,19 @@
 /** Export only reviewed metadata, never values from a Terraform plan or state. */
-import type {PlanAnalysis,PlanChange} from './planInspector.js';
-const oneLine=(value:string)=>value.replace(/[\r\n\u0000-\u001f]/g,' ').replace(/[|`]/g,'-').slice(0,260);
-const printChanges=(changes:PlanChange[])=>changes.map(item=>`| ${oneLine(item.kind)} | ${oneLine(item.address)} | ${oneLine(item.provider)} | ${item.sensitive?'sí':'no'} |`).join('\n') || '| — | Sin cambios listados | — | — |';
-export function buildPlanReviewMarkdown(plan:PlanAnalysis):string {
- return `# Revisión local de plan Terraform — TerraPixel Academy
+import type { PlanAnalysis, PlanChange } from './planInspector.js';
+const oneLine = (value: string) =>
+  value
+    .replace(/\p{Cc}/gu, ' ')
+    .replace(/[|`]/g, '-')
+    .slice(0, 260);
+const printChanges = (changes: PlanChange[]) =>
+  changes
+    .map(
+      (item) =>
+        `| ${oneLine(item.kind)} | ${oneLine(item.address)} | ${oneLine(item.provider)} | ${item.sensitive ? 'sí' : 'no'} |`
+    )
+    .join('\n') || '| — | Sin cambios listados | — | — |';
+export function buildPlanReviewMarkdown(plan: PlanAnalysis): string {
+  return `# Revisión local de plan Terraform — TerraPixel Academy
 
 > **Estado:** ANÁLISIS LOCAL DE ARCHIVO APORTADO POR EL ALUMNO. No acredita autenticidad del plan ni aprobación para aplicar infraestructura.
 
@@ -20,7 +30,9 @@ export function buildPlanReviewMarkdown(plan:PlanAnalysis):string {
 
 ## Operaciones declaradas
 
-${Object.entries(plan.summary).map(([kind,count])=>`- ${oneLine(kind)}: ${count}`).join('\n')}
+${Object.entries(plan.summary)
+  .map(([kind, count]) => `- ${oneLine(kind)}: ${count}`)
+  .join('\n')}
 
 ## Recursos del plan (solo metadatos)
 
@@ -36,7 +48,7 @@ ${printChanges(plan.drift)}
 
 ## Advertencias
 
-${plan.notices.map(note=>`- ${oneLine(note)}`).join('\n')}
+${plan.notices.map((note) => `- ${oneLine(note)}`).join('\n')}
 
 ## Revisión humana requerida
 

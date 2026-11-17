@@ -3,13 +3,13 @@ export function parseCIDR(cidr) {
     if (!m)
         return null;
     const bytes = m.slice(1, 5).map(Number);
-    if (bytes.some(n => n > 255))
+    if (bytes.some((n) => n > 255))
         return null;
     const prefix = Number(m[5]);
-    const address = (((bytes[0] * 0x1000000) + (bytes[1] << 16) + (bytes[2] << 8) + bytes[3]) >>> 0);
+    const address = (bytes[0] * 0x1000000 + (bytes[1] << 16) + (bytes[2] << 8) + bytes[3]) >>> 0;
     const mask = prefix === 0 ? 0 : (0xffffffff << (32 - prefix)) >>> 0;
     const start = (address & mask) >>> 0;
-    return { start, end: (start | ((~mask) >>> 0)) >>> 0, prefix };
+    return { start, end: (start | (~mask >>> 0)) >>> 0, prefix };
 }
 export function cidrOverlap(a, b) {
     const left = parseCIDR(a), right = parseCIDR(b);

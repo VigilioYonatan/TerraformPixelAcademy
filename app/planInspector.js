@@ -5,12 +5,12 @@ function isSensitive(value, depth = 0) {
     if (depth >= 12 || value === null || typeof value !== 'object')
         return false;
     const members = Array.isArray(value) ? value : Object.values(value);
-    return members.slice(0, 1000).some(x => isSensitive(x, depth + 1));
+    return members.slice(0, 1000).some((x) => isSensitive(x, depth + 1));
 }
-const str = (value, limit = 260) => typeof value === 'string' ? value.slice(0, limit) : '';
+const str = (value, limit = 260) => (typeof value === 'string' ? value.slice(0, limit) : '');
 const obj = (value) => value && typeof value === 'object' && !Array.isArray(value) ? value : {};
 function kind(actions) {
-    if (!Array.isArray(actions) || !actions.every(x => typeof x === 'string'))
+    if (!Array.isArray(actions) || !actions.every((x) => typeof x === 'string'))
         return 'unknown';
     if (actions.includes('delete') && actions.includes('create'))
         return 'replace';
@@ -39,7 +39,7 @@ export function inspectTerraformPlan(data) {
         throw new Error('El reporte de drift excede 150.000 cambios.');
     if (changes.length > 150000)
         throw new Error('El plan excede el máximo de 150.000 cambios.');
-    const summary = Object.fromEntries(validKinds.map(key => [key, 0]));
+    const summary = Object.fromEntries(validKinds.map((key) => [key, 0]));
     const shown = [];
     let destructive = 0, sensitiveCount = 0;
     for (const raw of changes) {
@@ -67,9 +67,12 @@ export function inspectTerraformPlan(data) {
         if (operation === 'delete' || operation === 'replace')
             driftDestructive++;
         if (drift.length < 40)
-            drift.push({ address: str(resource.address) || '(sin dirección)', kind: operation,
+            drift.push({
+                address: str(resource.address) || '(sin dirección)',
+                kind: operation,
                 sensitive: isSensitive(change.before_sensitive) || isSensitive(change.after_sensitive),
-                provider: str(resource.provider_name, 100) || 'n/d' });
+                provider: str(resource.provider_name, 100) || 'n/d'
+            });
     }
     const notices = [
         'Archivo elegido por el estudiante; la academia NO lo generó ni verificó su procedencia.',
@@ -88,8 +91,18 @@ export function inspectTerraformPlan(data) {
     if (sensitiveCount)
         notices.push(`Indicadores sensitive detectados en ${sensitiveCount} cambios; no se mostrarán datos de recursos.`);
     return {
-        provenance: 'USER_SUPPLIED_TERRAFORM_JSON', formatVersion: str(root.format_version, 20),
+        provenance: 'USER_SUPPLIED_TERRAFORM_JSON',
+        formatVersion: str(root.format_version, 20),
         terraformVersion: str(root.terraform_version, 80) || 'desconocida',
-        total: changes.length, shown: shown.length, destructive, sensitiveCount, driftCount: driftEntries.length, driftDestructive, drift, summary, changes: shown, notices
+        total: changes.length,
+        shown: shown.length,
+        destructive,
+        sensitiveCount,
+        driftCount: driftEntries.length,
+        driftDestructive,
+        drift,
+        summary,
+        changes: shown,
+        notices
     };
 }

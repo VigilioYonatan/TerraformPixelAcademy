@@ -1,25 +1,52 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.6.8/schema.json",
-	"root": true,
-	"files": {
-		"includes": [
-			"src/**/*.ts",
-			"scripts/**/*.mjs",
-			"tests/**/*.mjs",
-			"vite.config.js",
-			"package.json",
-			"biome.json"
-		],
-		"ignoreUnknown": true
-	},
-	"formatter": { "enabled": false },
-	"assist": { "actions": { "source": { "organizeImports": "off" } } },
-	"linter": {
-		"enabled": true,
-		"rules": {
-			"preset": "none",
-			"suspicious": { "noDebugger": "error" },
-			"correctness": { "noUnreachable": "error" }
-		}
-	}
+  "$schema": "https://biomejs.dev/schemas/2.6.8/schema.json",
+  "root": true,
+  "files": {
+    "includes": [
+      "src/**/*.ts",
+      "scripts/**/*.mjs",
+      "tests/**/*.mjs",
+      "tests/**/*.ts",
+      "vite.config.js",
+      "playwright.config.ts",
+      "package.json",
+      "biome.json"
+    ],
+    "ignoreUnknown": true
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 120,
+    "lineEnding": "lf"
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "trailingCommas": "none",
+      "semicolons": "always"
+    }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "off"
+      }
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "suspicious": {
+        "noDebugger": "error",
+        "noExplicitAny": "error",
+        "noTemplateCurlyInString": "off"
+      },
+      "correctness": {
+        "noUnreachable": "error",
+        "noUnusedImports": "error"
+      }
+    }
+  }
 }

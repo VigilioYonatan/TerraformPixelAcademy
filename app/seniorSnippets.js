@@ -1,20 +1,110 @@
 export const seniorSnippets = {
-    S01: { file: 'main.tf · for_each diff', before: 'resource "terraform_data" "node" {\n  for_each = { new_key = "service" }\n  input = each.value\n}\n# Antes: clave old_key; plan mostrará delete/create', after: 'moved {\n  from = terraform_data.node["old_key"]\n  to   = terraform_data.node["new_key"]\n}\n# Revisar plan antes de aplicar', review: 'El bloque moved se debe usar con origen, destino y estado correctos. No es un reemplazo universal ni suprime una revisión.' },
-    S02: { file: 'pipeline.sh · locking', before: 'terraform apply -lock=false -auto-approve', after: '# Esperar/investigar lock real\nterraform plan -lock-timeout=5m\n# Revisión y aprobación antes de apply', review: 'No deshabilites locking de forma permanente. Usa información de ownership y eventos del backend.' },
-    S03: { file: 'plan.fixture · drift', before: '~ tags.Owner: "team-a" => "unknown"\n# Cloud cambió fuera de banda', after: '# Detener promoción, investigar cambio y autor\n# Elegir actualización de HCL o reversión autorizada', review: 'Reconciliar no siempre significa aplicar inmediatamente: primero determina la fuente de verdad.' },
-    S04: { file: 'plan.fixture · delete', before: '- aws_db_instance.production\n# backup: no comprobado', after: '# Gate bloqueante: snapshot + backup probado\n# Análisis de RPO/RTO + aprobación dual', review: 'Destruir datos de producción sin controles es un incidente grave.' },
-    S05: { file: 'backend.tf · migration', before: 'terraform { backend "s3" { key = "prod/main.tfstate" } }\n# Sin backup ni freeze', after: '# Congelar escritores + verificar backup\n# Validar permisos de nuevo backend\n# Ejecución controlada: init -migrate-state', review: 'La ruta de migración requiere recuperación y verificación posterior.' },
-    S06: { file: 'secrets.tf · exposure', before: 'output "token" { value = var.token }\n# terraform.tfstate almacenado públicamente', after: 'variable "token" {\n  type = string\n  sensitive = true\n  ephemeral = true\n}\n# Contención y rotación obligatorias', review: 'sensitive por sí solo no borra material persistido; ephemeral tiene restricciones y requiere versión compatible.' },
-    S07: { file: 'versions.tf · provider upgrade', before: 'required_providers {\n  aws = { source = "hashicorp/aws" version = ">= 0.0.0" }\n}', after: 'required_providers {\n  aws = { source = "hashicorp/aws" version = "~> 5.0" }\n}\n# Ejemplo de pin; versión real según compatibilidad', review: 'Revisa changelog, lockfile y el plan de upgrade con sandbox autorizado.' },
-    S08: { file: 'modules.tf · dependency', before: 'module "network" { depends_on = [module.compute] }\nmodule "compute" { depends_on = [module.network] }', after: '# La red exporta network_id\n# compute consume network_id\n# No hay referencia circular', review: 'Rompe ciclos con interfaces y ownership; depends_on no puede ordenar una dependencia circular.' },
-    S09: { file: 'network.tf · CIDR', before: 'dev_cidr  = "10.40.0.0/16"\nprod_cidr = "10.40.8.0/21"', after: 'dev_cidr  = "10.40.0.0/16"\nprod_cidr = "10.41.0.0/16"\n# Validar contra inventario IPAM real', review: 'Los dos CIDR iniciales se superponen; el cambio debe contrastarse con toda la red existente.' },
-    S10: { file: '.github/workflows/apply.yml', before: 'permissions: write-all\n# AWS_ACCESS_KEY_ID: guardada en secrets globales', after: 'permissions:\n  contents: read\n  id-token: write\n# AssumeRole OIDC con subject y entorno acotados', review: 'No basta con id-token: write; hay que restringir trust policy, rol y permisos por job.' },
-    S11: { file: 'pipeline.yml · plan integrity', before: 'plan: terraform plan -out=planA\nreview: approve(planA)\napply: terraform plan -out=planB && terraform apply planB', after: 'plan: terraform plan -out=plan-final\napproval: verificar commit + entorno + state\napply: terraform apply plan-final\n# Proteger el binario sensible', review: 'Nunca aplicar sin comparar exactamente el plan final autorizado. El hash es integridad, no firma ni autorización.' },
-    S12: { file: 'sample.tftest.hcl', before: 'mock_provider "aws" {}\n# Asumir test verde => producción probada', after: 'mock_provider "aws" {}\n# Registrar cobertura de mocks\n# Integración API real: NOT_RUN hasta sandbox', review: 'Un mock evita comprobar las restricciones/efectos reales de una API remota.' },
-    S13: { file: 'policy.rego · exception', before: 'allow { true }\n# ignora cualquier finding HIGH', after: '# Reglas deny con tests positivos/negativos\n# Excepción: owner, ticket, vencimiento y aprobación', review: 'La excepción debe ser precisa y revisable, nunca un bypass permanente.' },
-    S14: { file: 'cost-diff.fixture', before: 'instance_count: 12\nmonthly_estimate_usd: 732\nowner: absent', after: 'instance_count: 3\nmonthly_estimate_usd: 183\nowner: team-platform\n# Ficticio: comprobar SLA antes de aplicar', review: 'Los valores son estimados y sintéticos; una reducción puede sacrificar capacidad y fiabilidad.' },
-    S15: { file: 'restore.sh · disaster recovery', before: 'terraform force-unlock -force LOCK_ID\ncp state-old.json state.json', after: '# Pausar writers y abrir incidente\n# Verificar versión, backups y cloud\n# Aprobar restore/unlock con doble control', review: 'Restaurar una versión vieja sin reconciliar objetos puede crear más problemas.' },
-    S16: { file: 'ownership.yml', before: 'deployment/api:\n  owners: [terraform, argocd]', after: 'cluster/network: terraform\naddons: platform-team\ndeployment/api: argocd\n# Handoff documentado', review: 'Dos reconcilers dueños de una misma entidad provocan drift recurrente.' },
-    S17: { file: 'review.md · architecture', before: 'state: single-global\nreview: optional\nrollback: none\nowner: nobody', after: 'state: per-owner-and-environment\nreview: protected-gates\nrollback: documented\nowner: platform-team', review: 'Prioriza riesgos P0 antes de proponer una refactorización mayor.' },
-    S18: { file: 'platform/blueprint.md', before: 'dev + prod -> one shared state\nCI: shared admin key\napply: no approval', after: 'development/staging/production: isolated states\nCI: environment-bound OIDC\nreview: approved plan + rollback\ntests: fmt/validate/mocks/integration-status', review: 'El capstone exige contratos, pruebas de cada nivel, operación y un handoff revisable.' }
+    S01: {
+        file: 'main.tf · for_each diff',
+        before: 'resource "terraform_data" "node" {\n  for_each = { new_key = "service" }\n  input = each.value\n}\n# Antes: clave old_key; plan mostrará delete/create',
+        after: 'moved {\n  from = terraform_data.node["old_key"]\n  to   = terraform_data.node["new_key"]\n}\n# Revisar plan antes de aplicar',
+        review: 'El bloque moved se debe usar con origen, destino y estado correctos. No es un reemplazo universal ni suprime una revisión.'
+    },
+    S02: {
+        file: 'pipeline.sh · locking',
+        before: 'terraform apply -lock=false -auto-approve',
+        after: '# Esperar/investigar lock real\nterraform plan -lock-timeout=5m\n# Revisión y aprobación antes de apply',
+        review: 'No deshabilites locking de forma permanente. Usa información de ownership y eventos del backend.'
+    },
+    S03: {
+        file: 'plan.fixture · drift',
+        before: '~ tags.Owner: "team-a" => "unknown"\n# Cloud cambió fuera de banda',
+        after: '# Detener promoción, investigar cambio y autor\n# Elegir actualización de HCL o reversión autorizada',
+        review: 'Reconciliar no siempre significa aplicar inmediatamente: primero determina la fuente de verdad.'
+    },
+    S04: {
+        file: 'plan.fixture · delete',
+        before: '- aws_db_instance.production\n# backup: no comprobado',
+        after: '# Gate bloqueante: snapshot + backup probado\n# Análisis de RPO/RTO + aprobación dual',
+        review: 'Destruir datos de producción sin controles es un incidente grave.'
+    },
+    S05: {
+        file: 'backend.tf · migration',
+        before: 'terraform { backend "s3" { key = "prod/main.tfstate" } }\n# Sin backup ni freeze',
+        after: '# Congelar escritores + verificar backup\n# Validar permisos de nuevo backend\n# Ejecución controlada: init -migrate-state',
+        review: 'La ruta de migración requiere recuperación y verificación posterior.'
+    },
+    S06: {
+        file: 'secrets.tf · exposure',
+        before: 'output "token" { value = var.token }\n# terraform.tfstate almacenado públicamente',
+        after: 'variable "token" {\n  type = string\n  sensitive = true\n  ephemeral = true\n}\n# Contención y rotación obligatorias',
+        review: 'sensitive por sí solo no borra material persistido; ephemeral tiene restricciones y requiere versión compatible.'
+    },
+    S07: {
+        file: 'versions.tf · provider upgrade',
+        before: 'required_providers {\n  aws = { source = "hashicorp/aws" version = ">= 0.0.0" }\n}',
+        after: 'required_providers {\n  aws = { source = "hashicorp/aws" version = "~> 5.0" }\n}\n# Ejemplo de pin; versión real según compatibilidad',
+        review: 'Revisa changelog, lockfile y el plan de upgrade con sandbox autorizado.'
+    },
+    S08: {
+        file: 'modules.tf · dependency',
+        before: 'module "network" { depends_on = [module.compute] }\nmodule "compute" { depends_on = [module.network] }',
+        after: '# La red exporta network_id\n# compute consume network_id\n# No hay referencia circular',
+        review: 'Rompe ciclos con interfaces y ownership; depends_on no puede ordenar una dependencia circular.'
+    },
+    S09: {
+        file: 'network.tf · CIDR',
+        before: 'dev_cidr  = "10.40.0.0/16"\nprod_cidr = "10.40.8.0/21"',
+        after: 'dev_cidr  = "10.40.0.0/16"\nprod_cidr = "10.41.0.0/16"\n# Validar contra inventario IPAM real',
+        review: 'Los dos CIDR iniciales se superponen; el cambio debe contrastarse con toda la red existente.'
+    },
+    S10: {
+        file: '.github/workflows/apply.yml',
+        before: 'permissions: write-all\n# AWS_ACCESS_KEY_ID: guardada en secrets globales',
+        after: 'permissions:\n  contents: read\n  id-token: write\n# AssumeRole OIDC con subject y entorno acotados',
+        review: 'No basta con id-token: write; hay que restringir trust policy, rol y permisos por job.'
+    },
+    S11: {
+        file: 'pipeline.yml · plan integrity',
+        before: 'plan: terraform plan -out=planA\nreview: approve(planA)\napply: terraform plan -out=planB && terraform apply planB',
+        after: 'plan: terraform plan -out=plan-final\napproval: verificar commit + entorno + state\napply: terraform apply plan-final\n# Proteger el binario sensible',
+        review: 'Nunca aplicar sin comparar exactamente el plan final autorizado. El hash es integridad, no firma ni autorización.'
+    },
+    S12: {
+        file: 'sample.tftest.hcl',
+        before: 'mock_provider "aws" {}\n# Asumir test verde => producción probada',
+        after: 'mock_provider "aws" {}\n# Registrar cobertura de mocks\n# Integración API real: NOT_RUN hasta sandbox',
+        review: 'Un mock evita comprobar las restricciones/efectos reales de una API remota.'
+    },
+    S13: {
+        file: 'policy.rego · exception',
+        before: 'allow { true }\n# ignora cualquier finding HIGH',
+        after: '# Reglas deny con tests positivos/negativos\n# Excepción: owner, ticket, vencimiento y aprobación',
+        review: 'La excepción debe ser precisa y revisable, nunca un bypass permanente.'
+    },
+    S14: {
+        file: 'cost-diff.fixture',
+        before: 'instance_count: 12\nmonthly_estimate_usd: 732\nowner: absent',
+        after: 'instance_count: 3\nmonthly_estimate_usd: 183\nowner: team-platform\n# Ficticio: comprobar SLA antes de aplicar',
+        review: 'Los valores son estimados y sintéticos; una reducción puede sacrificar capacidad y fiabilidad.'
+    },
+    S15: {
+        file: 'restore.sh · disaster recovery',
+        before: 'terraform force-unlock -force LOCK_ID\ncp state-old.json state.json',
+        after: '# Pausar writers y abrir incidente\n# Verificar versión, backups y cloud\n# Aprobar restore/unlock con doble control',
+        review: 'Restaurar una versión vieja sin reconciliar objetos puede crear más problemas.'
+    },
+    S16: {
+        file: 'ownership.yml',
+        before: 'deployment/api:\n  owners: [terraform, argocd]',
+        after: 'cluster/network: terraform\naddons: platform-team\ndeployment/api: argocd\n# Handoff documentado',
+        review: 'Dos reconcilers dueños de una misma entidad provocan drift recurrente.'
+    },
+    S17: {
+        file: 'review.md · architecture',
+        before: 'state: single-global\nreview: optional\nrollback: none\nowner: nobody',
+        after: 'state: per-owner-and-environment\nreview: protected-gates\nrollback: documented\nowner: platform-team',
+        review: 'Prioriza riesgos P0 antes de proponer una refactorización mayor.'
+    },
+    S18: {
+        file: 'platform/blueprint.md',
+        before: 'dev + prod -> one shared state\nCI: shared admin key\napply: no approval',
+        after: 'development/staging/production: isolated states\nCI: environment-bound OIDC\nreview: approved plan + rollback\ntests: fmt/validate/mocks/integration-status',
+        review: 'El capstone exige contratos, pruebas de cada nivel, operación y un handoff revisable.'
+    }
 };

@@ -13,7 +13,9 @@ export function capstoneNoteValid(value) {
 }
 export function capstoneGate(state) {
     const reasons = [];
-    if (state.capstoneDone.length !== 8 || new Set(state.capstoneDone).size !== 8 || !state.capstoneDone.every(n => Number.isInteger(n) && n >= 0 && n < 8))
+    if (state.capstoneDone.length !== 8 ||
+        new Set(state.capstoneDone).size !== 8 ||
+        !state.capstoneDone.every((n) => Number.isInteger(n) && n >= 0 && n < 8))
         reasons.push('Marca los ocho hitos S18 tras documentar su evidencia.');
     for (let i = 0; i < 8; i++)
         if (!capstoneNoteValid(state.capstoneEvidence[String(i)] || ''))
@@ -36,8 +38,11 @@ export function seniorGate(state, c) {
 }
 /** Remove stale/forged completion from imported or subsequently edited local data. */
 export function reconcileSeniorCompletion(state, cases) {
-    const index = new Map(cases.map(c => [c.id, c]));
+    const index = new Map(cases.map((c) => [c.id, c]));
     const before = state.seniorCompleted;
-    state.seniorCompleted = before.filter(id => { const c = index.get(id); return !!c && seniorGate(state, c).ok; });
-    return before.filter(id => !state.seniorCompleted.includes(id));
+    state.seniorCompleted = before.filter((id) => {
+        const c = index.get(id);
+        return !!c && seniorGate(state, c).ok;
+    });
+    return before.filter((id) => !state.seniorCompleted.includes(id));
 }

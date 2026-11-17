@@ -1,68 +1,179 @@
-/** CodeMirror 5.58.3 offline enhancement. Textarea remains a fully usable fallback. */
-type CodeMirrorInstance = {
-  getValue(): string;
-  toTextArea(): void;
-  on(event: string, handler: () => void): void;
-  setOption(key: string, value: unknown): void;
-};
-type CodeMirrorFactory = {
-  fromTextArea(element: HTMLTextAreaElement, options: Record<string, unknown>): CodeMirrorInstance;
-  modes?: Record<string, unknown>;
-};
-declare global {
-  interface Window { CodeMirror?: CodeMirrorFactory }
+/**
+ * Authentic CodeMirror 6 offline-safe HCL editor with dynamic Dark/Light theme Compartment,
+ * undo/redo history, bracket matching/closing, 2-space indentation, WCAG 2.1.2 Escape-then-Tab
+ * focus release, and resilient `<textarea>` fallback.
+ */
+import { hclStreamParser } from './hclLanguage.js';
+import type { Compartment as CompartmentType, EditorView as EditorViewType, Extension } from './vendor/codemirror6.mjs';
+
+type Cm6Module = typeof import('./vendor/codemirror6.mjs');
+
+export type EditorTheme = 'light' | 'dark';
+
+interface ActiveEditorSession {
+  view: EditorViewType;
+  textarea: HTMLTextAreaElement;
+  host: HTMLDivElement;
+  themeCompartment: CompartmentType;
+  theme: EditorTheme;
+  cm: Cm6Module;
 }
-const assetBase = './assets/vendor/codemirror5/';
-let loader: Promise<boolean> | null = null;
-let active: CodeMirrorInstance | null = null;
-let pending = 0;
-let initialized = false;
-function loadScript(name: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const element=document.createElement('script');
-    element.src=assetBase+name;
-    element.async=false;
-    element.onload=()=>resolve();
-    element.onerror=()=>reject(new Error(`No se pudo cargar el editor: ${name}`));
-    document.head.append(element);
+
+let cm6Loader: Promise<Cm6Module | null> | null = null;
+let activeSession: ActiveEditorSession | null = null;
+let activationToken = 0;
+
+function loadCm6(): Promise<Cm6Module | null> {
+  if (!cm6Loader) {
+    cm6Loader = import('./vendor/codemirror6.mjs').catch((error) => {
+      console.warn('[TerraPixel] CodeMirror 6 no disponible; se conserva textarea accesible.', error);
+      return null;
+    });
+  }
+  return cm6Loader;
+}
+
+function buildThemeExtension(cm: Cm6Module, theme: EditorTheme): Extension {
+  return [
+    cm.EditorView.darkTheme.of(theme === 'dark'),
+    cm.EditorView.editorAttributes.of({
+      class: theme === 'light' ? 'cm-terrapixel cm-terrapixel-light' : 'cm-terrapixel cm-terrapixel-dark',
+      'data-editor-theme': theme
+    })
+  ];
+}
+
+export function disposeCodeEditor(): void {
+  activationToken++;
+  if (!activeSession) return;
+  const { view, textarea, host } = activeSession;
+  activeSession = null;
+  try {
+    view.destroy();
+  } catch {
+    // View already detached during route transition.
+  }
+  host.remove();
+  textarea.hidden = false;
+}
+
+export function updateEditorTheme(theme: EditorTheme): boolean {
+  if (!activeSession) return false;
+  if (activeSession.theme === theme) return true;
+  activeSession.theme = theme;
+  activeSession.view.dispatch({
+    effects: activeSession.themeCompartment.reconfigure(buildThemeExtension(activeSession.cm, theme))
   });
+  return true;
 }
-function ensureLoaded():Promise<boolean> {
-  if(window.CodeMirror?.modes?.['terrapixel-hcl'])return Promise.resolve(true);
-  if(loader)return loader;
-  loader=(async()=>{
-    try {
-      if(!initialized){
-        await loadScript('codemirror.js');
-        await loadScript('mode-hcl.js');
-        await loadScript('matchbrackets.js');
-        await loadScript('closebrackets.js');
-        initialized=true;
-      }
-      return typeof window.CodeMirror?.fromTextArea==='function';
-    }catch(error){console.warn('[TerraPixel] Editor avanzado no disponible; se usará textarea.',error);return false;}
-  })();
-  return loader;
+
+export function getActiveEditorState(): { active: boolean; theme: EditorTheme | null; value: string } {
+  if (!activeSession) {
+    return { active: false, theme: null, value: '' };
+  }
+  return {
+    active: true,
+    theme: activeSession.theme,
+    value: activeSession.view.state.doc.toString()
+  };
 }
-export function disposeCodeEditor():void {
-  pending++;
-  if(active){try{active.toTextArea();}catch{ /* Elemento ya retirado. */ } active=null;}
+
+export function undoEditorChange(): boolean {
+  if (!activeSession) return false;
+  return activeSession.cm.undo(activeSession.view);
 }
-/** Call after a view is rendered; old async loads are discarded on navigation. */
-export async function activateCodeEditor(onChange:(value:string)=>void,theme:'light'|'dark'):Promise<boolean> {
-  const token=++pending;
-  const textarea=document.querySelector<HTMLTextAreaElement>('#code-editor');
-  if(!textarea)return false;
-  if(!await ensureLoaded() || token!==pending || !textarea.isConnected || !window.CodeMirror)return false;
-  const editor=window.CodeMirror.fromTextArea(textarea,{
-    mode:'terrapixel-hcl',lineNumbers:true,lineWrapping:false,
-    indentUnit:2,tabSize:2,indentWithTabs:false,matchBrackets:true,autoCloseBrackets:true,
-    extraKeys:{Tab:(cm:{replaceSelection:(text:string)=>void})=>cm.replaceSelection('  ')}
+
+export function redoEditorChange(): boolean {
+  if (!activeSession) return false;
+  return activeSession.cm.redo(activeSession.view);
+}
+
+/**
+ * Mounts CodeMirror 6 over `#code-editor` after view render.
+ * Stale async activations from superseded route transitions are safely discarded.
+ */
+export async function activateCodeEditor(onChange: (value: string) => void, theme: EditorTheme): Promise<boolean> {
+  const textarea = document.querySelector<HTMLTextAreaElement>('#code-editor');
+  if (!textarea) return false;
+
+  // If an active CM6 instance is already bound to this exact textarea, sync theme & external doc updates
+  if (activeSession && activeSession.textarea === textarea && textarea.isConnected) {
+    updateEditorTheme(theme);
+    const currentDoc = activeSession.view.state.doc.toString();
+    if (currentDoc !== textarea.value) {
+      activeSession.view.dispatch({
+        changes: { from: 0, to: currentDoc.length, insert: textarea.value }
+      });
+    }
+    return true;
+  }
+
+  disposeCodeEditor();
+  const myToken = ++activationToken;
+
+  const cm = await loadCm6();
+  if (!cm || myToken !== activationToken || !textarea.isConnected) {
+    return false;
+  }
+
+  const host = document.createElement('div');
+  host.className = 'cm6-mount';
+  host.dataset.testid = 'cm6-editor-host';
+  textarea.after(host);
+  textarea.hidden = true;
+
+  const themeCompartment = new cm.Compartment();
+  const hclLanguage = cm.StreamLanguage.define(hclStreamParser);
+  const ariaLabel = textarea.getAttribute('aria-label') || 'Editor main.tf';
+
+  const state = cm.EditorState.create({
+    doc: textarea.value,
+    extensions: [
+      cm.lineNumbers(),
+      cm.highlightActiveLineGutter(),
+      cm.highlightActiveLine(),
+      cm.drawSelection(),
+      cm.history(),
+      cm.bracketMatching(),
+      cm.closeBrackets(),
+      cm.EditorState.tabSize.of(2),
+      cm.indentUnit.of('  '),
+      hclLanguage.extension,
+      cm.syntaxHighlighting(cm.classHighlighter),
+      cm.EditorView.contentAttributes.of({
+        'aria-label': ariaLabel,
+        spellcheck: 'false',
+        autocapitalize: 'off',
+        autocorrect: 'off'
+      }),
+      cm.keymap.of([...cm.closeBracketsKeymap, ...cm.defaultKeymap, ...cm.historyKeymap, cm.indentWithTab]),
+      themeCompartment.of(buildThemeExtension(cm, theme)),
+      cm.EditorView.updateListener.of((update) => {
+        if (!update.docChanged) return;
+        const nextValue = update.state.doc.toString();
+        textarea.value = nextValue;
+        onChange(nextValue);
+      })
+    ]
   });
-  active=editor;
-  editor.on('change',()=>onChange(editor.getValue()));
-  editor.setOption('theme',theme==='light'?'default':'default');
-  const indicator=document.querySelector<HTMLElement>('.editor-tag');
-  if(indicator)indicator.textContent='HCL · CodeMirror offline (v5)';
+
+  const view = new cm.EditorView({
+    state,
+    parent: host
+  });
+
+  activeSession = {
+    view,
+    textarea,
+    host,
+    themeCompartment,
+    theme,
+    cm
+  };
+
+  const indicator = document.querySelector<HTMLElement>('.editor-tag');
+  if (indicator) {
+    indicator.textContent = 'HCL · CodeMirror 6 offline (Esc + Tab para salir)';
+  }
   return true;
 }

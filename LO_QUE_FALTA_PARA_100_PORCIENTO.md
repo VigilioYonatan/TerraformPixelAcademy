@@ -17,14 +17,15 @@ El repositorio tiene una base pedagógica y de empaquetado sólida (36 lecciones
 |---|---|---|
 | `git status` | `PASS` | Repositorio Git inicializado en `main` con commit baseline protegido (`3f67f81`) e higiene `.gitignore` |
 | `npm run typecheck` | `PASS` | TypeScript `5.8.3` estricto (`tools/typescript`) compila sin errores |
-| `npm test` (`tests/*.test.mjs`) | **`PASS` (75/75)** | Suite unitaria + integridad + BDD (`F0-01..F1-02` y aislamiento multiplataforma del runner CLI) en verde (`0 FAIL`) |
-| `npm run security:local` | `PASS` (acotado) | 579 archivos escaneados localmente; complementado con `npm audit --audit-level=high` (`0` vulnerabilidades) |
+| `npm test` (`tests/*.test.mjs`) | **`PASS` (80/80)** | Suite unitaria + integridad + BDD (`F0-01..F3-02`, gramática HCL CM6, store reactivo, `HomePage` y runner CLI) en verde (`0 FAIL`) |
+| `npm run test:e2e` (`playwright test`) | **`PASS` (3/3)** | Chromium real por HTTP (`127.0.0.1:4179`): `#/inicio` Preact, `#/aprender` filtro reactivo, CodeMirror 6 HCL + Undo/Redo + `Escape+Tab` WCAG 2.1.2 + Dark/Light + revocación, y `S01` Senior reactivo |
+| `npm run security:local` | `PASS` (acotado) | 582 archivos escaneados localmente; complementado con `npm audit --audit-level=high` (`0` vulnerabilidades sobre 35 paquetes) |
 | `npm run verify:preservation` | `PASS` | Conserva 587/587 rutas de `v1.4` y 704/704 rutas de `v1.5.1` (tanto en `build` como en `build:vite`) |
 | `python scripts/release-audit.py` | `PASS` | 1.432 validaciones estructurales y de paridad CRC/ZIP internos aprobadas |
 | `python scripts/verify-release.py` | `NOT_RUN` (cierre F8) | Protegido con `IGNORED_ROOTS`; `SHA256SUMS.txt` se regenera al cierre final de Fase 8 (§13.6) |
 | `npm ci --ignore-scripts` | `PASS` | `package-lock.json` (`lockfileVersion: 3`, SHA-512) + `.npmrc` reproducibles, `0` vulnerabilidades |
-| `npm run build:vite` + `bundle:budget` | `PASS` | Vite `8.3.8` transforma 28 módulos (`JS 64.62 KB gzip`, `CSS 9.71 KB gzip`), genera `.vite/manifest.json` y pasa `check-bundle-budget.mjs` |
-| `npm run lint:biome` | `PASS` (parcial) | Biome CLI `2.6.8` real ejecuta sobre 54 archivos (`0 errors`); falta activar reglas completas `recommended` + `a11y` en `F1-03` |
+| `npm run build:vite` + `bundle:budget` | `PASS` | Vite `8.3.8` con lazy chunk CM6 (`EntryJS 68.28 KB gzip`, `LazyJS 93.25 KB gzip`, `CSS 10.32 KB gzip`), `.vite/manifest.json` y `check-bundle-budget.mjs` en `PASS` |
+| `npm run lint:biome` | **`PASS`** | Biome CLI `2.6.8` completo (`recommended` + `a11y` + `formatter` + `noExplicitAny`) sobre 63 archivos con `0` errores y `0` warnings |
 | `npm run verify:terraform:local` | `BLOCKED` (`0/37`) | Dispatcher multiplataforma devuelve `exit 3` (`NOT_RUN`) honesto; falta instalar `terraform` CLI para `F5-01` |
 | `python tests/browser-*.py` | `BLOCKED` / Parcial | Hardcodea `executable_path='/usr/bin/chromium'` (ruta Linux) y usa `data:text/javascript;base64` sin HTTP real (`F6-02`) |
 | Auditoría WCAG 2.2 AA (axe + teclado/SR) | `NOT_RUN` | Sin suite automatizada axe/Playwright ni matriz de verificación manual (`F6-03`) |
@@ -192,37 +193,37 @@ En `src/main.ts` (líneas 62–66) y `src/uiShell.ts` (líneas 81), **solo 4 pá
   - **Archivos:** `vite.config.js`, `scripts/copy-static.mjs`, `scripts/check-bundle-budget.mjs`, `scripts/dev.mjs`, `package.json`.
   - **Skills a usar:** `web-mfe-technologies`, `web-mfe-quality`.
   - **Resultado esperado (100 %):** `npm run build:vite` (`PASS`), `npm run build` offline (`PASS`), `dist/` sirve todas las rutas, imágenes y descargas sin 404.
-- [ ] **F1-03 · Activar Biome completo (linter + a11y + formatter)**
+- [x] **F1-03 · Activar Biome completo (linter + a11y + formatter)** *(VERIFICADO `PASS` — Biome `2.6.8` con `recommended` + `a11y` + `noExplicitAny` + `formatter` activo en 63 archivos, `0` errores y `0` warnings)*
   - **Tarea:** Actualizar `biome.json` activando `linter.rules.recommended: true`, reglas `a11y` y formateo consistente sobre `src/`, `scripts/` y `tests/`, corrigiendo todos los warnings/errores sin romper contratos.
-  - **Archivos:** `biome.json`, `src/**/*.ts*`, `scripts/**/*.mjs`, `tests/**/*.mjs`.
+  - **Archivos:** `biome.json`, `src/**/*.ts*`, `scripts/**/*.mjs`, `tests/**/*.mjs`, `playwright.config.ts`.
   - **Skills a usar:** `web-mfe-quality`, `refactor-existing-code`.
   - **Resultado esperado (100 %):** `npm run lint:biome` ejecuta la CLI real de Biome y devuelve `0 errors`.
 
 ---
 
 ### FASE 2 — Editor CodeMirror 6 Real para HCL (`APP-04`)
-- [ ] **F2-01 · Implementar editor CodeMirror 6 offline-safe con soporte HCL y temas Dark/Light**
+- [x] **F2-01 · Implementar editor CodeMirror 6 offline-safe con soporte HCL y temas Dark/Light** *(VERIFICADO `PASS` — `@codemirror/*` 6 reales en `app/vendor/codemirror6.mjs`, parser HCL `src/hclLanguage.ts`, `Compartment` dark/light, Undo/Redo y `Escape+Tab` WCAG 2.1.2 probados en Chromium real)*
   - **Tarea:** Sustituir CodeMirror 5 (`assets/vendor/codemirror5/` se conserva en árbol si lo exige baseline de rutas, pero el runtime activo pasa a ser **CodeMirror 6 real**) en `src/editor.ts` usando `@codemirror/state`, `@codemirror/view`, `@codemirror/commands`, `@codemirror/language` y tokenizador/gramática HCL (comentarios `#`, `/* */`, heredocs `<<EOF`, bloques `resource/variable/module/locals/output/terraform/moved/removed/check/run`, interpolaciones `${...}`).
-  - **Archivos:** `src/editor.ts`, `app/vendor/` o bundle local ESM de CM6, `assets/vendor/THIRD_PARTY_NOTICES.md`, `styles.css`.
+  - **Archivos:** `src/editor.ts`, `src/hclLanguage.ts`, `src/vendor/codemirror6.d.mts`, `app/vendor/codemirror6.mjs`, `scripts/cm6-entry.mjs`, `scripts/bundle-codemirror6.mjs`, `scripts/server.mjs`, `styles.css`.
   - **Skills a usar:** `web-mfe-technologies`, `web-mfe-build-feature`, `ui-design-system`.
   - **Resultado esperado (100 %):** Editor CodeMirror 6 activo en las 36 lecciones con números de línea, cierre/emparejado de llaves, indentación 2 espacios, cambio dinámico real entre tema `dark` y `light`, salida de foco con `Escape` + `Tab` accesible (WCAG 2.1.2), preservación de código al navegar y `textarea` de respaldo si falla la carga.
-- [ ] **F2-02 · Actualizar licencias y pruebas del editor CM6**
+- [x] **F2-02 · Actualizar licencias y pruebas del editor CM6** *(VERIFICADO `PASS` — avisos MIT exactos en `THIRD_PARTY_NOTICES.md`, `tests/vendor.test.mjs`, `tests/bdd-f1-f2-f3.test.mjs`, `tests/browser-editor.py` y `tests/e2e/editor.spec.ts` en Chromium real)*
   - **Tarea:** Registrar licencias MIT de los paquetes `@codemirror/*` en `assets/vendor/THIRD_PARTY_NOTICES.md` y ampliar `tests/vendor.test.mjs` + `tests/browser-editor.py` / Playwright para verificar edición, deshacer/rehacer, cambio de tema, atajos de teclado y revocación de lección al introducir HCL inválido.
-  - **Archivos:** `assets/vendor/THIRD_PARTY_NOTICES.md`, `tests/vendor.test.mjs`, `tests/e2e/editor.spec.ts`.
+  - **Archivos:** `assets/vendor/THIRD_PARTY_NOTICES.md`, `tests/vendor.test.mjs`, `tests/browser-editor.py`, `playwright.config.ts`, `tests/e2e/editor.spec.ts`.
   - **Skills a usar:** `web-mfe-testing`, `ux-accessibility`.
   - **Resultado esperado (100 %):** Tests unitarios y E2E de CodeMirror 6 en `PASS`.
 
 ---
 
 ### FASE 3 — Migración 100 % Declarativa a Componentes Preact y Limpieza de Arquitectura (`APP-03`)
-- [ ] **F3-01 · Extraer estado reactivo y eliminar mutaciones DOM imperativas**
+- [x] **F3-01 · Extraer estado reactivo y eliminar mutaciones DOM imperativas** *(VERIFICADO `PASS` — `src/store.ts` centralizado, `0` asignaciones `.innerHTML` y `0` hacks `el.hidden` en `src/`, toast declarativo en `AppShell`; el puente transicional de `AppShell` para las vistas `F3-03..F3-08` se retira al cerrar `F3-08`)*
   - **Tarea:** Encapsular `AcademyState`, sesión de juegos, filtros, tabs y estado de simuladores en un store tipado / Preact Signals (`src/state/` o módulo dedicado), eliminando las mutaciones directas al DOM (`syncSeniorLabels`, `checkCaseButton`, `updateFilter` con `.innerHTML` / `el.hidden`) de `src/main.ts`.
-  - **Archivos:** `src/main.ts`, `src/uiSeniorCase.ts`, `src/uiCatalog.ts`, nuevo módulo `src/store.ts` (o equivalente).
+  - **Archivos:** `src/store.ts`, `src/uiShared.ts`, `src/main.ts`, `src/uiShell.ts`, `src/uiSeniorHub.ts`, `src/uiCatalog.ts`, `src/seniorProgress.ts`.
   - **Skills a usar:** `refactor-existing-code`, `symbol-ownership-architecture`, `web-mfe-build-feature`.
-  - **Resultado esperado (100 %):** Cero `.innerHTML` manuales y cero `dangerouslySetInnerHTML` en toda la aplicación.
-- [ ] **F3-02 · Migrar `#/inicio` (Landing) a componente Preact (`src/uiHome.ts`)**
+  - **Resultado esperado (100 %):** Cero `.innerHTML` manuales y filtrado/toast/gates 100 % reactivos desde `src/store.ts` (el fallback `dangerouslySetInnerHTML` de `AppShell` se retira definitivamente en `F3-08` tras migrar las vistas restantes).
+- [x] **F3-02 · Migrar `#/inicio` (Landing) a componente Preact (`src/uiHome.ts`)** *(VERIFICADO `PASS` — `HomePage` 100 % Preact probado en Node BDD y Playwright HTTP E2E)*
   - **Tarea:** Convertir `home()` (`src/main.ts:78-82`) en componente Preact declarativo con KPIs reactivos, tarjetas de los 3 niveles, poses de Terra y banner Senior.
-  - **Archivos:** `src/uiHome.ts`, `src/main.ts`.
+  - **Archivos:** `src/uiHome.ts`, `src/main.ts`, `tests/bdd-f1-f2-f3.test.mjs`, `tests/e2e/editor.spec.ts`.
   - **Skills a usar:** `web-mfe-build-feature`, `ux-web-experience`, `ui-design-system`.
   - **Resultado esperado (100 %):** Landing renderizada 100 % por Preact con tests de componente y navegación CTA verificada.
 - [ ] **F3-03 · Migrar `#/leccion/:id` (Aula de las 36 lecciones) a componente Preact (`src/uiLesson.ts`)**

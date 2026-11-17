@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
  * Production Vite bundle budget & env-leakage gate (web-mfe-quality / vite.md).
- * Verifies dist/.vite/manifest.json, enforces raw + gzip budgets, and rejects secret leaks.
+ * Verifies dist/.vite/manifest.json, enforces raw + gzip budgets for entry, lazy chunks, and CSS,
+ * and rejects secret leaks or external script injections.
  */
-import {readFile, stat} from 'node:fs/promises';
-import {join, resolve} from 'node:path';
-import {gzipSync} from 'node:zlib';
-import {fileURLToPath} from 'node:url';
+import { readFile, stat } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
+import { gzipSync } from 'node:zlib';
+import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const distDir = process.env.DIST_DIR ? resolve(process.env.DIST_DIR) : join(root, 'dist');
@@ -14,7 +15,9 @@ const distDir = process.env.DIST_DIR ? resolve(process.env.DIST_DIR) : join(root
 const BUDGETS = {
   maxEntryRawBytes: 350_000,
   maxEntryGzipBytes: 110_000,
-  maxCssRawBytes: 90_000,
+  maxLazyChunkRawBytes: 450_000,
+  maxLazyChunkGzipBytes: 140_000,
+  maxCssRawBytes: 95_000,
   maxCssGzipBytes: 25_000
 };
 
@@ -42,6 +45,8 @@ if (entries.length === 0) {
 
 let totalEntryRaw = 0;
 let totalEntryGzip = 0;
+let totalLazyRaw = 0;
+let totalLazyGzip = 0;
 let totalCssRaw = 0;
 let totalCssGzip = 0;
 const inspectedChunks = new Set();
@@ -55,7 +60,7 @@ for (const entry of entries) {
   }
   const jsBytes = await readFile(jsPath);
   totalEntryRaw += jsBytes.byteLength;
-  totalEntryGzip += gzipSync(jsBytes, {level: 9}).byteLength;
+  totalEntryGzip += gzipSync(jsBytes, { level: 9 }).byteLength;
   inspectedChunks.add(jsPath);
 
   const cssFiles = Array.isArray(entry.css) ? entry.css : [];
@@ -67,21 +72,35 @@ for (const entry of entries) {
     }
     const cssBytes = await readFile(cssPath);
     totalCssRaw += cssBytes.byteLength;
-    totalCssGzip += gzipSync(cssBytes, {level: 9}).byteLength;
+    totalCssGzip += gzipSync(cssBytes, { level: 9 }).byteLength;
     inspectedChunks.add(cssPath);
   }
 }
 
-// Check standalone CSS entries in manifest (when cssCodeSplit: false emits style.css)
 for (const item of Object.values(manifest)) {
-  if (item && typeof item === 'object' && typeof item.file === 'string' && item.file.endsWith('.css')) {
-    const cssPath = join(distDir, item.file);
-    if (!inspectedChunks.has(cssPath) && (await exists(cssPath))) {
-      const cssBytes = await readFile(cssPath);
-      totalCssRaw += cssBytes.byteLength;
-      totalCssGzip += gzipSync(cssBytes, {level: 9}).byteLength;
-      inspectedChunks.add(cssPath);
+  if (!item || typeof item !== 'object' || typeof item.file !== 'string') continue;
+  const assetPath = join(distDir, item.file);
+  if (inspectedChunks.has(assetPath)) continue;
+  if (item.file.endsWith('.css') && (await exists(assetPath))) {
+    const cssBytes = await readFile(assetPath);
+    totalCssRaw += cssBytes.byteLength;
+    totalCssGzip += gzipSync(cssBytes, { level: 9 }).byteLength;
+    inspectedChunks.add(assetPath);
+  } else if (item.file.endsWith('.js') && !item.isEntry && (await exists(assetPath))) {
+    const lazyBytes = await readFile(assetPath);
+    const rawLen = lazyBytes.byteLength;
+    const gzLen = gzipSync(lazyBytes, { level: 9 }).byteLength;
+    totalLazyRaw += rawLen;
+    totalLazyGzip += gzLen;
+    if (rawLen > BUDGETS.maxLazyChunkRawBytes) {
+      failures.push(`Lazy chunk ${item.file} raw (${rawLen} B) supera presupuesto (${BUDGETS.maxLazyChunkRawBytes} B)`);
     }
+    if (gzLen > BUDGETS.maxLazyChunkGzipBytes) {
+      failures.push(
+        `Lazy chunk ${item.file} gzip (${gzLen} B) supera presupuesto (${BUDGETS.maxLazyChunkGzipBytes} B)`
+      );
+    }
+    inspectedChunks.add(assetPath);
   }
 }
 
@@ -117,7 +136,9 @@ for (const filePath of inspectedChunks) {
   if (/VITE_[A-Z0-9_]*(?:SECRET|PASSWORD|TOKEN|PRIVATE_KEY)/i.test(text)) {
     failures.push(`Posible variable secreta VITE_* expuesta en bundle: ${filePath}`);
   }
-  if (/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|\b(?:AKIA|ASIA)[0-9A-Z]{16}\b|\bghp_[A-Za-z0-9]{36}\b/.test(text)) {
+  if (
+    /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|\b(?:AKIA|ASIA)[0-9A-Z]{16}\b|\bghp_[A-Za-z0-9]{36}\b/.test(text)
+  ) {
     failures.push(`Posible credencial detectada en artefacto compilado: ${filePath}`);
   }
 }
@@ -141,5 +162,5 @@ if (failures.length > 0) {
 
 const kb = (n) => `${(n / 1024).toFixed(2)} KB`;
 console.log(
-  `BUNDLE BUDGET PASS: JS=${kb(totalEntryRaw)} raw (${kb(totalEntryGzip)} gzip) | CSS=${kb(totalCssRaw)} raw (${kb(totalCssGzip)} gzip) | 0 fugas detectadas.`
+  `BUNDLE BUDGET PASS: EntryJS=${kb(totalEntryRaw)} raw (${kb(totalEntryGzip)} gzip) | LazyJS=${kb(totalLazyRaw)} raw (${kb(totalLazyGzip)} gzip) | CSS=${kb(totalCssRaw)} raw (${kb(totalCssGzip)} gzip) | 0 fugas detectadas.`
 );

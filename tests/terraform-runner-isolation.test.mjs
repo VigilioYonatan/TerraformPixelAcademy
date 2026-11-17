@@ -1,17 +1,20 @@
-import {describe, it} from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import {spawnSync} from 'node:child_process';
-import {mkdtemp, writeFile, chmod, readFile, readdir, rm, stat} from 'node:fs/promises';
-import {tmpdir} from 'node:os';
-import {delimiter, dirname, join} from 'node:path';
-import {createHash} from 'node:crypto';
-import {fileURLToPath} from 'node:url';
-import {parseCliManifest, cliStats} from '../app/cliEvidence.js';
+import { spawnSync } from 'node:child_process';
+import { mkdtemp, writeFile, chmod, readFile, readdir, rm, stat } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { delimiter, dirname, join } from 'node:path';
+import { createHash } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+import { parseCliManifest, cliStats } from '../app/cliEvidence.js';
 
 const project = fileURLToPath(new URL('../', import.meta.url));
 const runnerScript = join(project, 'scripts', 'run-terraform-labs.mjs');
 const isWin = process.platform === 'win32';
-const digest = async (path) => createHash('sha256').update(await readFile(path)).digest('hex');
+const digest = async (path) =>
+  createHash('sha256')
+    .update(await readFile(path))
+    .digest('hex');
 const pathExists = async (path) => {
   try {
     await stat(path);
@@ -24,16 +27,12 @@ const pathExists = async (path) => {
 function buildIsolatedPath(stubDir) {
   if (isWin) {
     const sysRoot = process.env.SystemRoot || 'C:\\Windows';
-    return [
-      stubDir,
-      join(sysRoot, 'System32'),
-      join(sysRoot, 'System32', 'WindowsPowerShell', 'v1.0')
-    ].join(delimiter);
+    return [stubDir, join(sysRoot, 'System32'), join(sysRoot, 'System32', 'WindowsPowerShell', 'v1.0')].join(delimiter);
   }
   return [stubDir, '/usr/bin', '/bin'].join(delimiter);
 }
 
-async function createTerraformStub(dir, {failFmtForFolder = ''} = {}) {
+async function createTerraformStub(dir, { failFmtForFolder = '' } = {}) {
   if (isWin) {
     const cmdPath = join(dir, 'terraform.cmd');
     const body = [
@@ -103,14 +102,14 @@ describe('BDD Feature: Cross-platform Terraform CLI Runner Isolation & Evidence 
 
       const rawManifest = JSON.parse(await readFile(join(evidenceDir, 'CLI-EVIDENCE-MANIFEST.json'), 'utf8'));
       const parsed = parseCliManifest(rawManifest);
-      assert.deepEqual(cliStats(parsed), {total: 37, pass: 37, fail: 0, notRun: 0, missing: 0});
+      assert.deepEqual(cliStats(parsed), { total: 37, pass: 37, fail: 0, notRun: 0, missing: 0 });
 
       assert.equal(await digest(sampleB04), originalB04Hash, 'runner must not edit original B04 main.tf');
       assert.equal(await digest(sampleS18), originalS18Hash, 'runner must not edit original S18 main.tf');
       assert.ok(!(await readdir(join(project, 'labs/offline/B04'))).includes('runner-stub-invocations.txt'));
       assert.equal(await pathExists(rootPollutionDir), false, 'custom REPORT_DIR must never pollute repo root');
     } finally {
-      await rm(temp, {recursive: true, force: true});
+      await rm(temp, { recursive: true, force: true });
     }
   });
 
@@ -118,7 +117,7 @@ describe('BDD Feature: Cross-platform Terraform CLI Runner Isolation & Evidence 
     const emptyBinDir = await mkdtemp(join(tmpdir(), 'terra-runner-bdd-missing-'));
     const evidenceDir = join(emptyBinDir, 'evidence');
     try {
-      const cleanEnv = {...process.env, REPORT_DIR: evidenceDir};
+      const cleanEnv = { ...process.env, REPORT_DIR: evidenceDir };
       const minimalPath = buildIsolatedPath(emptyBinDir);
       cleanEnv.PATH = minimalPath;
       cleanEnv.Path = minimalPath;
@@ -130,11 +129,15 @@ describe('BDD Feature: Cross-platform Terraform CLI Runner Isolation & Evidence 
         timeout: 30000
       });
 
-      assert.equal(run.status, 3, `Expected exit code 3 for missing CLI, got ${run.status}: ${run.stderr || run.stdout}`);
+      assert.equal(
+        run.status,
+        3,
+        `Expected exit code 3 for missing CLI, got ${run.status}: ${run.stderr || run.stdout}`
+      );
       assert.match(run.stderr, /NOT_RUN/);
       assert.equal(await pathExists(join(evidenceDir, 'CLI-EVIDENCE-MANIFEST.json')), false);
     } finally {
-      await rm(emptyBinDir, {recursive: true, force: true});
+      await rm(emptyBinDir, { recursive: true, force: true });
     }
   });
 
@@ -191,10 +194,10 @@ describe('BDD Feature: Cross-platform Terraform CLI Runner Isolation & Evidence 
       const parsed = parseCliManifest(rawManifest);
       const b04Entry = parsed.results.find((r) => r.id === 'B04');
       assert.equal(b04Entry?.status, 'FAIL');
-      assert.deepEqual(cliStats(parsed), {total: 37, pass: 36, fail: 1, notRun: 0, missing: 0});
+      assert.deepEqual(cliStats(parsed), { total: 37, pass: 36, fail: 1, notRun: 0, missing: 0 });
       assert.equal(await digest(sampleB04), originalB04Hash);
     } finally {
-      await rm(temp, {recursive: true, force: true});
+      await rm(temp, { recursive: true, force: true });
     }
   });
 });

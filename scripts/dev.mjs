@@ -1,6 +1,6 @@
-import {spawn} from 'node:child_process';
-import {statSync} from 'node:fs';
-import {resolve} from 'node:path';
+import { spawn } from 'node:child_process';
+import { statSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 const tscEntry = resolve('tools/typescript/bin/tsc');
 const viteEntry = resolve('node_modules/vite/bin/vite.js');

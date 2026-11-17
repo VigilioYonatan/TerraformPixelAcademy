@@ -7,10 +7,12 @@
   "scripts": {
     "start": "node scripts/server.mjs",
     "dev": "node scripts/dev.mjs",
+    "vendor:cm6": "node scripts/bundle-codemirror6.mjs",
     "build": "node tools/typescript/bin/tsc -p tsconfig.json && node scripts/build-static.mjs",
     "build:offline": "node tools/typescript/bin/tsc -p tsconfig.json",
     "typecheck": "node tools/typescript/bin/tsc -p tsconfig.json --noEmit",
     "test": "node --test tests/*.test.mjs",
+    "test:e2e": "playwright test",
     "qa": "npm run typecheck && npm run test && npm run security:local",
     "build:vite": "node tools/typescript/bin/tsc -p tsconfig.json && vite build && node scripts/copy-static.mjs && node scripts/check-bundle-budget.mjs",
     "bundle:budget": "node scripts/check-bundle-budget.mjs",
@@ -27,6 +29,13 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.8",
+    "@codemirror/autocomplete": "6.20.4",
+    "@codemirror/commands": "6.11.1",
+    "@codemirror/language": "6.13.1",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/view": "6.43.15",
+    "@lezer/highlight": "1.2.5",
+    "@playwright/test": "1.64.1",
     "typescript": "5.8.3",
     "vite": "8.3.8"
   },

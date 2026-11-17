@@ -1,6 +1,11 @@
 export const emptyGateAnswers = () => ({
-    environment: 'prod', provenanceVerified: false, ownersApproved: false, driftInvestigated: false,
-    destructiveReviewed: false, rollbackDocumented: false, costReviewed: false
+    environment: 'prod',
+    provenanceVerified: false,
+    ownersApproved: false,
+    driftInvestigated: false,
+    destructiveReviewed: false,
+    rollbackDocumented: false,
+    costReviewed: false
 });
 export function evaluateReleaseGate(plan, answer) {
     const findings = [];
@@ -29,19 +34,34 @@ export function evaluateReleaseGate(plan, answer) {
     if (plan.sensitiveCount > 0)
         review('SENSITIVE', `Existen ${plan.sensitiveCount} indicadores sensitive: restringe acceso a plan/state.`);
     const checksRequired = 6;
-    const checksPassed = ([
-        answer.provenanceVerified, answer.ownersApproved, answer.driftInvestigated,
-        answer.destructiveReviewed, answer.rollbackDocumented, answer.costReviewed
-    ]).filter(Boolean).length;
-    const status = findings.some(f => f.severity === 'BLOCK') ? 'BLOCKED' : findings.some(f => f.severity === 'REVIEW') ? 'NEEDS_EVIDENCE' : 'READY_FOR_HUMAN_REVIEW';
+    const checksPassed = [
+        answer.provenanceVerified,
+        answer.ownersApproved,
+        answer.driftInvestigated,
+        answer.destructiveReviewed,
+        answer.rollbackDocumented,
+        answer.costReviewed
+    ].filter(Boolean).length;
+    const status = findings.some((f) => f.severity === 'BLOCK')
+        ? 'BLOCKED'
+        : findings.some((f) => f.severity === 'REVIEW')
+            ? 'NEEDS_EVIDENCE'
+            : 'READY_FOR_HUMAN_REVIEW';
     return {
-        provenance: 'LOCAL_TRAINING_ONLY', status, findings, checksPassed, checksRequired,
-        environment: answer.environment, destructive: plan.destructive, driftCount: plan.driftCount, unknownActions: plan.summary.unknown
+        provenance: 'LOCAL_TRAINING_ONLY',
+        status,
+        findings,
+        checksPassed,
+        checksRequired,
+        environment: answer.environment,
+        destructive: plan.destructive,
+        driftCount: plan.driftCount,
+        unknownActions: plan.summary.unknown
     };
 }
 /** Markdown never claims an actual GO or cloud approval, and never includes plan values. */
 export function exportGateReview(review) {
-    const line = (s) => s.replace(/[\r\n\u0000-\u001f]/g, ' ').slice(0, 300);
+    const line = (s) => s.replace(/\p{Cc}/gu, ' ').slice(0, 300);
     return `# TerraPixel — revisión didáctica de release
 
 **Procedencia:** ${review.provenance}  
@@ -54,7 +74,7 @@ export function exportGateReview(review) {
 
 ## Hallazgos
 
-${review.findings.map(f => `- [${f.severity}] ${f.id}: ${line(f.message)}`).join('\n') || 'Sin hallazgos de estas reglas educativas.'}
+${review.findings.map((f) => `- [${f.severity}] ${f.id}: ${line(f.message)}`).join('\n') || 'Sin hallazgos de estas reglas educativas.'}
 
 ## Límites de validez
 

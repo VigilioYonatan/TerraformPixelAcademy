@@ -1,6 +1,9 @@
-const allowed = new Set([...['B', 'I', 'A'].flatMap(p => Array.from({ length: 12 }, (_, i) => `${p}${String(i + 1).padStart(2, '0')}`)), 'S18']);
+const allowed = new Set([
+    ...['B', 'I', 'A'].flatMap((p) => Array.from({ length: 12 }, (_, i) => `${p}${String(i + 1).padStart(2, '0')}`)),
+    'S18'
+]);
 const isObject = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
-const short = (v, length = 120) => typeof v === 'string' ? v.slice(0, length) : '';
+const short = (v, length = 120) => (typeof v === 'string' ? v.slice(0, length) : '');
 export function parseCliManifest(input) {
     if (!isObject(input) || input.schemaVersion !== 1)
         throw new Error('Esquema no reconocido: se requiere schemaVersion=1.');
@@ -18,7 +21,7 @@ export function parseCliManifest(input) {
     if (terraformVersion.length < 2)
         throw new Error('Falta versión de Terraform declarada.');
     const seen = new Set();
-    const results = input.results.map(raw => {
+    const results = input.results.map((raw) => {
         if (!isObject(raw))
             throw new Error('Resultado de laboratorio inválido.');
         const id = raw.id;
@@ -31,7 +34,8 @@ export function parseCliManifest(input) {
         const logBytes = raw.logBytes;
         if (typeof logBytes !== 'number' || !Number.isSafeInteger(logBytes) || logBytes < 0 || logBytes > 100000000)
             throw new Error('Tamaño del log inválido.');
-        if (raw.status !== 'NOT_RUN' && (typeof logSha256 !== 'string' || !/^[0-9a-f]{64}$/.test(logSha256) || logBytes < 1))
+        if (raw.status !== 'NOT_RUN' &&
+            (typeof logSha256 !== 'string' || !/^[0-9a-f]{64}$/.test(logSha256) || logBytes < 1))
             throw new Error(`Falta SHA-256 del log para ${id}.`);
         if (raw.status === 'NOT_RUN' && (logSha256 !== null || logBytes !== 0))
             throw new Error('NOT_RUN no puede declarar un log de ejecución.');
@@ -41,24 +45,31 @@ export function parseCliManifest(input) {
 }
 export function cliStats(manifest) {
     const total = manifest.results.length;
-    const pass = manifest.results.filter(r => r.status === 'PASS').length;
-    const fail = manifest.results.filter(r => r.status === 'FAIL').length;
+    const pass = manifest.results.filter((r) => r.status === 'PASS').length;
+    const fail = manifest.results.filter((r) => r.status === 'FAIL').length;
     return { total, pass, fail, notRun: total - pass - fail, missing: 37 - total };
 }
 /** Never include raw log content; digests are unverified until logs are separately checked. */
 export function cliEvidenceMarkdown(m) {
     const stats = cliStats(m);
     const lines = [
-        '# TerraPixel — índice de evidencias CLI', '',
+        '# TerraPixel — índice de evidencias CLI',
+        '',
         `- Origen declarado: ${m.origin}`,
         `- Versión declarada: ${m.terraformVersion.replace(/[\r\n|]/g, ' ')}`,
         `- Fecha declarada: ${m.generatedAt}`,
         `- Ejecución: ${m.runId}`,
-        `- PASS: ${stats.pass}; FAIL: ${stats.fail}; NOT_RUN: ${stats.notRun}; sin resultado: ${stats.missing}`, '',
-        '> AUTODECLARADO: importar este JSON no prueba que Terraform se ejecutó ni que el log original coincida con su hash. Un auditor debe cotejar los logs originales y su origen.', '',
-        '| Lab | Estado declarado | SHA-256 del log (sin verificar) |', '|---|---|---|',
-        ...m.results.map(r => `| ${r.id} | ${r.status} | ${r.logSha256 || '—'} |`), '',
-        '## Privacidad', 'No se han incluido logs, variables, recursos, planes, credenciales ni contenido de state. Guarda los logs reales por separado con permisos restringidos.', ''
+        `- PASS: ${stats.pass}; FAIL: ${stats.fail}; NOT_RUN: ${stats.notRun}; sin resultado: ${stats.missing}`,
+        '',
+        '> AUTODECLARADO: importar este JSON no prueba que Terraform se ejecutó ni que el log original coincida con su hash. Un auditor debe cotejar los logs originales y su origen.',
+        '',
+        '| Lab | Estado declarado | SHA-256 del log (sin verificar) |',
+        '|---|---|---|',
+        ...m.results.map((r) => `| ${r.id} | ${r.status} | ${r.logSha256 || '—'} |`),
+        '',
+        '## Privacidad',
+        'No se han incluido logs, variables, recursos, planes, credenciales ni contenido de state. Guarda los logs reales por separado con permisos restringidos.',
+        ''
     ];
     return lines.join('\n');
 }

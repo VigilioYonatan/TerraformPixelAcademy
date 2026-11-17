@@ -1,4 +1,4 @@
-import {defineConfig} from 'vite';
+import { defineConfig } from 'vite';
 
 /** Build only; runtime remains dependency-free for reliable offline launch. */
 export default defineConfig({
