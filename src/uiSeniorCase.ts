@@ -23,6 +23,15 @@ export interface SeniorCaseProps {
 }
 
 const tag = (value: string, color = 'purple') => h('span', { className: `chip chip-${color}` }, value);
+
+function renderInlineText(text: string) {
+  const parts = text.split(/(`[^`]+`)/g);
+  return parts.map((part, idx) =>
+    part.startsWith('`') && part.endsWith('`') && part.length > 2
+      ? h('code', { key: `ic-${idx}`, className: 'inline-code' }, part.slice(1, -1))
+      : part
+  );
+}
 const action = (label: string, name: string, id = '', klass = 'btn btn-primary', index?: number) =>
   h(
     'button',
@@ -643,11 +652,11 @@ function TabContent(props: SeniorCaseProps) {
       { className: 'case-panel' },
       h('div', { className: 'eyebrow' }, 'ETAPA 01 · INVESTIGACIÓN'),
       h('h2', {}, '¿Qué está ocurriendo?'),
-      h('p', {}, c.subtitle),
+      h('p', {}, ...renderInlineText(c.subtitle)),
       h(SeniorIncidentDiagram, { scenario: c }),
       reviewBox('Tu misión', c.mission),
       h('h3', {}, 'Artefactos del incidente'),
-      h('p', {}, c.artifacts),
+      h('p', {}, ...renderInlineText(c.artifacts)),
       spacer(),
       h(
         'a',
@@ -655,7 +664,7 @@ function TabContent(props: SeniorCaseProps) {
         '↓ Descargar artefactos del incidente'
       ),
       spacer(),
-      h('div', { className: 'alert' }, h('b', {}, 'Prueba negativa: '), c.negative),
+      h('div', { className: 'alert' }, h('b', {}, 'Prueba negativa: '), ...renderInlineText(c.negative)),
       h(Simulator, props),
       h('div', { className: 'space24' }),
       h(
@@ -819,8 +828,8 @@ export function SeniorCasePage(props: SeniorCaseProps) {
       tag(c.pillar, 'cyan'),
       h('span', { id: 'current-case-status' }, tag(done ? '✓ Autoevaluado' : 'Caso abierto', done ? 'green' : 'purple'))
     ),
-    h('h1', { className: 'page-title case-title-max' }, c.title),
-    h('p', { className: 'page-lead case-lead-max' }, c.subtitle),
+    h('h1', { className: 'page-title case-title-max' }, ...renderInlineText(c.title)),
+    h('p', { className: 'page-lead case-lead-max' }, ...renderInlineText(c.subtitle)),
     h('div', { className: 'space24' }),
     h(
       'div',
@@ -871,7 +880,7 @@ export function SeniorCasePage(props: SeniorCaseProps) {
             {},
             'Se requiere decisión y what-if correctos, cuatro controles y un ADR con cinco secciones. Es autoevaluación, no verificación del contenido ni pruebas reales.'
           ),
-          ...gate.reasons.map((r) => stage(`○ ${r}`)),
+          h('div', { className: 'gate-checklist' }, ...gate.reasons.map((r) => stage(`○ ${r}`))),
           spacer(),
           action(`↓ Exportar informe/ADR ${c.id}`, 'export-senior', c.id, 'btn btn-soft'),
           ' ',
@@ -887,8 +896,11 @@ export function SeniorCasePage(props: SeniorCaseProps) {
             done ? '✓ Revalidar caso' : '♛ Marcar autoevaluación completa'
           )
         ),
-        spacer(),
-        h('a', { href: '#/evidencias', className: 'btn btn-soft' }, 'Ver evidencia CLI real →'),
+        h(
+          'div',
+          { className: 'case-evidence-bar' },
+          h('a', { href: '#/evidencias', className: 'btn btn-soft' }, 'Ver evidencia CLI real →')
+        ),
         h(
           'div',
           { className: 'lesson-footer' },

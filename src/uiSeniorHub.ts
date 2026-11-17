@@ -15,6 +15,15 @@ export interface SeniorHubProps {
 
 const SEVERITY_TABS = ['Todas', 'Crítico', 'Alto'] as const;
 
+function renderInlineText(text: string) {
+  const parts = text.split(/(`[^`]+`)/g);
+  return parts.map((part, idx) =>
+    part.startsWith('`') && part.endsWith('`') && part.length > 2
+      ? h('code', { key: `ic-${idx}`, className: 'inline-code' }, part.slice(1, -1))
+      : part
+  );
+}
+
 function chip(value: string, tone = 'purple') {
   return h('span', { className: `chip chip-${tone}` }, value);
 }
@@ -107,7 +116,7 @@ export function SeniorDashboard({
       ),
       h(
         'div',
-        { className: 'flex space-between wrap gap-12 mb-14' },
+        { className: 'senior-toolbar' },
         h(
           'div',
           { className: 'tabs tabs-flush' },
@@ -128,7 +137,7 @@ export function SeniorDashboard({
         ),
         h(
           'div',
-          { className: 'flex-wrap' },
+          { className: 'senior-toolbar-controls' },
           h(
             'select',
             {
@@ -162,14 +171,17 @@ export function SeniorDashboard({
             { className: 'cards-3', id: 'senior-case-list' },
             ...filteredCases.map((c) => {
               const done = state.seniorCompleted.includes(c.id);
+              const cleanSummary = c.subtitle.replace(/^Contexto:\s*/i, '');
               return h(
                 'a',
                 {
                   key: c.id,
                   href: `#/senior/${c.id}`,
                   className: 'senior-case',
+                  'data-severity': done ? 'done' : c.severity,
                   'data-title': `${c.id} ${c.title} ${c.pillar} ${c.subtitle}`.toLowerCase()
                 },
+                h('span', { className: 'senior-case-num', 'aria-hidden': 'true' }, c.id.replace('S', '')),
                 h(
                   'div',
                   { className: 'flex space-between' },
@@ -180,12 +192,12 @@ export function SeniorDashboard({
                   )
                 ),
                 h('div', { className: 'eyebrow eyebrow-xs' }, c.pillar),
-                h('h3', {}, c.title),
-                h('p', {}, c.subtitle),
+                h('h3', {}, ...renderInlineText(c.title)),
+                h('p', {}, ...renderInlineText(cleanSummary)),
                 h(
                   'div',
                   { className: 'flex space-between' },
-                  h('span', { className: 'small-note' }, `${c.xp} XP`),
+                  h('span', { className: 'xp-pill small-note' }, `${c.xp} XP`),
                   h('span', { className: 'color-purple link-cta-sm' }, 'Abrir caso →')
                 )
               );

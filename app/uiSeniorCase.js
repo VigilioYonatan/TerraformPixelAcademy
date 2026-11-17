@@ -5,6 +5,12 @@ import { evaluateSeniorDrill, getSeniorDrill } from './seniorWhatIf.js';
 import { defaultSimulatorInputs } from './simulators.js';
 import { h } from './vendor/preact.mjs';
 const tag = (value, color = 'purple') => h('span', { className: `chip chip-${color}` }, value);
+function renderInlineText(text) {
+    const parts = text.split(/(`[^`]+`)/g);
+    return parts.map((part, idx) => part.startsWith('`') && part.endsWith('`') && part.length > 2
+        ? h('code', { key: `ic-${idx}`, className: 'inline-code' }, part.slice(1, -1))
+        : part);
+}
 const action = (label, name, id = '', klass = 'btn btn-primary', index) => h('button', {
     type: 'button',
     className: klass,
@@ -208,7 +214,7 @@ function TabContent(props) {
     const correct = decision === c.correct;
     const evidence = props.state.seniorEvidence[c.id] || '';
     if (props.tab === 'investigar')
-        return h('section', { className: 'case-panel' }, h('div', { className: 'eyebrow' }, 'ETAPA 01 · INVESTIGACIÓN'), h('h2', {}, '¿Qué está ocurriendo?'), h('p', {}, c.subtitle), h(SeniorIncidentDiagram, { scenario: c }), reviewBox('Tu misión', c.mission), h('h3', {}, 'Artefactos del incidente'), h('p', {}, c.artifacts), spacer(), h('a', { className: 'btn btn-sm btn-soft', href: `./assets/senior/${c.id}.zip`, download: `${c.id}-incident.zip` }, '↓ Descargar artefactos del incidente'), spacer(), h('div', { className: 'alert' }, h('b', {}, 'Prueba negativa: '), c.negative), h(Simulator, props), h('div', { className: 'space24' }), h('div', { className: 'flex-wrap' }, h('a', { className: 'btn btn-sm btn-soft', href: '#/planes' }, 'Explorar un plan ficticio →'), h('a', { className: 'btn btn-sm btn-soft', href: '#/grafo' }, 'Explorar dependencias →'), action('Tomar una decisión →', 'case-tab', 'decision', 'btn btn-primary btn-sm')));
+        return h('section', { className: 'case-panel' }, h('div', { className: 'eyebrow' }, 'ETAPA 01 · INVESTIGACIÓN'), h('h2', {}, '¿Qué está ocurriendo?'), h('p', {}, ...renderInlineText(c.subtitle)), h(SeniorIncidentDiagram, { scenario: c }), reviewBox('Tu misión', c.mission), h('h3', {}, 'Artefactos del incidente'), h('p', {}, ...renderInlineText(c.artifacts)), spacer(), h('a', { className: 'btn btn-sm btn-soft', href: `./assets/senior/${c.id}.zip`, download: `${c.id}-incident.zip` }, '↓ Descargar artefactos del incidente'), spacer(), h('div', { className: 'alert' }, h('b', {}, 'Prueba negativa: '), ...renderInlineText(c.negative)), h(Simulator, props), h('div', { className: 'space24' }), h('div', { className: 'flex-wrap' }, h('a', { className: 'btn btn-sm btn-soft', href: '#/planes' }, 'Explorar un plan ficticio →'), h('a', { className: 'btn btn-sm btn-soft', href: '#/grafo' }, 'Explorar dependencias →'), action('Tomar una decisión →', 'case-tab', 'decision', 'btn btn-primary btn-sm')));
     if (props.tab === 'decision')
         return h('section', { className: 'case-panel' }, h('div', { className: 'eyebrow' }, 'ETAPA 02 · DECISIÓN'), h('h2', {}, 'Escoge una respuesta defendible'), h('p', {}, c.mission), spacer(), ...c.choices.map((choice, i) => h('button', {
             key: `${c.id}-choice-${i}`,
@@ -259,20 +265,20 @@ export function SeniorCasePage(props) {
         ['evidencia', 'Evidencia'],
         ['operaciones', 'Operaciones']
     ];
-    return h('div', { id: 'preact-senior-case' }, h('div', { className: 'breadcrumb' }, h('a', { href: '#/inicio' }, 'Inicio'), ' / ', h('a', { href: '#/senior' }, 'Senior Mode'), ` / ${c.id}`), h('div', { className: 'flex-wrap' }, tag(c.id), tag(c.severity, c.severity === 'Crítico' ? 'red' : 'yellow'), tag(c.pillar, 'cyan'), h('span', { id: 'current-case-status' }, tag(done ? '✓ Autoevaluado' : 'Caso abierto', done ? 'green' : 'purple'))), h('h1', { className: 'page-title case-title-max' }, c.title), h('p', { className: 'page-lead case-lead-max' }, c.subtitle), h('div', { className: 'space24' }), h('div', { className: 'case-details' }, h('div', {}, h('nav', { className: 'case-steps', 'aria-label': 'Fases del caso' }, ...tabs.map(([id, title], i) => h('button', {
+    return h('div', { id: 'preact-senior-case' }, h('div', { className: 'breadcrumb' }, h('a', { href: '#/inicio' }, 'Inicio'), ' / ', h('a', { href: '#/senior' }, 'Senior Mode'), ` / ${c.id}`), h('div', { className: 'flex-wrap' }, tag(c.id), tag(c.severity, c.severity === 'Crítico' ? 'red' : 'yellow'), tag(c.pillar, 'cyan'), h('span', { id: 'current-case-status' }, tag(done ? '✓ Autoevaluado' : 'Caso abierto', done ? 'green' : 'purple'))), h('h1', { className: 'page-title case-title-max' }, ...renderInlineText(c.title)), h('p', { className: 'page-lead case-lead-max' }, ...renderInlineText(c.subtitle)), h('div', { className: 'space24' }), h('div', { className: 'case-details' }, h('div', {}, h('nav', { className: 'case-steps', 'aria-label': 'Fases del caso' }, ...tabs.map(([id, title], i) => h('button', {
         key: id,
         type: 'button',
         className: `tab ${props.tab === id ? 'active' : ''}`.trim(),
         'data-action': 'case-tab',
         'data-id': id,
         'aria-current': props.tab === id ? 'step' : undefined
-    }, `${i + 1}. ${title}`))), h(TabContent, props), h('div', { className: 'space24' }), h('div', { className: 'case-panel' }, h('div', { className: 'flex space-between' }, h('div', {}, h('div', { className: 'eyebrow' }, 'GATE DE AUTOEVALUACIÓN'), h('h2', {}, '¿Caso completado?')), h('span', { id: 'senior-gate-status' }, tag(done ? '✓ Autoevaluado' : 'Pendiente', done ? 'green' : 'yellow'))), h('p', {}, 'Se requiere decisión y what-if correctos, cuatro controles y un ADR con cinco secciones. Es autoevaluación, no verificación del contenido ni pruebas reales.'), ...gate.reasons.map((r) => stage(`○ ${r}`)), spacer(), action(`↓ Exportar informe/ADR ${c.id}`, 'export-senior', c.id, 'btn btn-soft'), ' ', h('button', {
+    }, `${i + 1}. ${title}`))), h(TabContent, props), h('div', { className: 'space24' }), h('div', { className: 'case-panel' }, h('div', { className: 'flex space-between' }, h('div', {}, h('div', { className: 'eyebrow' }, 'GATE DE AUTOEVALUACIÓN'), h('h2', {}, '¿Caso completado?')), h('span', { id: 'senior-gate-status' }, tag(done ? '✓ Autoevaluado' : 'Pendiente', done ? 'green' : 'yellow'))), h('p', {}, 'Se requiere decisión y what-if correctos, cuatro controles y un ADR con cinco secciones. Es autoevaluación, no verificación del contenido ni pruebas reales.'), h('div', { className: 'gate-checklist' }, ...gate.reasons.map((r) => stage(`○ ${r}`))), spacer(), action(`↓ Exportar informe/ADR ${c.id}`, 'export-senior', c.id, 'btn btn-soft'), ' ', h('button', {
         type: 'button',
         className: 'btn btn-primary',
         'data-action': 'finish-case',
         'data-id': c.id,
         disabled: !gate.ok
-    }, done ? '✓ Revalidar caso' : '♛ Marcar autoevaluación completa')), spacer(), h('a', { href: '#/evidencias', className: 'btn btn-soft' }, 'Ver evidencia CLI real →'), h('div', { className: 'lesson-footer' }, h('a', { className: 'btn', href: prev ? `#/senior/${prev.id}` : '#/senior' }, prev ? `← ${prev.id} · ${prev.title}` : '← Todos los casos'), h('a', { className: 'btn btn-primary', href: next ? `#/senior/${next.id}` : '#/senior' }, next ? `${next.id} →` : 'Volver al dashboard'))), h('aside', { className: 'case-sidebar' }, h('div', { className: 'content-panel' }, h('div', { className: 'flex space-between' }, h('h3', {}, 'Ficha del incidente'), tag('FICTICIO', 'yellow')), h('img', {
+    }, done ? '✓ Revalidar caso' : '♛ Marcar autoevaluación completa')), h('div', { className: 'case-evidence-bar' }, h('a', { href: '#/evidencias', className: 'btn btn-soft' }, 'Ver evidencia CLI real →')), h('div', { className: 'lesson-footer' }, h('a', { className: 'btn', href: prev ? `#/senior/${prev.id}` : '#/senior' }, prev ? `← ${prev.id} · ${prev.title}` : '← Todos los casos'), h('a', { className: 'btn btn-primary', href: next ? `#/senior/${next.id}` : '#/senior' }, next ? `${next.id} →` : 'Volver al dashboard'))), h('aside', { className: 'case-sidebar' }, h('div', { className: 'content-panel' }, h('div', { className: 'flex space-between' }, h('h3', {}, 'Ficha del incidente'), tag('FICTICIO', 'yellow')), h('img', {
         className: 'side-terra',
         src: `./assets/terra/${done ? 'exito' : 'arquitectura'}.png`,
         alt: 'Terra analizando arquitectura'
