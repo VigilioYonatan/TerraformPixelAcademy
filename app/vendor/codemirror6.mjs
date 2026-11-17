@@ -1837,7 +1837,7 @@ for (var wt = "ͼ", Tt = typeof Symbol > "u" ? "__ͼ" : Symbol.for(wt), Et = typ
 }, kt = /* @__PURE__ */ new Map(), At = class {
 	constructor(e, t) {
 		let n = e.ownerDocument || e, r = n.defaultView;
-		if (!e.head && e.adoptedStyleSheets && r.CSSStyleSheet) {
+		if (e.adoptedStyleSheets && r.CSSStyleSheet) {
 			let t = kt.get(n);
 			if (t) return e[Et] = t;
 			this.sheet = new r.CSSStyleSheet(), kt.set(n, this);
@@ -4697,7 +4697,7 @@ function ma(e) {
 	let t = e.dom.parentNode;
 	if (!t) return;
 	let n = t.appendChild(document.createElement("textarea"));
-	n.style.cssText = "position: fixed; left: -10000px; top: 10px", n.focus(), setTimeout(() => {
+	(n.style.position="fixed",n.style.left="-10000px",n.style.top="10px"), n.focus(), setTimeout(() => {
 		e.focus(), n.remove(), ga(e, n.value);
 	}, 50);
 }
@@ -4874,7 +4874,7 @@ function Ea(e, t) {
 	let n = e.dom.parentNode;
 	if (!n) return;
 	let r = n.appendChild(document.createElement("textarea"));
-	r.style.cssText = "position: fixed; left: -10000px; top: 10px", r.value = t, r.focus(), r.selectionEnd = t.length, r.selectionStart = 0, setTimeout(() => {
+	(r.style.position="fixed",r.style.left="-10000px",r.style.top="10px"), r.value = t, r.focus(), r.selectionEnd = t.length, r.selectionStart = 0, setTimeout(() => {
 		r.remove(), e.focus();
 	}, 50);
 }
@@ -7286,7 +7286,7 @@ var Cs = class {
 			let o = e.lineBlockAtHeight(a - e.documentTop);
 			t.domEventHandlers[n](e, o, r) && r.preventDefault();
 		});
-		this.markers = xs(t.markers(e)), t.initialSpacer && (this.spacer = new Ts(e, 0, 0, [t.initialSpacer(e)]), this.dom.appendChild(this.spacer.dom), this.spacer.dom.style.cssText += "visibility: hidden; pointer-events: none");
+		this.markers = xs(t.markers(e)), t.initialSpacer && (this.spacer = new Ts(e, 0, 0, [t.initialSpacer(e)]), this.dom.appendChild(this.spacer.dom), (this.spacer.dom.style.visibility="hidden",this.spacer.dom.style.pointerEvents="none"));
 	}
 	update(e) {
 		let t = this.markers;

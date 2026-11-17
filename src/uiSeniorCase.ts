@@ -436,7 +436,7 @@ function Simulator({ scenario, state, simResult, simInputs }: SeniorCaseProps) {
   if (!drill) return null;
   return h(
     'section',
-    { className: 'content-panel', style: 'margin-top:20px' },
+    { className: 'content-panel mt-20' },
     h(
       'div',
       { className: 'flex space-between' },
@@ -444,13 +444,13 @@ function Simulator({ scenario, state, simResult, simInputs }: SeniorCaseProps) {
         'div',
         {},
         h('div', { className: 'eyebrow' }, `SIMULADOR DETERMINISTA · ${id}`),
-        h('h3', { style: 'margin-top:8px' }, 'Prueba una hipótesis')
+        h('h3', { className: 'mt-8' }, 'Prueba una hipótesis')
       ),
       tag('SIMULADO', 'yellow')
     ),
     spacer(),
     control,
-    simResult ? h('div', { className: 'alert', role: 'status', style: 'margin-top:14px' }, simResult) : null,
+    simResult ? h('div', { className: 'alert mt-14', role: 'status' }, simResult) : null,
     h(
       'div',
       { className: 'what-if' },
@@ -480,11 +480,7 @@ function Simulator({ scenario, state, simResult, simInputs }: SeniorCaseProps) {
           )
         : null
     ),
-    h(
-      'p',
-      { className: 'small-note', style: 'margin-top:15px' },
-      'No se lee state remoto ni se ejecuta Terraform. Datos sintéticos.'
-    )
+    h('p', { className: 'small-note mt-15' }, 'No se lee state remoto ni se ejecuta Terraform. Datos sintéticos.')
   );
 }
 
@@ -512,7 +508,7 @@ function Capstone({ state }: Pick<SeniorCaseProps, 'state'>) {
     {},
     h('div', { className: 'space24' }),
     h('div', { className: 'eyebrow' }, 'CAPSTONE · 8 HITOS'),
-    h('h3', { style: 'margin:12px 0' }, 'Checklist de entregables'),
+    h('h3', { className: 'my-12' }, 'Checklist de entregables'),
     ...capstoneSteps.map((step, i) => {
       const note = state.capstoneEvidence[String(i)] || '';
       const valid = capstoneNoteValid(note);
@@ -753,8 +749,8 @@ export function SeniorCasePage(props: SeniorCaseProps) {
       tag(c.pillar, 'cyan'),
       h('span', { id: 'current-case-status' }, tag(done ? '✓ Autoevaluado' : 'Caso abierto', done ? 'green' : 'purple'))
     ),
-    h('h1', { className: 'page-title', style: 'max-width:1080px' }, c.title),
-    h('p', { className: 'page-lead', style: 'max-width:1100px' }, c.subtitle),
+    h('h1', { className: 'page-title case-title-max' }, c.title),
+    h('p', { className: 'page-lead case-lead-max' }, c.subtitle),
     h('div', { className: 'space24' }),
     h(
       'div',

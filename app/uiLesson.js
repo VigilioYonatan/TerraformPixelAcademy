@@ -18,15 +18,17 @@ function chip(text, variant = 'purple') {
     return h('span', { className: `chip chip-${variant}` }, text);
 }
 function progressBar(done, total, labelText) {
-    const pct = total ? Math.min(100, Math.round((done / total) * 100)) : 0;
-    return h('div', {
-        className: 'progress-track',
-        role: 'progressbar',
+    const safeMax = Math.max(1, total);
+    const clamped = Math.min(safeMax, Math.max(0, done));
+    return h('progress', {
+        className: 'progress-native',
+        value: total ? clamped : 0,
+        max: safeMax,
         'aria-label': labelText,
         'aria-valuenow': done,
         'aria-valuemin': 0,
         'aria-valuemax': total
-    }, h('div', { className: 'progress-fill', style: `width:${pct}%` }));
+    });
 }
 export function EvaluationFeedback({ result }) {
     return h('div', {
@@ -51,7 +53,7 @@ export function LessonClassroom({ lesson, lessons, state, evalResult }) {
         'data-action': 'favorite',
         'data-id': lesson.id,
         'aria-pressed': String(isFavorite)
-    }, isFavorite ? '★ Guardado' : '☆ Favorito')), h('h1', { className: 'page-title' }, lesson.title), h('p', { className: 'page-lead' }, lesson.subtitle), h('div', { className: 'space12' }), progressBar(levelCompletedCount, 12, `Progreso nivel ${lesson.level}`)), h('div', { className: 'lesson-layout' }, h('div', { className: 'lesson-main' }, h('section', { className: 'content-panel' }, h('div', { className: 'objective-strip' }, h('div', { style: 'flex:1' }, h('div', { className: 'eyebrow' }, `CONCEPTO · ${lesson.level.toUpperCase()}`), h('h2', { style: 'margin:8px 0' }, 'Lo que aprenderás'), h('p', { className: 'prose' }, lesson.concept)), h('img', { src: mascotUrl('leyendo'), alt: 'Terra leyendo un manual' })), h('div', { className: 'concept-grid' }, h('div', { className: 'concept-tile' }, h('strong', {}, '01 · Comprender'), lesson.subtitle), h('div', { className: 'concept-tile' }, h('strong', {}, '02 · Practicar'), 'Editar HCL y comprobar condiciones específicas de esta lección.'), h('div', { className: 'concept-tile' }, h('strong', {}, '03 · Verificar'), 'Resolver el quiz y, si aplica, ejecutar pruebas CLI en tu equipo.'))), h('div', { className: 'mission-banner' }, h('strong', {}, '🎯 TU MISIÓN'), 'Completa el bloque marcado como TODO para conseguir las condiciones esperadas. Después responde la pregunta de conocimiento. ', h('b', {}, 'La web no ejecuta HCL ni Terraform CLI.')), h('section', { className: 'editor-card' }, h('div', { className: 'editor-toolbar' }, h('div', { className: 'flex' }, h('span', { style: 'color:#8a62e9', 'aria-hidden': 'true' }, '▣'), h('span', { className: 'file-tab' }, 'main.tf')), h('span', { className: 'editor-tag' }, 'HCL · editor de texto')), h('label', { className: 'sr-only', htmlFor: 'code-editor' }, `Editor HCL de ${lesson.id}`), h('textarea', {
+    }, isFavorite ? '★ Guardado' : '☆ Favorito')), h('h1', { className: 'page-title' }, lesson.title), h('p', { className: 'page-lead' }, lesson.subtitle), h('div', { className: 'space12' }), progressBar(levelCompletedCount, 12, `Progreso nivel ${lesson.level}`)), h('div', { className: 'lesson-layout' }, h('div', { className: 'lesson-main' }, h('section', { className: 'content-panel' }, h('div', { className: 'objective-strip' }, h('div', { className: 'flex-1' }, h('div', { className: 'eyebrow' }, `CONCEPTO · ${lesson.level.toUpperCase()}`), h('h2', { className: 'my-8' }, 'Lo que aprenderás'), h('p', { className: 'prose' }, lesson.concept)), h('img', { src: mascotUrl('leyendo'), alt: 'Terra leyendo un manual' })), h('div', { className: 'concept-grid' }, h('div', { className: 'concept-tile' }, h('strong', {}, '01 · Comprender'), lesson.subtitle), h('div', { className: 'concept-tile' }, h('strong', {}, '02 · Practicar'), 'Editar HCL y comprobar condiciones específicas de esta lección.'), h('div', { className: 'concept-tile' }, h('strong', {}, '03 · Verificar'), 'Resolver el quiz y, si aplica, ejecutar pruebas CLI en tu equipo.'))), h('div', { className: 'mission-banner' }, h('strong', {}, '🎯 TU MISIÓN'), 'Completa el bloque marcado como TODO para conseguir las condiciones esperadas. Después responde la pregunta de conocimiento. ', h('b', {}, 'La web no ejecuta HCL ni Terraform CLI.')), h('section', { className: 'editor-card' }, h('div', { className: 'editor-toolbar' }, h('div', { className: 'flex' }, h('span', { className: 'icon-file-tab', 'aria-hidden': 'true' }, '▣'), h('span', { className: 'file-tab' }, 'main.tf')), h('span', { className: 'editor-tag' }, 'HCL · editor de texto')), h('label', { className: 'sr-only', htmlFor: 'code-editor' }, `Editor HCL de ${lesson.id}`), h('textarea', {
         id: 'code-editor',
         className: 'code-editor',
         'data-input': 'code',
@@ -65,7 +67,7 @@ export function LessonClassroom({ lesson, lessons, state, evalResult }) {
         className: 'btn btn-primary btn-sm',
         'data-action': 'evaluate',
         'data-id': lesson.id
-    }, '▶ Evaluar reglas'), h('button', { type: 'button', className: 'btn btn-sm', 'data-action': 'hint', 'data-id': lesson.id }, '✦ Pista'), h('button', { type: 'button', className: 'btn btn-sm', 'data-action': 'solution', 'data-id': lesson.id }, 'Ver solución')), h('div', { className: 'flex' }, h('button', { type: 'button', className: 'btn btn-sm', 'data-action': 'reset-code', 'data-id': lesson.id }, '↺ Restablecer'), h('button', { type: 'button', className: 'btn btn-sm', 'data-action': 'download-code', 'data-id': lesson.id }, '↓ .tf')))), evalResult ? h(EvaluationFeedback, { result: evalResult }) : null, h('section', { className: 'content-panel' }, h('div', { className: 'eyebrow' }, 'COMPRENSIÓN'), h('h2', { style: 'margin-top:9px' }, 'Pon a prueba tu criterio'), h('p', { className: 'prose' }, lesson.question), h('div', { className: 'space16' }), ...lesson.options.map((opt, i) => {
+    }, '▶ Evaluar reglas'), h('button', { type: 'button', className: 'btn btn-sm', 'data-action': 'hint', 'data-id': lesson.id }, '✦ Pista'), h('button', { type: 'button', className: 'btn btn-sm', 'data-action': 'solution', 'data-id': lesson.id }, 'Ver solución')), h('div', { className: 'flex' }, h('button', { type: 'button', className: 'btn btn-sm', 'data-action': 'reset-code', 'data-id': lesson.id }, '↺ Restablecer'), h('button', { type: 'button', className: 'btn btn-sm', 'data-action': 'download-code', 'data-id': lesson.id }, '↓ .tf')))), evalResult ? h(EvaluationFeedback, { result: evalResult }) : null, h('section', { className: 'content-panel' }, h('div', { className: 'eyebrow' }, 'COMPRENSIÓN'), h('h2', { className: 'mt-9' }, 'Pon a prueba tu criterio'), h('p', { className: 'prose' }, lesson.question), h('div', { className: 'space16' }), ...lesson.options.map((opt, i) => {
         const isSelected = selected === i;
         const toneClass = isSelected ? (correctQuiz ? 'selected correct' : 'selected incorrect') : '';
         return h('button', {
@@ -96,7 +98,7 @@ export function LessonClassroom({ lesson, lessons, state, evalResult }) {
         : h('a', { href: ROUTES.senior, className: 'btn btn-primary' }, 'Ir a Senior Mode →')), state.seniorEnabled
         ? (() => {
             const seniorCtx = getLessonSeniorContext(lesson.id);
-            return h('section', { className: 'case-review', id: 'lesson-senior-callout' }, h('div', { className: 'flex space-between', style: 'flex-wrap:wrap;gap:8px;margin-bottom:8px' }, h('b', {}, `♛ PREGUNTA DE ARQUITECTURA · ${lesson.id}`), chip(`${seniorCtx.domain} · ${seniorCtx.relatedCaseId}`, 'yellow')), h('p', { style: 'margin-bottom:8px' }, h('strong', {}, 'Riesgo en producción: '), seniorCtx.productionRisk), h('p', {}, seniorCtx.architecturePrompt), h('div', { className: 'space12' }), h('div', { className: 'flex-wrap' }, h('a', { href: `#/senior/${seniorCtx.relatedCaseId}`, className: 'btn btn-sm btn-primary' }, `Resolver incidente ${seniorCtx.relatedCaseId} →`), h('a', { href: ROUTES.senior, className: 'btn btn-sm btn-soft' }, 'Mapa Senior completo →')));
+            return h('section', { className: 'case-review', id: 'lesson-senior-callout' }, h('div', { className: 'flex space-between wrap gap-8 mb-8' }, h('b', {}, `♛ PREGUNTA DE ARQUITECTURA · ${lesson.id}`), chip(`${seniorCtx.domain} · ${seniorCtx.relatedCaseId}`, 'yellow')), h('p', { className: 'mb-8' }, h('strong', {}, 'Riesgo en producción: '), seniorCtx.productionRisk), h('p', {}, seniorCtx.architecturePrompt), h('div', { className: 'space12' }), h('div', { className: 'flex-wrap' }, h('a', { href: `#/senior/${seniorCtx.relatedCaseId}`, className: 'btn btn-sm btn-primary' }, `Resolver incidente ${seniorCtx.relatedCaseId} →`), h('a', { href: ROUTES.senior, className: 'btn btn-sm btn-soft' }, 'Mapa Senior completo →')));
         })()
         : null), h('aside', { className: 'lesson-aside' }, h('div', { className: 'content-panel' }, h('h3', {}, 'Paso a paso'), ...STEP_GUIDE.map((stepText, i) => h('div', { key: stepText, className: `side-step ${i === 0 ? 'active' : ''}`.trim() }, `${i + 1}. ${stepText}`))), h('div', { className: 'content-panel' }, h('img', {
         src: mascotUrl(done ? 'exito' : 'idea'),

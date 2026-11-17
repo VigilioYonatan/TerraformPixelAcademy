@@ -37,7 +37,12 @@ test('clean HTTP execution serves web app and assets but not sources', async () 
       assert.ok((await r.arrayBuffer()).byteLength > 50, pathname);
     }
     const page = await fetch(`http://127.0.0.1:${PORT}/`);
-    assert.match(page.headers.get('content-security-policy') ?? '', /script-src 'self'/);
+    const csp = page.headers.get('content-security-policy') ?? '';
+    assert.match(csp, /default-src 'self'/);
+    assert.match(csp, /script-src 'self'/);
+    assert.match(csp, /style-src 'self'/);
+    assert.doesNotMatch(csp, /unsafe-inline/);
+    assert.doesNotMatch(csp, /unsafe-eval/);
     assert.equal(page.headers.get('x-frame-options'), 'DENY');
     for (const pathname of [
       '/app/vendor/preact.mjs',
@@ -55,7 +60,8 @@ test('clean HTTP execution serves web app and assets but not sources', async () 
       '/package.json',
       '/labs/senior/S01/incident.json',
       '/.gitignore',
-      '/assets/../../package.json'
+      '/assets/../../package.json',
+      '/assets/reference/concepto-aprobado.png'
     ]) {
       const r = await fetch(`http://127.0.0.1:${PORT}${pathname}`);
       assert.equal(r.status, 404, pathname);

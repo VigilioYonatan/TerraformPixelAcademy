@@ -38,7 +38,7 @@ export function PlanFixturesPanel({ fixtures, selectedPlanId, showPlanRisks }) {
         'data-action': 'plan',
         'data-id': p.id,
         'aria-pressed': String(p.id === fixture.id)
-    }, h('strong', {}, p.title), h('small', {}, `${p.environment} · ${p.resources.length} recursos`)))), h('div', { className: 'content-panel' }, h('div', { className: 'flex space-between' }, h('div', {}, h('div', { className: 'eyebrow' }, `PLAN DIDÁCTICO · ${fixture.environment.toUpperCase()}`), h('h2', { style: 'margin-top:8px' }, fixture.title)), chip('SYNTHETIC_FIXTURE', 'yellow')), h('p', { className: 'prose' }, fixture.summary), h('div', { className: 'space16' }), h('div', { className: 'plan-toolbar' }, chip(`${fixture.resources.length} recursos`, 'purple'), chip(`${risky} operaciones destructivas`, risky ? 'red' : 'green'), h('button', {
+    }, h('strong', {}, p.title), h('small', {}, `${p.environment} · ${p.resources.length} recursos`)))), h('div', { className: 'content-panel' }, h('div', { className: 'flex space-between' }, h('div', {}, h('div', { className: 'eyebrow' }, `PLAN DIDÁCTICO · ${fixture.environment.toUpperCase()}`), h('h2', { className: 'mt-8' }, fixture.title)), chip('SYNTHETIC_FIXTURE', 'yellow')), h('p', { className: 'prose' }, fixture.summary), h('div', { className: 'space16' }), h('div', { className: 'plan-toolbar' }, chip(`${fixture.resources.length} recursos`, 'purple'), chip(`${risky} operaciones destructivas`, risky ? 'red' : 'green'), h('button', {
         type: 'button',
         className: 'btn btn-sm btn-soft',
         'data-action': 'reveal-plan',
@@ -56,7 +56,7 @@ export function SeniorReleaseGate({ gateAnswers, gateReview }) {
         'data-input': 'gate-check',
         'data-id': key,
         checked: gateAnswers[key]
-    }), labelText)), h('div', { className: 'flex-wrap', style: 'margin-top:10px' }, h('button', { type: 'button', className: 'btn btn-primary', 'data-action': 'run-release-gate' }, 'Evaluar gate didáctico →'), gateReview
+    }), labelText)), h('div', { className: 'flex-wrap mt-10' }, h('button', { type: 'button', className: 'btn btn-primary', 'data-action': 'run-release-gate' }, 'Evaluar gate didáctico →'), gateReview
         ? h('button', { type: 'button', className: 'btn btn-soft', 'data-action': 'export-release-gate' }, '↓ Informe gate .md')
         : null), gateReview
         ? h('div', {
@@ -75,7 +75,7 @@ export function LocalPlanInspector({ userPlan, userPlanError, gateAnswers, gateR
             className: `chip chip-${name === 'delete' || name === 'replace' ? 'red' : 'cyan'}`
         }, `${name}: ${num}`))
         : [];
-    return h('section', { className: 'content-panel', style: 'margin-top:24px', id: 'real-plan-review' }, h('div', { className: 'flex space-between' }, h('div', {}, h('div', { className: 'eyebrow' }, 'ANÁLISIS LOCAL · ARCHIVO DEL ESTUDIANTE'), h('h2', { style: 'margin:8px 0' }, 'Inspeccionar terraform show -json')), chip('SIN SUBIR A SERVIDOR', 'green')), h('p', { className: 'prose' }, 'Carga un ', h('code', {}, 'plan.json'), ' generado en tu propio entorno con ', h('code', {}, 'terraform show -json plan.tfplan > plan.json'), '. La app analiza operaciones y drift declarados, sin leer valores before/after, variables ni outputs. ', h('strong', {}, 'Los nombres y direcciones pueden revelar información interna.')), h('label', { className: 'field-label', htmlFor: 'user-plan-json' }, 'Archivo local plan.json (máx. 5 MB)'), h('input', {
+    return h('section', { className: 'content-panel mt-24', id: 'real-plan-review' }, h('div', { className: 'flex space-between' }, h('div', {}, h('div', { className: 'eyebrow' }, 'ANÁLISIS LOCAL · ARCHIVO DEL ESTUDIANTE'), h('h2', { className: 'my-8' }, 'Inspeccionar terraform show -json')), chip('SIN SUBIR A SERVIDOR', 'green')), h('p', { className: 'prose' }, 'Carga un ', h('code', {}, 'plan.json'), ' generado en tu propio entorno con ', h('code', {}, 'terraform show -json plan.tfplan > plan.json'), '. La app analiza operaciones y drift declarados, sin leer valores before/after, variables ni outputs. ', h('strong', {}, 'Los nombres y direcciones pueden revelar información interna.')), h('label', { className: 'field-label', htmlFor: 'user-plan-json' }, 'Archivo local plan.json (máx. 5 MB)'), h('input', {
         type: 'file',
         id: 'user-plan-json',
         accept: '.json,application/json',
@@ -86,13 +86,13 @@ export function LocalPlanInspector({ userPlan, userPlanError, gateAnswers, gateR
         className: 'btn btn-sm btn-soft',
         href: './assets/examples/plan-sintetico.json',
         download: 'plan-sintetico.json'
-    }, '↓ Ejemplo plan-sintetico.json')), userPlanError ? h('div', { className: 'alert', role: 'alert', style: 'margin-top:12px' }, userPlanError) : null, userPlan ? h(SeniorReleaseGate, { gateAnswers, gateReview }) : null, userPlan
-        ? h('div', {}, h('div', { className: 'notice', role: 'status', style: 'margin-top:15px' }, h('b', {}, 'Procedencia: USER_SUPPLIED_TERRAFORM_JSON'), ` · Terraform ${userPlan.terraformVersion} · ${userPlan.total} cambios · ${userPlan.destructive} destructivos · ${userPlan.sensitiveCount} marcados sensitive · ${userPlan.driftCount} eventos drift. No se verifica ejecución cloud.`), h('div', { className: 'flex-wrap', style: 'margin:16px 0' }, ...summaryBadges), h('div', { className: 'plan-import-results' }, ...userPlan.changes.map((item, idx) => h('div', { key: `chg-${item.address}-${idx}`, className: 'plan-resource' }, h('div', { className: 'plan-resource-head' }, h('code', {}, item.address), h('div', { className: 'flex-wrap' }, chip(item.replaceOrder ? `${item.kind} (${item.replaceOrder})` : item.kind, item.kind === 'delete' || item.kind === 'replace'
+    }, '↓ Ejemplo plan-sintetico.json')), userPlanError ? h('div', { className: 'alert mt-12', role: 'alert' }, userPlanError) : null, userPlan ? h(SeniorReleaseGate, { gateAnswers, gateReview }) : null, userPlan
+        ? h('div', {}, h('div', { className: 'notice mt-15', role: 'status' }, h('b', {}, 'Procedencia: USER_SUPPLIED_TERRAFORM_JSON'), ` · Terraform ${userPlan.terraformVersion} · ${userPlan.total} cambios · ${userPlan.destructive} destructivos · ${userPlan.sensitiveCount} marcados sensitive · ${userPlan.driftCount} eventos drift. No se verifica ejecución cloud.`), h('div', { className: 'flex-wrap my-16' }, ...summaryBadges), h('div', { className: 'plan-import-results' }, ...userPlan.changes.map((item, idx) => h('div', { key: `chg-${item.address}-${idx}`, className: 'plan-resource' }, h('div', { className: 'plan-resource-head' }, h('code', {}, item.address), h('div', { className: 'flex-wrap' }, chip(item.replaceOrder ? `${item.kind} (${item.replaceOrder})` : item.kind, item.kind === 'delete' || item.kind === 'replace'
             ? 'red'
             : item.kind === 'forget'
                 ? 'yellow'
                 : 'cyan'))), h('div', { className: 'detail' }, `Provider: ${item.provider} · ${item.sensitive ? 'Datos sensibles presentes (no mostrados)' : 'Sin indicador sensitive en el cambio'}`)))), h('div', { className: 'notice' }, ...userPlan.notices.map((note) => h('p', { key: note }, note))), userPlan.driftCount > 0
-            ? h('div', {}, h('h3', { style: 'margin:16px 0 10px' }, 'Drift reportado por Terraform (metadatos)'), h('div', { className: 'plan-import-results' }, ...userPlan.drift.map((item, idx) => h('div', { key: `drift-${item.address}-${idx}`, className: 'plan-resource' }, h('code', {}, item.address), ' ', chip(item.kind, item.kind === 'delete' || item.kind === 'replace' ? 'red' : 'yellow')))))
+            ? h('div', {}, h('h3', { className: 'drift-heading' }, 'Drift reportado por Terraform (metadatos)'), h('div', { className: 'plan-import-results' }, ...userPlan.drift.map((item, idx) => h('div', { key: `drift-${item.address}-${idx}`, className: 'plan-resource' }, h('code', {}, item.address), ' ', chip(item.kind, item.kind === 'delete' || item.kind === 'replace' ? 'red' : 'yellow')))))
             : null)
         : null);
 }

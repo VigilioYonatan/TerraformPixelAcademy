@@ -49,7 +49,7 @@ export function GamesHub({ games, state }: GamesHubProps) {
             chip(g.eyebrow, i % 2 ? 'cyan' : 'purple'),
             chip(`Mejor: ${state.gameWins[g.id] || 0}/${g.questions.length}`, 'green')
           ),
-          h('div', { style: 'font-size:36px;color:var(--purple)', 'aria-hidden': 'true' }, iconFor(g.icon)),
+          h('div', { className: 'icon-game', 'aria-hidden': 'true' }, iconFor(g.icon)),
           h('h3', {}, g.title),
           h('p', {}, g.description),
           h('a', { href: `#/juego/${g.id}`, className: 'btn btn-primary' }, '▶ Jugar')
@@ -105,7 +105,7 @@ export function GameStage({ game, session }: GameStageProps) {
         h('h2', {}, won ? '¡Reto superado!' : 'Buen intento, sigue practicando'),
         h(
           'p',
-          { className: 'prose', style: 'margin:15px 0' },
+          { className: 'prose my-15' },
           'Respuestas correctas: ',
           h('strong', {}, `${session.score} de ${game.questions.length}`),
           `. ${won ? 'Has logrado el objetivo de conocimiento.' : 'Lee las explicaciones e inténtalo de nuevo.'}`
@@ -114,7 +114,7 @@ export function GameStage({ game, session }: GameStageProps) {
         h('div', { className: 'space24' }),
         h(
           'div',
-          { className: 'flex-wrap', style: 'justify-content:center' },
+          { className: 'flex-wrap justify-center' },
           h(
             'button',
             { type: 'button', className: 'btn btn-primary', 'data-action': 'restart-game', 'data-id': game.id },
@@ -182,7 +182,7 @@ export function GameStage({ game, session }: GameStageProps) {
       ),
       h(
         'div',
-        { className: 'card', style: 'margin-top:22px' },
+        { className: 'card mt-22' },
         h(
           'div',
           { className: 'flex space-between' },

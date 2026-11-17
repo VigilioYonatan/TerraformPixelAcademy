@@ -36,19 +36,17 @@ function sectionHead(eyebrow: string, title: string, side: unknown = null) {
 }
 
 function progressBar(done: number, total: number, labelText = 'Progreso') {
-  const pct = total ? Math.min(100, Math.round((done / total) * 100)) : 0;
-  return h(
-    'div',
-    {
-      className: 'progress-track',
-      role: 'progressbar',
-      'aria-label': labelText,
-      'aria-valuenow': done,
-      'aria-valuemin': 0,
-      'aria-valuemax': total
-    },
-    h('div', { className: 'progress-fill', style: `width:${pct}%` })
-  );
+  const safeMax = Math.max(1, total);
+  const clamped = Math.min(safeMax, Math.max(0, done));
+  return h('progress', {
+    className: 'progress-native',
+    value: total ? clamped : 0,
+    max: safeMax,
+    'aria-label': labelText,
+    'aria-valuenow': done,
+    'aria-valuemin': 0,
+    'aria-valuemax': total
+  });
 }
 
 export function computeTrackProgress(
@@ -134,7 +132,7 @@ export function ProfileProgressPage({ state, lessons, tracks }: ProfileProgressP
       h(
         'div',
         { className: 'stat-pill' },
-        h('span', { style: 'font-size:27px', 'aria-hidden': 'true' }, '✧'),
+        h('span', { className: 'icon-kpi', 'aria-hidden': 'true' }, '✧'),
         h(
           'div',
           {},
@@ -145,7 +143,7 @@ export function ProfileProgressPage({ state, lessons, tracks }: ProfileProgressP
       h(
         'div',
         { className: 'stat-pill' },
-        h('span', { style: 'font-size:27px', 'aria-hidden': 'true' }, '▣'),
+        h('span', { className: 'icon-kpi', 'aria-hidden': 'true' }, '▣'),
         h(
           'div',
           {},
@@ -156,7 +154,7 @@ export function ProfileProgressPage({ state, lessons, tracks }: ProfileProgressP
       h(
         'div',
         { className: 'stat-pill' },
-        h('span', { style: 'font-size:27px', 'aria-hidden': 'true' }, '♛'),
+        h('span', { className: 'icon-kpi', 'aria-hidden': 'true' }, '♛'),
         h(
           'div',
           {},
@@ -167,7 +165,7 @@ export function ProfileProgressPage({ state, lessons, tracks }: ProfileProgressP
       h(
         'div',
         { className: 'stat-pill' },
-        h('span', { style: 'font-size:27px', 'aria-hidden': 'true' }, '◆'),
+        h('span', { className: 'icon-kpi', 'aria-hidden': 'true' }, '◆'),
         h(
           'div',
           {},
@@ -190,14 +188,14 @@ export function ProfileProgressPage({ state, lessons, tracks }: ProfileProgressP
             h(
               'div',
               { className: 'flex space-between' },
-              h('h3', { style: 'font-size:21px' }, item.level),
+              h('h3', { className: 'heading-21' }, item.level),
               chip(`${item.count}/12`, 'purple')
             ),
             h('div', { className: 'space24' }),
             progressBar(item.count, 12, `Progreso nivel ${item.level}`),
             h(
               'p',
-              { className: 'card-desc', style: 'margin:14px 0' },
+              { className: 'card-desc my-14' },
               item.count === 12 ? 'Nivel completado' : `${12 - item.count} lecciones pendientes`
             ),
             h(
@@ -229,7 +227,7 @@ export function ProfileProgressPage({ state, lessons, tracks }: ProfileProgressP
               h('span', { className: 'track-icon', 'aria-hidden': 'true' }, iconFor(track.icon)),
               chip(`${trackDone}/${total}`, trackDone === total && total > 0 ? 'green' : 'cyan')
             ),
-            h('h3', { className: 'card-title', style: 'margin-top:10px' }, track.title),
+            h('h3', { className: 'card-title mt-10' }, track.title),
             h('p', { className: 'card-desc' }, `${track.from} — ${track.to} · ${track.description}`),
             h('div', { className: 'space12' }),
             progressBar(trackDone, total, `Progreso itinerario ${track.title}`),

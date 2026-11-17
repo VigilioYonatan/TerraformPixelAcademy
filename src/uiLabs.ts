@@ -89,7 +89,7 @@ export function LabsDirectory({ lessons, seniorCases, category, searchQuery }: L
     h('div', { className: 'space24' }),
     h(
       'div',
-      { className: 'card', style: 'margin-bottom:20px' },
+      { className: 'card mb-20' },
       h('h3', { className: 'card-title' }, 'Comienza con Terraform CLI en tu equipo'),
       h(
         'p',
@@ -124,10 +124,10 @@ export function LabsDirectory({ lessons, seniorCases, category, searchQuery }: L
     ),
     h(
       'div',
-      { className: 'flex space-between', style: 'flex-wrap:wrap;gap:12px' },
+      { className: 'flex space-between wrap gap-12' },
       h(
         'div',
-        { className: 'tabs', style: 'margin-bottom:0;border-bottom:0' },
+        { className: 'tabs tabs-flush' },
         ...CATEGORY_TABS.map((tab) =>
           h(
             'button',
@@ -225,7 +225,7 @@ export function LabsDirectory({ lessons, seniorCases, category, searchQuery }: L
                   { className: 'list-card-info' },
                   h(
                     'div',
-                    { className: 'flex-wrap', style: 'margin-bottom:4px' },
+                    { className: 'flex-wrap mb-4' },
                     chip(c.severity, c.severity === 'Crítico' ? 'red' : 'yellow'),
                     chip(c.pillar, 'cyan')
                   ),

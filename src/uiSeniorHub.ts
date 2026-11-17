@@ -23,7 +23,7 @@ function stat(value: string | number, description: string, icon: string) {
   return h(
     'div',
     { className: 'stat-pill' },
-    h('span', { style: 'font-size:28px;color:var(--purple)' }, icon),
+    h('span', { className: 'icon-hub' }, icon),
     h('div', {}, h('div', { className: 'number' }, String(value)), h('div', { className: 'caption' }, description))
   );
 }
@@ -49,8 +49,8 @@ export function SeniorDashboard({
       h(
         'div',
         {},
-        h('div', { className: 'eyebrow', style: 'color:#dab3ff' }, '♛ TERRAPIXEL · SENIOR MODE'),
-        h('h1', {}, 'Decide como un', h('br', {}), h('span', { style: 'color:#c68dff' }, 'Platform Engineer')),
+        h('div', { className: 'eyebrow eyebrow-senior-hero' }, '♛ TERRAPIXEL · SENIOR MODE'),
+        h('h1', {}, 'Decide como un', h('br', {}), h('span', { className: 'accent-senior-hero' }, 'Platform Engineer')),
         h(
           'p',
           { className: 'hero-desc' },
@@ -107,10 +107,10 @@ export function SeniorDashboard({
       ),
       h(
         'div',
-        { className: 'flex space-between', style: 'flex-wrap:wrap;gap:12px;margin-bottom:14px' },
+        { className: 'flex space-between wrap gap-12 mb-14' },
         h(
           'div',
-          { className: 'tabs', style: 'margin-bottom:0;border-bottom:0' },
+          { className: 'tabs tabs-flush' },
           ...SEVERITY_TABS.map((sev) =>
             h(
               'button',
@@ -179,14 +179,14 @@ export function SeniorDashboard({
                     done ? 'green' : c.severity === 'Crítico' ? 'red' : 'yellow'
                   )
                 ),
-                h('div', { className: 'eyebrow', style: 'font-size:10px;margin-top:6px' }, c.pillar),
+                h('div', { className: 'eyebrow eyebrow-xs' }, c.pillar),
                 h('h3', {}, c.title),
                 h('p', {}, c.subtitle),
                 h(
                   'div',
                   { className: 'flex space-between' },
                   h('span', { className: 'small-note' }, `${c.xp} XP`),
-                  h('span', { className: 'color-purple', style: 'font-size:12px;font-weight:800' }, 'Abrir caso →')
+                  h('span', { className: 'color-purple link-cta-sm' }, 'Abrir caso →')
                 )
               );
             })

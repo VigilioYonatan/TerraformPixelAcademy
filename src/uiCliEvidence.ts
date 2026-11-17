@@ -88,7 +88,7 @@ export function CliEvidenceDashboard({ manifest, error }: EvidenceProps) {
       error ? h('div', { className: 'alert', role: 'alert' }, error) : null,
       h(
         'div',
-        { className: 'notice', style: 'margin-top:18px' },
+        { className: 'notice mt-18' },
         'Importar el manifiesto NO autentica al ejecutor, no comprueba hashes frente a logs originales y nunca concede aprobación de despliegue. ',
         'Los logs reales pueden contener información privada: no los subas a la academia.'
       )

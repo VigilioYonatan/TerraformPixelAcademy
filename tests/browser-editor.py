@@ -76,7 +76,9 @@ try:
         assert page.locator('.cm-editor').get_attribute('data-editor-theme') == 'dark'
         assert page.locator('.cm-lineNumbers .cm-gutterElement').count() >= 2
         assert page.locator('.tok-keyword').count() >= 1
-        page.locator('[data-action="theme-toggle"]').click()
+        page.goto(f'{base_url}/#/ajustes')
+        page.locator('[data-input="theme"]').select_option('light')
+        page.goto(f'{base_url}/#/leccion/B04')
         assert page.locator('.cm-editor').get_attribute('data-editor-theme') == 'light'
         assert not errors, errors
         print(f'EDITOR HTTP SMOKE: PASS over {base_url} (real CodeMirror 6 ESM, dark/light Compartment)')

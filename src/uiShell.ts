@@ -122,7 +122,7 @@ function Footer() {
         ),
         h(
           'p',
-          { style: 'margin-top:11px' },
+          { className: 'mt-11' },
           'Aprendizaje de IaC con simulaciones educativas explícitas. No afiliado, patrocinado ni certificado por HashiCorp. Terraform es una marca de HashiCorp.'
         )
       ),

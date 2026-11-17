@@ -111,7 +111,7 @@ export function PlanFixturesPanel({ fixtures, selectedPlanId, showPlanRisks }: P
           'div',
           {},
           h('div', { className: 'eyebrow' }, `PLAN DIDÁCTICO · ${fixture.environment.toUpperCase()}`),
-          h('h2', { style: 'margin-top:8px' }, fixture.title)
+          h('h2', { className: 'mt-8' }, fixture.title)
         ),
         chip('SYNTHETIC_FIXTURE', 'yellow')
       ),
@@ -204,7 +204,7 @@ export function SeniorReleaseGate({ gateAnswers, gateReview }: SeniorReleaseGate
     ),
     h(
       'div',
-      { className: 'flex-wrap', style: 'margin-top:10px' },
+      { className: 'flex-wrap mt-10' },
       h(
         'button',
         { type: 'button', className: 'btn btn-primary', 'data-action': 'run-release-gate' },
@@ -258,7 +258,7 @@ export function LocalPlanInspector({ userPlan, userPlanError, gateAnswers, gateR
 
   return h(
     'section',
-    { className: 'content-panel', style: 'margin-top:24px', id: 'real-plan-review' },
+    { className: 'content-panel mt-24', id: 'real-plan-review' },
     h(
       'div',
       { className: 'flex space-between' },
@@ -266,7 +266,7 @@ export function LocalPlanInspector({ userPlan, userPlanError, gateAnswers, gateR
         'div',
         {},
         h('div', { className: 'eyebrow' }, 'ANÁLISIS LOCAL · ARCHIVO DEL ESTUDIANTE'),
-        h('h2', { style: 'margin:8px 0' }, 'Inspeccionar terraform show -json')
+        h('h2', { className: 'my-8' }, 'Inspeccionar terraform show -json')
       ),
       chip('SIN SUBIR A SERVIDOR', 'green')
     ),
@@ -313,7 +313,7 @@ export function LocalPlanInspector({ userPlan, userPlanError, gateAnswers, gateR
         '↓ Ejemplo plan-sintetico.json'
       )
     ),
-    userPlanError ? h('div', { className: 'alert', role: 'alert', style: 'margin-top:12px' }, userPlanError) : null,
+    userPlanError ? h('div', { className: 'alert mt-12', role: 'alert' }, userPlanError) : null,
     userPlan ? h(SeniorReleaseGate, { gateAnswers, gateReview }) : null,
     userPlan
       ? h(
@@ -321,11 +321,11 @@ export function LocalPlanInspector({ userPlan, userPlanError, gateAnswers, gateR
           {},
           h(
             'div',
-            { className: 'notice', role: 'status', style: 'margin-top:15px' },
+            { className: 'notice mt-15', role: 'status' },
             h('b', {}, 'Procedencia: USER_SUPPLIED_TERRAFORM_JSON'),
             ` · Terraform ${userPlan.terraformVersion} · ${userPlan.total} cambios · ${userPlan.destructive} destructivos · ${userPlan.sensitiveCount} marcados sensitive · ${userPlan.driftCount} eventos drift. No se verifica ejecución cloud.`
           ),
-          h('div', { className: 'flex-wrap', style: 'margin:16px 0' }, ...summaryBadges),
+          h('div', { className: 'flex-wrap my-16' }, ...summaryBadges),
           h(
             'div',
             { className: 'plan-import-results' },
@@ -363,7 +363,7 @@ export function LocalPlanInspector({ userPlan, userPlanError, gateAnswers, gateR
             ? h(
                 'div',
                 {},
-                h('h3', { style: 'margin:16px 0 10px' }, 'Drift reportado por Terraform (metadatos)'),
+                h('h3', { className: 'drift-heading' }, 'Drift reportado por Terraform (metadatos)'),
                 h(
                   'div',
                   { className: 'plan-import-results' },

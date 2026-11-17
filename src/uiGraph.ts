@@ -78,7 +78,7 @@ export function GraphExplorer({ graphs, selectedGraphId, selectedNodeId }: Graph
     return h(
       'div',
       { id: 'graph-explorer-empty', className: 'empty-state', role: 'status' },
-      h('img', { src: mascotUrl('descanso'), alt: 'Terra en pausa', width: 180, style: 'margin:auto' }),
+      h('img', { src: mascotUrl('descanso'), alt: 'Terra en pausa', width: 180, className: 'mx-auto' }),
       h('h1', { className: 'page-title' }, 'Sin topologías disponibles'),
       h('p', {}, 'No se encontraron definiciones de grafos para visualizar en este momento.'),
       h('div', { className: 'space24' }),
@@ -162,14 +162,14 @@ export function GraphExplorer({ graphs, selectedGraphId, selectedNodeId }: Graph
       { className: 'content-panel' },
       h(
         'div',
-        { className: 'flex space-between', style: 'align-items:start' },
+        { className: 'flex space-between items-start' },
         h('div', {}, h('h2', {}, graph.title), h('p', { className: 'prose' }, graph.description)),
         chip('SIMULACIÓN VISUAL', 'yellow')
       ),
       analysis.hasCycle
         ? h(
             'div',
-            { className: 'alert', role: 'status', style: 'margin-top:14px' },
+            { className: 'alert mt-14', role: 'status' },
             h('strong', {}, '⚠ Dependencia circular detectada: '),
             'Terraform rechazará construir el grafo acíclico dirigido (DAG) hasta romper esta referencia mutua entre módulos/recursos.'
           )
@@ -254,7 +254,7 @@ export function GraphExplorer({ graphs, selectedGraphId, selectedNodeId }: Graph
           chip(activeNode.category, 'purple'),
           chip(activeNode.level, activeNode.level === 'Error' ? 'red' : 'cyan')
         ),
-        h('h3', { style: 'margin:10px 0' }, activeNode.label),
+        h('h3', { className: 'my-10' }, activeNode.label),
         h('p', { className: 'prose' }, activeNode.description),
         h(
           'p',
@@ -263,7 +263,7 @@ export function GraphExplorer({ graphs, selectedGraphId, selectedNodeId }: Graph
         ),
         h(
           'p',
-          { className: 'small-note', style: 'margin-top:4px' },
+          { className: 'small-note mt-4' },
           `Radio de impacto aguas abajo: ${analysis.downstreamIds.length ? analysis.downstreamIds.map((id) => labelById.get(id) || id).join(', ') : 'sin consumidores dependientes'}.`
         )
       ),

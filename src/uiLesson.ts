@@ -37,19 +37,17 @@ function chip(text: string, variant = 'purple') {
 }
 
 function progressBar(done: number, total: number, labelText: string) {
-  const pct = total ? Math.min(100, Math.round((done / total) * 100)) : 0;
-  return h(
-    'div',
-    {
-      className: 'progress-track',
-      role: 'progressbar',
-      'aria-label': labelText,
-      'aria-valuenow': done,
-      'aria-valuemin': 0,
-      'aria-valuemax': total
-    },
-    h('div', { className: 'progress-fill', style: `width:${pct}%` })
-  );
+  const safeMax = Math.max(1, total);
+  const clamped = Math.min(safeMax, Math.max(0, done));
+  return h('progress', {
+    className: 'progress-native',
+    value: total ? clamped : 0,
+    max: safeMax,
+    'aria-label': labelText,
+    'aria-valuenow': done,
+    'aria-valuemin': 0,
+    'aria-valuemax': total
+  });
 }
 
 export function EvaluationFeedback({ result }: { result: EvalResult }) {
@@ -130,9 +128,9 @@ export function LessonClassroom({ lesson, lessons, state, evalResult }: LessonCl
             { className: 'objective-strip' },
             h(
               'div',
-              { style: 'flex:1' },
+              { className: 'flex-1' },
               h('div', { className: 'eyebrow' }, `CONCEPTO · ${lesson.level.toUpperCase()}`),
-              h('h2', { style: 'margin:8px 0' }, 'Lo que aprenderás'),
+              h('h2', { className: 'my-8' }, 'Lo que aprenderás'),
               h('p', { className: 'prose' }, lesson.concept)
             ),
             h('img', { src: mascotUrl('leyendo'), alt: 'Terra leyendo un manual' })
@@ -171,7 +169,7 @@ export function LessonClassroom({ lesson, lessons, state, evalResult }: LessonCl
             h(
               'div',
               { className: 'flex' },
-              h('span', { style: 'color:#8a62e9', 'aria-hidden': 'true' }, '▣'),
+              h('span', { className: 'icon-file-tab', 'aria-hidden': 'true' }, '▣'),
               h('span', { className: 'file-tab' }, 'main.tf')
             ),
             h('span', { className: 'editor-tag' }, 'HCL · editor de texto')
@@ -235,7 +233,7 @@ export function LessonClassroom({ lesson, lessons, state, evalResult }: LessonCl
           'section',
           { className: 'content-panel' },
           h('div', { className: 'eyebrow' }, 'COMPRENSIÓN'),
-          h('h2', { style: 'margin-top:9px' }, 'Pon a prueba tu criterio'),
+          h('h2', { className: 'mt-9' }, 'Pon a prueba tu criterio'),
           h('p', { className: 'prose' }, lesson.question),
           h('div', { className: 'space16' }),
           ...lesson.options.map((opt, i) => {
@@ -315,16 +313,11 @@ export function LessonClassroom({ lesson, lessons, state, evalResult }: LessonCl
                 { className: 'case-review', id: 'lesson-senior-callout' },
                 h(
                   'div',
-                  { className: 'flex space-between', style: 'flex-wrap:wrap;gap:8px;margin-bottom:8px' },
+                  { className: 'flex space-between wrap gap-8 mb-8' },
                   h('b', {}, `♛ PREGUNTA DE ARQUITECTURA · ${lesson.id}`),
                   chip(`${seniorCtx.domain} · ${seniorCtx.relatedCaseId}`, 'yellow')
                 ),
-                h(
-                  'p',
-                  { style: 'margin-bottom:8px' },
-                  h('strong', {}, 'Riesgo en producción: '),
-                  seniorCtx.productionRisk
-                ),
+                h('p', { className: 'mb-8' }, h('strong', {}, 'Riesgo en producción: '), seniorCtx.productionRisk),
                 h('p', {}, seniorCtx.architecturePrompt),
                 h('div', { className: 'space12' }),
                 h(

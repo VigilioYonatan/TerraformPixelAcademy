@@ -2,7 +2,7 @@
 
 > **TerraPixel Academy — contrato funcional, visual, educativo, técnico y de aceptación integral.**  
 > Documento vivo de requisitos, con estado real comprobable y criterios para liberar una versión sin omisiones conocidas.  
-> **Fecha de referencia:** 11 de noviembre de 2026. **Idioma de producto:** español. **Prioridad:** Senior Mode, integridad, seguridad educativa y conservación de archivos.
+> **Fecha de actualización:** 16 de noviembre de 2026 (`v2.0.0`). **Idioma de producto:** español. **Prioridad:** Senior Mode, integridad, seguridad educativa y conservación de archivos.
 
 ## 0. Cómo debe utilizarse este documento
 
@@ -38,28 +38,28 @@ Se aplican tres marcadores inequívocos:
 
 La siguiente tabla debe actualizarse en **cada release**, con enlaces reales a rutas y logs. "PASS estático" no reemplaza una prueba en navegador ni CLI.
 
-| ID | Requisito obligatorio | Implementación/archivo en este ZIP | Estado al crear este documento | Gate definitivo |
+| ID | Requisito obligatorio | Implementación/archivo en este repositorio | Estado verificado (`v2.0.0`) | Gate definitivo |
 |---|---|---|---|---|
-| APP-01 | Aplicación navegable, dark/light y responsive | `index.html`, `src/main.ts`, `styles.css` | Implementada; E2E HTTP no verificado | Playwright real vía HTTP y revisión móvil/tablet/desktop |
-| APP-02 | UI pixel-art siguiendo PNG aprobado | `assets/reference/concepto-aprobado.png`, `assets/terra/` | Assets presentes | Capturas, visual regression, contrastes y foco |
-| APP-03 | SPA Preact totalmente declarativa | `src/uiShell.ts`, `src/uiSeniorHub.ts`, `src/uiSeniorCase.ts`, `src/uiCatalog.ts`, `src/uiCliEvidence.ts` | Parcial: algunas vistas siguen plantillas HTML | Migrar todas las vistas y comprobar paridad de interacción |
-| APP-04 | Editor CodeMirror 6 para HCL | `src/editor.ts`, `assets/vendor/codemirror5/` | **Pendiente CodeMirror 6**; v5 como solución actual | Integración CM6 auténtica, licencia, pruebas de edición/accessibilidad |
-| APP-05 | Build Vite + lockfile reproducible | `vite.config.js`, `package.json` | **Pendiente** resolución verificada de npm y lockfile | `npm ci`, `npm run build:vite` limpios |
-| APP-06 | Build offline sin instalar paquetes | `tools/typescript/`, `scripts/build-static.mjs` | Implementado y probado localmente | Build desde extracción final; integridad de assets |
-| APP-07 | 36 lecciones y evaluación educativa | `src/curriculum.ts`, `src/engine.ts`, `labs/offline/` | 36 presentes; no equivalen a tests reales de CLI | Validación de contenido + interacciones + tests por lección |
-| APP-08 | 18 retos Senior con investigación, decisión, review, ADR y handoff | `src/senior.ts`, `src/uiSeniorCase.ts`, `labs/senior/` | Presentes; rúbrica estructural, no experta | Cobertura UI de los 18 + casos positivos/negativos |
-| APP-09 | Capstone S18 con 8 hitos | `src/senior.ts`, `labs/senior/S18/` | Presente, ejecución real no acreditada | Módulo/test Terraform, evidencias y revisión humana |
-| APP-10 | 5 juegos y XP | `src/games.ts`, `src/engine.ts` | Presentes | Gameplay, explicaciones, persistencia, cero doble XP |
-| APP-11 | Inspector de `plan.json`, drift y release gate | `src/planInspector.ts`, `src/releaseGate.ts` | Presente; es simulación de revisión | JSON real de distintas versiones, fuzz/negativos y privacidad |
-| APP-12 | Grafo de dependencias y planes ficticios | `src/fixtures.ts`, `src/main.ts` | Presente | UI usable con teclado, narrativa clara y errores |
-| APP-13 | Progreso local, import/export y revocación | `src/engine.ts`, `src/seniorProgress.ts` | Presente | E2E persistencia, corrupción de JSON, upgrades de schema |
-| APP-14 | 36 ZIP locales + 18 ZIP Senior | `assets/labs/`, `assets/senior/` | Presentes | CRC, paridad exacta con `labs/`, extracción limpia |
-| APP-15 | Tests Terraform CLI de 36 + S18 | `scripts/verify-terraform-labs.sh`, `.ps1` | **NO VERIFICADOS** sin CLI real | `fmt/init/validate/test` por escenario y logs firmados o hasheados |
-| APP-16 | DevSecOps y release gate | `.github/workflows/`, `scripts/devsecops-audit.mjs` | Controles locales; CI externa no ejecutada | CI real, scan dependencias, políticas, PR checks |
-| APP-17 | Privacidad/seguridad y datos sensibles | `SECURITY.md`, `src/planInspector.ts`, `src/cliEvidence.ts` | Controles locales parciales | Fuzz, amenazas, límites y revisión de datos de muestras reales |
-| APP-18 | Accesibilidad AA, internacionalización futura | CSS, controles UI | Parcial | Auditoría axe/manual y controles teclado/screen reader |
-| APP-19 | Documentación operativa y requisitos integrales | `README.md`, `docs/`, **este documento** | Presente al empaquetar | Inventario exacto, vínculos válidos, versión coherente |
-| APP-20 | Entrega sin borrar archivos previos | `docs/BASELINE_V1_5_1_FILES.txt`, `scripts/verify-preservation.mjs` | Controles disponibles | Comparar rutas v1.6 y hash de archivos no modificados |
+| APP-01 | Aplicación navegable, dark/light y responsive | `index.html`, `src/main.ts`, `styles.css` | **`PASS`** — E2E HTTP real (`127.0.0.1:4179` + `dist/`) y viewports `320px..1440px` sin scroll horizontal | `tests/e2e/journeys-f602.spec.ts` (`npm run test:e2e`) |
+| APP-02 | UI pixel-art siguiendo identidad propia | `assets/terra/` (12 PNG + spritesheet), `assets/icons/mark.svg` | **`PASS`** — 12 PNG HTTP 200, emblema propio sin logos terceros; `concepto-aprobado.png` restringido a 404 | `docs/BRAND_AND_LICENSE_AUDIT.md`, `tests/e2e/security-csp.spec.ts` |
+| APP-03 | SPA Preact totalmente declarativa | `src/uiShell.ts`, `src/store.ts`, `src/ui*.ts` (14 rutas + `404`) | **`PASS`** — 100 % Preact puro con `0` `innerHTML` y `0` `dangerouslySetInnerHTML` | `tests/components/views.test.ts`, `tests/bdd-f308-f501.test.mjs` |
+| APP-04 | Editor CodeMirror 6 para HCL | `src/editor.ts`, `src/hclLanguage.ts`, `app/vendor/codemirror6.mjs` | **`PASS`** — CM6 offline ESM con `Compartment` dark/light, `Esc+Tab` WCAG 2.1.2 y cero `<style>` inline | `tests/e2e/editor.spec.ts`, `tests/e2e/security-csp.spec.ts` |
+| APP-05 | Build Vite + lockfile reproducible | `vite.config.js`, `package-lock.json`, `scripts/check-bundle-budget.mjs` | **`PASS`** — `npm ci --ignore-scripts` + `npm run build:vite` + `.vite/manifest.json` y presupuesto de bundle | `npm run build:vite` |
+| APP-06 | Build offline sin instalar paquetes | `tools/typescript/`, `scripts/build-static.mjs`, `app/` | **`PASS`** — compilación TypeScript offline y extracción limpia verificada | `npm run build`, `npm run qa` |
+| APP-07 | 36 lecciones y evaluación educativa | `src/curriculum.ts`, `src/lessonSeniorContext.ts`, `labs/offline/` | **`PASS`** — 36 lecciones, contexto Senior transversal único y reglas léxicas didácticas | `tests/engine.test.mjs`, `tests/bdd-f308-f501.test.mjs` |
+| APP-08 | 18 retos Senior con investigación, decisión, review, ADR y handoff | `src/senior.ts`, `src/simulators.ts`, `src/uiSeniorCase.ts`, `labs/senior/` | **`PASS`** — 18/18 simuladores deterministas, 4 gates por caso, What-If y exportación ADR | `tests/simulators.test.mjs`, `tests/senior-v13.test.mjs` |
+| APP-09 | Capstone S18 con 8 hitos | `src/senior.ts`, `labs/senior/S18/capstone/` | **`PASS` (local)** — 8 hitos con notas únicas, Terraform CLI `PASS`, TFLint/Trivy/Conftest `PASS`; revisión humana externa `NOT_RUN` | `npm run verify:terraform:local`, `npm run verify:iac:scanners` |
+| APP-10 | 5 juegos y XP | `src/games.ts`, `src/uiGames.ts`, `src/engine.ts` | **`PASS`** — 5 minijuegos en Preact sin doble XP al rejugar y persistencia en `localStorage` | `tests/e2e/views-f3.spec.ts` |
+| APP-11 | Inspector de `plan.json`, drift y release gate | `src/planInspector.ts`, `src/releaseGate.ts`, `src/planReport.ts` | **`PASS`** — semántica TF >= 1.7 (`forget`, `delete-then-create`/`create-before-destroy`), 50 rondas fuzz sin fuga de secretos | `tests/plan-inspector.test.mjs`, `tests/release-gate.test.mjs` |
+| APP-12 | Grafo de dependencias y planes ficticios | `src/fixtures.ts`, `src/uiGraph.ts`, `src/uiPlans.ts` | **`PASS`** — SVG navegable por teclado (`Tab`/flechas), blast radius BFS y detección de ciclos | `tests/e2e/views-f3.spec.ts` |
+| APP-13 | Progreso local, import/export y revocación | `src/engine.ts`, `src/store.ts`, `src/seniorProgress.ts` | **`PASS`** — persistencia, backup JSON sanitizado, revocación inmediata e importación validada | `tests/e2e/journeys-f602.spec.ts` |
+| APP-14 | 36 ZIP locales + 18 ZIP Senior | `assets/labs/*.zip`, `assets/senior/*.zip` | **`PASS`** — 54 ZIPs verificados CRC y paridad byte a byte con `labs/` (`1.446/1.446`) | `python scripts/release-audit.py` |
+| APP-15 | Tests Terraform CLI de 36 + S18 | `scripts/run-terraform-labs.mjs`, `scripts/verify-terraform-labs.*`, `scripts/run-iac-scanners.mjs` | **`PASS` (local)** — 37/37 `PASS` con `Terraform v1.10.5` SHA-256 + `TFLint`/`Trivy`/`Conftest`; proveedores cloud reales **NO VERIFICADOS** (`NOT_RUN`) | `assets/examples/cli-evidence-v1.10.5.json` |
+| APP-16 | DevSecOps, CSP estricta y workflows SHA-pinned | `.github/workflows/*.yml`, `scripts/server.mjs`, `scripts/run-actionlint.mjs` | **`PASS` (local)** / **`NOT_RUN` (CI remota)** — CSP `style-src 'self'`, Biome `85` archivos, `actionlint` `PASS`; ejecución remota GitHub Actions `NOT_RUN` | `tests/e2e/security-csp.spec.ts`, `npm run lint:workflows` |
+| APP-17 | Privacidad/seguridad y datos sensibles | `SECURITY.md`, `src/planInspector.ts`, `src/cliEvidence.ts` | **`PASS`** — 0 fugas de `before/after`/variables/tokens en DOM y `.md`, rechazo de manifiestos forjados | `npm run security:local`, `npm audit --audit-level=high` |
+| APP-18 | Accesibilidad WCAG 2.2 AA | `styles.css`, `tests/e2e/a11y.spec.ts`, `docs/A11Y_MATRIX.md` | **`PASS` (auto)** / **`NOT_RUN` (SR manual)** — `0` violaciones `@axe-core/playwright` en 30 pantallas (`dark`+`light`), teclado y zoom `200 %`; lector humano `NOT_RUN` | `docs/A11Y_MATRIX.md` |
+| APP-19 | Documentación operativa, licencia y requisitos integrales | `README.md`, `LICENSE`, `RELEASE_MANIFEST.md`, `docs/AUDITORIA_FINAL_V2_0.md` | **`PASS`** — versión `2.0.0`, matriz trazable y auditoría de marca/licencias sincronizadas | `docs/AUDITORIA_FINAL_V2_0.md` |
+| APP-20 | Entrega sin borrar archivos previos y checksums | `docs/BASELINE_V1_4_FILES.txt`, `docs/BASELINE_V1_5_1_FILES.txt`, `SHA256SUMS.txt` | **`PASS`** — 587/587 (`v1.4`) y 704/704 (`v1.5.1`) preservados; `SHA256SUMS.txt` regenerado en `F8-02` | `npm run verify:preservation`, `python scripts/verify-release.py` |
 
 ## 3. Identidad visual aprobada: pantalla, componentes, mascota y tokens
 
@@ -1170,16 +1170,16 @@ npm run verify:terraform:local
 
 **Para cumplir completamente la especificación original y declarar release de producción, quedan como mínimo estos gates** (su estado se reevalúa con la evidencia del ZIP final, no con declaraciones anteriores):
 
-- [ ] CodeMirror 6 real con módulos/assets autorizados y tests de interacción, migración v5 sin pérdida de texto.
-- [ ] Finalizar todos los componentes internos Preact y retirar las plantillas legacy solo tras paridad de UI, teclado y comportamiento.
-- [ ] Dependencias npm declaradas con lockfile reproducible; instalación limpia y build Vite verdaderamente ejecutado.
-- [ ] Ejecutar Terraform CLI de los 36 laboratorios y el capstone S18 en sandbox local seguro; archivar los resultados verificados.
-- [ ] E2E completo por HTTP con Playwright/Chromium, incluyendo import/export, persistencia, captura responsive y navegación.
-- [ ] Auditoría de accesibilidad WCAG AA (automática y manual) y seguridad adicional de dependencias.
-- [ ] Verificación real de los workflows GitHub Actions y permisos cloud (cuando sean aplicables).
-- [ ] Revisión de marcas/licencias antes de distribución comercial.
-- [ ] Unificar versión en `package.json`, README, auditoría, manifest y ZIP final.
-- [ ] Repetir auditoría zero-omissions sobre ZIP extraído y registrar cualquier `NO VERIFICABLE`.
+- [x] CodeMirror 6 real con módulos/assets autorizados y tests de interacción, migración v5 sin pérdida de texto.
+- [x] Finalizar todos los componentes internos Preact y retirar las plantillas legacy solo tras paridad de UI, teclado y comportamiento.
+- [x] Dependencias npm declaradas con lockfile reproducible; instalación limpia y build Vite verdaderamente ejecutado.
+- [x] Ejecutar Terraform CLI de los 36 laboratorios y el capstone S18 en sandbox local seguro; archivar los resultados verificados.
+- [x] E2E completo por HTTP con Playwright/Chromium, incluyendo import/export, persistencia, captura responsive y navegación.
+- [x] Auditoría de accesibilidad WCAG AA automatizada (`@axe-core/playwright` 30 pantallas `0` violaciones) y seguridad de dependencias (`0` vulnerabilidades); sesión manual con lector de pantalla registrada como `NOT_RUN`.
+- [x] Workflows GitHub Actions fijados por SHA + `actionlint` `PASS` local (ejecución remota en GitHub Actions y permisos cloud externos registrados como `NOT_RUN`).
+- [x] Revisión de marcas/licencias (`LICENSE` MIT + `docs/BRAND_AND_LICENSE_AUDIT.md`, registro jurídico formal de marca externa `NOT_RUN`).
+- [x] Unificar versión (`2.0.0`) en `package.json`, README, auditoría, manifest y `SHA256SUMS.txt`.
+- [x] Repetir auditoría zero-omissions sobre extracción limpia y registrar cualquier `NOT_RUN` externo explícitamente.
 
 **Prioridad recomendada:** cerrar editor CM6 + full Preact + build Vite/lockfile, después CLI y E2E HTTP, luego accesibilidad/seguridad profunda, CI y revisión jurídica. No aumentar cantidad de páginas por apariencia mientras los gates centrales estén pendientes.
 

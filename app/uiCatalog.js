@@ -4,7 +4,7 @@ import { h } from './vendor/preact.mjs';
 const levels = ['Todos', 'Básico', 'Intermedio', 'Avanzado'];
 export function LearningCatalog({ lessons, tracks, state, level, searchQuery = '' }) {
     const displayed = filterLessons(lessons, level, searchQuery);
-    return h('div', { id: 'learning-catalog' }, h('div', { className: 'breadcrumb' }, h('a', { href: ROUTES.home }, 'Inicio'), ' / Aprender'), h('div', { className: 'eyebrow' }, 'APRENDER TERRAFORM'), h('h1', { className: 'page-title' }, 'Tu mapa hacia IaC profesional'), h('p', { className: 'page-lead' }, '36 lecciones en tres niveles. Aprende HCL en navegador y descarga los proyectos Terraform para verificar la práctica en tu propio equipo.'), h('div', { className: 'space24' }), h('div', { className: 'flex space-between', style: 'flex-wrap:wrap' }, h('div', { className: 'tabs', style: 'margin-bottom:0;border-bottom:0' }, ...levels.map((name) => h('button', {
+    return h('div', { id: 'learning-catalog' }, h('div', { className: 'breadcrumb' }, h('a', { href: ROUTES.home }, 'Inicio'), ' / Aprender'), h('div', { className: 'eyebrow' }, 'APRENDER TERRAFORM'), h('h1', { className: 'page-title' }, 'Tu mapa hacia IaC profesional'), h('p', { className: 'page-lead' }, '36 lecciones en tres niveles. Aprende HCL en navegador y descarga los proyectos Terraform para verificar la práctica en tu propio equipo.'), h('div', { className: 'space24' }), h('div', { className: 'flex space-between wrap' }, h('div', { className: 'tabs tabs-flush' }, ...levels.map((name) => h('button', {
         key: name,
         type: 'button',
         className: `tab ${level === name ? 'active' : ''}`,

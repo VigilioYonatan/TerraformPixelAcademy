@@ -31,12 +31,7 @@ export function SettingsPage({ state }) {
         type: 'file',
         id: 'progress-file',
         accept: 'application/json,.json',
-        style: 'display:none',
+        className: 'file-input-hidden',
         'aria-label': 'Cargar archivo de progreso'
-    })), h('div', { className: 'space24' }), h('div', { className: 'alert' }, 'El respaldo incluye código editado, decisiones y evidencia Senior. Consérvalo como información personal. La importación reemplaza el progreso actual después de validación de estructura.'), h('div', { className: 'space24' }), h('button', { type: 'button', className: 'btn btn-danger', 'data-action': 'reset-progress' }, 'Eliminar todo mi progreso'), h('div', { className: 'space24' }), h('h3', { style: 'font-size:17px' }, 'Sobre los laboratorios'), h('p', { className: 'prose' }, 'Los comandos CLI se ejecutan en tu equipo. Los simuladores no hacen apply ni gestionan cuentas cloud.'))), h('section', { className: 'section' }, h('div', { className: 'card' }, h('h3', {}, 'Diseño e identidad original'), h('p', { className: 'card-desc' }, 'TerraPixel emplea identidad visual propia e independiente con 12 poses pixel-art originales de Terra; se archiva localmente la referencia conceptual inicial del proyecto.'), h('div', { className: 'space16' }), h('a', {
-        href: './assets/reference/concepto-aprobado.png',
-        target: '_blank',
-        rel: 'noopener noreferrer',
-        className: 'btn btn-soft'
-    }, '↗ Ver boceto de referencia archivado'))));
+    })), h('div', { className: 'space24' }), h('div', { className: 'alert' }, 'El respaldo incluye código editado, decisiones y evidencia Senior. Consérvalo como información personal. La importación reemplaza el progreso actual después de validación de estructura.'), h('div', { className: 'space24' }), h('button', { type: 'button', className: 'btn btn-danger', 'data-action': 'reset-progress' }, 'Eliminar todo mi progreso'), h('div', { className: 'space24' }), h('h3', { className: 'heading-17' }, 'Sobre los laboratorios'), h('p', { className: 'prose' }, 'Los comandos CLI se ejecutan en tu equipo. Los simuladores no hacen apply ni gestionan cuentas cloud.'))), h('section', { className: 'section' }, h('div', { className: 'card' }, h('h3', {}, 'Diseño, marca independiente y licencias'), h('p', { className: 'card-desc' }, 'TerraPixel Academy utiliza arte original independiente (12 poses pixel-art de Terra con emblema de rombo propio y símbolo DAG en mark.svg), sin logotipos oficiales de HashiCorp ni de proveedores cloud. El boceto histórico de referencia permanece archivado fuera de exposición pública HTTP.'), h('div', { className: 'space16' }), h('a', { href: ROUTES.resources, className: 'btn btn-soft' }, 'Consultar recursos y avisos de marca →'))));
 }

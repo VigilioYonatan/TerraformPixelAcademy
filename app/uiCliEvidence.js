@@ -17,7 +17,7 @@ export function CliEvidenceDashboard({ manifest, error }) {
         className: 'btn btn-soft',
         href: './assets/examples/cli-evidence-synthetic.json',
         download: 'cli-evidence-synthetic.json'
-    }, '↓ Ejemplo sintético')), error ? h('div', { className: 'alert', role: 'alert' }, error) : null, h('div', { className: 'notice', style: 'margin-top:18px' }, 'Importar el manifiesto NO autentica al ejecutor, no comprueba hashes frente a logs originales y nunca concede aprobación de despliegue. ', 'Los logs reales pueden contener información privada: no los subas a la academia.')), manifest && stats
+    }, '↓ Ejemplo sintético')), error ? h('div', { className: 'alert', role: 'alert' }, error) : null, h('div', { className: 'notice mt-18' }, 'Importar el manifiesto NO autentica al ejecutor, no comprueba hashes frente a logs originales y nunca concede aprobación de despliegue. ', 'Los logs reales pueden contener información privada: no los subas a la academia.')), manifest && stats
         ? h('section', { className: 'section' }, h('div', { className: 'flex space-between' }, h('h2', {}, 'Resultados declarados'), chip(manifest.origin === 'SYNTHETIC_EXAMPLE' ? 'SIMULACIÓN' : 'SIN ATESTACIÓN EXTERNA', manifest.origin === 'SYNTHETIC_EXAMPLE' ? 'yellow' : 'purple')), h('div', { className: 'space16' }), h('div', { className: 'cards-4' }, ...[
             ['PASS', stats.pass, 'green'],
             ['FAIL', stats.fail, 'red'],

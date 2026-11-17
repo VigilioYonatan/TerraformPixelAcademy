@@ -39,19 +39,17 @@ function chip(text: string, variant = 'purple') {
 }
 
 function progressBar(done: number, total: number, labelText = 'Progreso') {
-  const pct = total ? Math.min(100, Math.round((done / total) * 100)) : 0;
-  return h(
-    'div',
-    {
-      className: 'progress-track',
-      role: 'progressbar',
-      'aria-label': labelText,
-      'aria-valuenow': done,
-      'aria-valuemin': 0,
-      'aria-valuemax': total
-    },
-    h('div', { className: 'progress-fill', style: `width:${pct}%` })
-  );
+  const safeMax = Math.max(1, total);
+  const clamped = Math.min(safeMax, Math.max(0, done));
+  return h('progress', {
+    className: 'progress-native',
+    value: total ? clamped : 0,
+    max: safeMax,
+    'aria-label': labelText,
+    'aria-valuenow': done,
+    'aria-valuemin': 0,
+    'aria-valuemax': total
+  });
 }
 
 export function findNextLesson(lessons: readonly Lesson[], completed: readonly string[]): Lesson {
@@ -146,7 +144,7 @@ export function HomePage({ state, lessons }: HomeProps) {
             progressBar(finished, 12, `Progreso nivel ${meta.level}`),
             h(
               'div',
-              { className: 'flex space-between', style: 'margin-top:18px' },
+              { className: 'flex space-between mt-18' },
               h('span', { className: 'mini-strong' }, '12 lecciones'),
               h('span', { className: 'color-purple' }, 'Explorar →')
             )
@@ -221,14 +219,14 @@ export function HomePage({ state, lessons }: HomeProps) {
         { className: 'card' },
         h(
           'div',
-          { className: 'flex space-between', style: 'align-items:start' },
+          { className: 'flex space-between items-start' },
           h(
             'div',
             {},
-            h('h3', { style: 'font-size:21px' }, 'Preparación para Platform Engineering'),
+            h('h3', { className: 'heading-21' }, 'Preparación para Platform Engineering'),
             h(
               'p',
-              { className: 'text-sub', style: 'font-size:13px;margin-top:7px' },
+              { className: 'text-sub sub-lead-sm' },
               `${done} de 36 lecciones completadas. Avanza a tu ritmo y conserva el progreso localmente.`
             )
           ),
@@ -243,7 +241,7 @@ export function HomePage({ state, lessons }: HomeProps) {
           h(
             'div',
             { className: 'stat-pill' },
-            h('span', { style: 'font-size:27px' }, '✧'),
+            h('span', { className: 'icon-kpi' }, '✧'),
             h(
               'div',
               {},
@@ -254,7 +252,7 @@ export function HomePage({ state, lessons }: HomeProps) {
           h(
             'div',
             { className: 'stat-pill' },
-            h('span', { style: 'font-size:27px' }, '▣'),
+            h('span', { className: 'icon-kpi' }, '▣'),
             h(
               'div',
               {},
@@ -265,7 +263,7 @@ export function HomePage({ state, lessons }: HomeProps) {
           h(
             'div',
             { className: 'stat-pill' },
-            h('span', { style: 'font-size:27px' }, '♛'),
+            h('span', { className: 'icon-kpi' }, '♛'),
             h(
               'div',
               {},
@@ -276,7 +274,7 @@ export function HomePage({ state, lessons }: HomeProps) {
           h(
             'div',
             { className: 'stat-pill' },
-            h('span', { style: 'font-size:27px' }, '◆'),
+            h('span', { className: 'icon-kpi' }, '◆'),
             h(
               'div',
               {},
@@ -302,7 +300,7 @@ export function HomePage({ state, lessons }: HomeProps) {
         h(
           'div',
           {},
-          h('div', { className: 'eyebrow', style: 'color:#ce9eff' }, '♛ SOLO PARA QUIEN REVISA EL RIESGO'),
+          h('div', { className: 'eyebrow eyebrow-banner' }, '♛ SOLO PARA QUIEN REVISA EL RIESGO'),
           h('h3', {}, 'Senior Mode: más allá del terraform apply'),
           h(
             'p',

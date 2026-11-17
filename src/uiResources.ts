@@ -138,7 +138,7 @@ export function ResourcesPage({ glossarySearch }: ResourcesPageProps) {
             'div',
             { key: r.title, className: 'resource-card' },
             chip(r.tag, 'purple'),
-            h('h3', { style: 'margin-top:11px' }, r.title),
+            h('h3', { className: 'mt-11' }, r.title),
             h('p', {}, r.description),
             h(
               'a',
@@ -174,8 +174,8 @@ export function ResourcesPage({ glossarySearch }: ResourcesPageProps) {
               h(
                 'div',
                 { key: term, className: 'card glossary-tile' },
-                h('h3', { style: 'font-size:18px;color:var(--purple-bright)' }, term),
-                h('p', { className: 'card-desc', style: 'margin-top:9px' }, description)
+                h('h3', { className: 'glossary-term' }, term),
+                h('p', { className: 'card-desc mt-9' }, description)
               )
             )
           )
@@ -197,7 +197,7 @@ export function NotFoundPage() {
       src: mascotUrl('pensando'),
       alt: 'Terra confuso',
       width: 210,
-      style: 'margin:auto'
+      className: 'mx-auto'
     }),
     h('h1', { className: 'page-title' }, 'No encontré esta ruta'),
     h('p', {}, 'Revisa la URL o regresa al inicio.'),

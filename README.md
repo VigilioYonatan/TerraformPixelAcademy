@@ -1,249 +1,149 @@
-# TerraPixel Academy v1.7 — Senior Mode y documentación integral de requisitos
+# TerraPixel Academy (`v2.0.0`) — Plataforma Educativa Offline-First de IaC y Senior Mode
 
-## Documento principal obligatorio
-
-Lee **[`TODO_LO_QUE_DEBE_TENER_ESTA_APP.md`](TODO_LO_QUE_DEBE_TENER_ESTA_APP.md)** antes de desarrollar, auditar o declarar completa esta aplicación. Contiene 36 lecciones explicadas una a una, los 18 escenarios Senior con rúbricas, S18 con ocho hitos, rutas, diseño aprobado, especificación técnica, casos negativos, pruebas, faltantes y el anexo maestro íntegro. Es un **contrato de requisitos**, no una afirmación de que todos estén implementados o validados.
-
-**Mejoras que se incorporan en esta rama:** vistas `src/uiSeniorCase.ts`, `src/uiCatalog.ts` y `src/uiCliEvidence.ts` con componentes Preact; se mantienen legacy views en `src/main.ts` para compatibilidad y no eliminar funciones, por lo que la migración total Preact sigue abierta. La CLI Terraform, CodeMirror 6, Vite/lockfile y E2E HTTP real siguen sin evidencia de aprobación.
-
-**Inicio rápido:** Node.js 20.19+; descomprime, `npm start`, abre `http://localhost:4173`. No necesitas instalar dependencias para iniciar ni compilar el build estático con `npm run build`.
-
-## Novedades verificables de v1.6
-
-- Senior Dashboard, navegación, cabecera y footer ahora son componentes **Preact declarativos reales**. Las páginas internas de lecciones y casos conservan plantillas HTML por compatibilidad: la migración a Preact completo sigue INCOMPLETA.
-- Senior Plan Release Gate: carga local de `terraform show -json`, revisión determinista de operaciones destructivas, drift, acciones desconocidas, owners, costos y rollback. Emite solo `BLOCKED`, `NEEDS_EVIDENCE` o `READY_FOR_HUMAN_REVIEW`. **Jamás autoriza terraform apply**. Exporta informe `.md` sin datos before/after ni variables.
-- TypeScript 5.8.3 MIT está incluido en `tools/typescript/` para `npm run build` / `npm run typecheck` sin instalación npm. No se falsifica un `package-lock.json`.
-- 54 ZIP internos de laboratorios y Senior preservados; el repositorio previo mantiene todos sus archivos y scripts.
-- Nuevas pruebas Node y Chromium embebidas de políticas, revocación de resultados previos y componentes Preact.
-
-**Límites NO VERIFICADOS / SIN RESOLVER:** CodeMirror 6 (se conserva CodeMirror 5), migración total de vistas a componentes Preact, build de Vite y lockfile, ejecución real de 37 tests Terraform CLI, E2E HTTP de Chromium, CI GitHub externa y auditoría legal de marca. El editor del navegador NO ejecuta HCL real. `docs/AUDITORIA_FINAL_V1_6.md` contiene el estado de release sin aprobación ficticia.
+> **Academia web interactiva para aprender HashiCorp Terraform** desde fundamentos de HCL hasta diagnóstico de incidentes, revisión de planes `terraform show -json` y Platform Engineering. Proyecto independiente bajo licencia [`MIT`](./LICENSE), **sin afiliación ni certificación oficial de HashiCorp**.
 
 ---
 
-## Histórico: documentación v1.5.1 conservada para trazabilidad
+## Tabla de Contenidos
 
-# TerraPixel Academy — aprender Terraform con experiencia pixel art
+1. [Características Principales](#1-características-principales)
+2. [Stack Tecnológico](#2-stack-tecnológico)
+3. [Inicio Rápido (< 10 min)](#3-inicio-rápido--10-min)
+4. [Arquitectura y Estructura del Repositorio](#4-arquitectura-y-estructura-del-repositorio)
+5. [Límites de Seguridad y Ejecución](#5-límites-de-seguridad-y-ejecución)
+6. [Testing y Verificación Local](#6-testing-y-verificación-local)
+7. [CI/CD y Supply Chain](#7-cicd-y-supply-chain)
+8. [Troubleshooting](#8-troubleshooting)
+9. [Documentación Normativa e Histórica](#9-documentación-normativa-e-histórica)
+10. [Licencia y Marca](#10-licencia-y-marca)
 
-**Aplicación web educativa para enseñar HashiCorp Terraform, desde fundamentos hasta Platform Engineering.**  
-**Estado de esta entrega:** versión 1.5.1 educativa PARCIAL, aún NO APROBADA frente a la especificación completa (véase `docs/AUDITORIA_FINAL_V1_5.md` y `docs/RELEASE_NOTE_V1_5_1.md`). Frontend funcional en TypeScript con arte generado para la academia, 36 lecciones, 5 minijuegos, 18 retos Senior, visor de grafos/planes y packs de laboratorios locales. Los resultados de ejecución Terraform CLI y cloud están `NOT_RUN` en el entorno de generación.
+---
 
-La marca «TerraPixel Academy» es **provisional** y no pretende afiliación con HashiCorp, Terraform, proveedores cloud ni Kubernetes. Antes de publicación comercial se debe hacer revisión de marca, derechos de iconos y textos.
+## 1. Características Principales
 
-![Diseño conceptual aprobado](assets/reference/concepto-aprobado.png)
+- **14 rutas + `404` en Preact declarativo puro (`0` `innerHTML` / `0` `dangerouslySetInnerHTML`)** con store reactivo centralizado (`src/store.ts`) y persistencia local en `localStorage` con reconciliación y revocación inmediata ante invalidación de código o evidencias.
+- **Editor CodeMirror 6 HCL offline** (`src/editor.ts`, `src/hclLanguage.ts`, `app/vendor/codemirror6.mjs`) con temas oscuro/claro dinámicos vía `Compartment`, historial Undo/Redo, salida de teclado WCAG 2.1.2 (`Escape` + `Tab`) y cero estilos inline bajo CSP `style-src 'self'`.
+- **36 lecciones interactivas (`B01–A12`) + 8 rutas de especialización**, cada una con contexto transversal de riesgo en producción vinculado a los escenarios Senior (`src/lessonSeniorContext.ts`).
+- **18 escenarios Senior (`S01–S18`) + Capstone `S18` de 8 hitos** con simuladores deterministas parametrizables (`src/simulators.ts`), ejercicios *What-If*, 4 controles por incidente, exportación ADR y portafolio completo.
+- **Inspector local de `terraform show -json` + Senior Release Gate** (`src/planInspector.ts`, `src/releaseGate.ts`) con soporte de semánticas Terraform `>= 1.7` (`forget` / `STATE_FORGET`, `delete-then-create` vs `create-before-destroy`), **cero exposición de `before/after`, variables o secretos**, y estados exclusivos `BLOCKED`, `NEEDS_EVIDENCE` y `READY_FOR_HUMAN_REVIEW`.
+- **54 paquetes ZIP descargables** (`36` laboratorios `B/I/A` + `18` casos Senior `S01–S18`) verificados contra `Terraform v1.10.5`, `TFLint`, `Trivy Config` y `Conftest` OPA Rego en copias temporales aisladas.
+- **Accesibilidad WCAG 2.2 AA automatizada** (`0` violaciones `@axe-core/playwright` en 30 escaneos `dark` + `light`, teclado, zoom `200 %` y `prefers-reduced-motion`).
 
-## Entrega actual v1.5.1 — Senior Mode + DevSecOps + inspector de planes
+---
 
-Esta versión conserva el catálogo de 36 lecciones, 18 escenarios Senior con what-if/ADR, el capstone S18 de ocho hitos, los ZIP de laboratorios y todos los assets originales. También incorpora:
+## 2. Stack Tecnológico
 
-- **Preact ESM real como renderer del shell** con vistas internas todavía basadas en plantillas HTML; no es una migración declarativa total a componentes.
-- **CodeMirror 5.58.3 real offline** para editar HCL, con coloreado de sintaxis, indentación, números de línea y un `textarea` de respaldo; la versión obligatoria CodeMirror 6 aún no está implementada.
-- **Análisis de `terraform show -json`** importado por el alumno, operaciones peligrosas, `resource_drift` si existe, informe Markdown sin valores before/after y ejemplo sintético descargable. Las direcciones de recursos pueden contener información privada.
-- **Senior Mode reforzado** con rúbricas, revisión de decisiones, exportación de portafolio y revocación automática del progreso cuando se invalida la evidencia.
-- **DevSecOps local** (`npm run security:local`), configuración Biome, Dependabot, workflow de CI y playbook de revisión de cambios IaC. La CLI Biome y npm audit online no se han ejecutado en este entorno.
-- **Runner Terraform que trabaja sobre copias temporales**, para evitar que `fmt/init/test` escriban en el árbol de ejercicios originales. La CLI real sigue sin estar disponible para ejecutarlo aquí.
-- **Build estático y arranque local reproducidos**, con controles de integridad ZIP y SHA-256. El build estándar no es el bundle Vite.
+- **UI & Estado:** `Preact`, `TypeScript` estricto (`tools/typescript/` offline + `package-lock.json`).
+- **Editor HCL:** `CodeMirror 6` (`@codemirror/view`, `@codemirror/state`, `@codemirror/language`, `@codemirror/commands`, `@codemirror/autocomplete`, `@lezer/highlight`).
+- **Build & Bundler:** Modo estático offline (`npm run build` -> `app/` + `dist/`) y bundler productivo `Vite` (`npm run build:vite` + control de presupuesto `scripts/check-bundle-budget.mjs`).
+- **Calidad & Testing:** `Biome` (`npm run lint:biome`), Node Test Runner (`npm test`), `Vitest` + `@testing-library/preact` (`npm run test:components`), `Playwright` + `@axe-core/playwright` (`npm run test:e2e`).
+- **IaC & Supply Chain:** `Terraform CLI`, `TFLint`, `Trivy`, `Conftest` OPA y `actionlint` con verificación SHA-256 en `.tools/`.
+- **Versiones de runtime y dependencias:** Consultar `package.json#engines`, `package.json#devDependencies` y `package-lock.json`.
 
-**No dar por completados:** frontend enteramente en componentes Preact, CodeMirror 6, lockfile de npm, build Vite probado, 37 tests con Terraform CLI, E2E real por HTTP ni revisión jurídica de la marca. Estos asuntos están documentados en la auditoría v1.5.
+---
 
-## Versión 1.3 — historial de cambios
+## 3. Inicio Rápido (< 10 min)
 
+### Prerrequisitos
 
-Este release **preserva todas las rutas del ZIP v1.2**; no se eliminaron archivos de la entrega anterior. Se corrigió la posibilidad de conservar una autoevaluación completada después de alterar su decisión, checklist o ADR. Ahora el progreso se reconcilia al cargar, editar e importar respaldos; el contador de XP deja de contabilizar un caso cuyo gate ya no se cumple.
+- **Node.js:** Versión compatible con `package.json#engines`.
+- **Python 3:** Para auditorías estructurales (`scripts/release-audit.py`, `scripts/verify-release.py`).
 
-**Nuevos componentes de aprendizaje Senior:**
-
-- **18 ejercicios «what-if» interactivos**, uno por caso (S01–S18), con decisión segura/insegura, resultado y evidencia exigida. Todos son sintéticos; no son salidas Terraform CLI.
-- **Portafolio Senior descargable** (`TerraPixel-Portfolio-Senior.md`): integra los 18 ADR y deja explícitamente `NOT_RUN` en ejecución CLI, cloud y revisión externa.
-- **S18 con evidencia propia por hito:** ahora cada una de sus ocho etapas dispone de textarea y estado PASS/FAIL/NOT_RUN/BLOCKED; las notas deben ser distintas, tener contenido mínimo y su casilla solo se habilita tras escribirla. Es una autodeclaración estructural, no una validación experta.
-- **18 bundles Senior enriquecidos:** cada pack contiene `WHAT-IF-SCENARIO.json`, `WHAT-IF-WORKSHEET.md` y `CASE-REVIEW-SHEET.md`, además de los archivos previos. Incluye en S18 `capstone/` con módulo Terraform local real, `terraform_data`, tests `.tftest.hcl` en modo plan y ocho hojas de evidencia.
-- **Runner local Terraform CLI:** `bash scripts/verify-terraform-labs.sh` o `scripts/verify-terraform-labs.ps1`. Ejecuta 36 labs y capstone S18 (37 checks) y registra archivos de salida locales; sin Terraform CLI responde `NOT_RUN` (código 3). El workflow `terraform-labs.yml` lo ejecuta en CI cuando GitHub Actions dispone de Terraform.
-
-**Comprobaciones realizadas:** TypeScript estricto, tests Node, build estático, pruebas Chromium embebidas, comparación recursiva de los ZIP Senior y HTTP Node. Consulta `docs/SENIOR_MODE_AUDIT_V1_3.md` para resultados, límites y gates de release.
-
-**Pendientes históricos de v1.3 (algunos parcialmente atendidos en v1.5.1):** frontend totalmente Preact, editor CodeMirror 6, dependencias npm con lockfile/Vite verificado, CLI Terraform y navegador E2E HTTP. No se los declara implementados.
-
-## Versión 1.2 — cierre reforzado de Senior Mode
-
-Se conserva **todo el contenido de v1.1** y se añadieron las siguientes implementaciones (sin sustituir las funciones anteriores):
-
-- **18 rúbricas de incidente específicas** en `src/senior.ts`, `labs/senior/S01…S18/incident.json` y `REVIEW-GATES.md` (4 controles propios por escenario).
-- **18 ZIP Senior regenerados**, cada uno con toda la carpeta anterior más `REVIEW-GATES.md`; se contrastan byte por byte con fuentes.
-- **Exportar ADR/informe por caso:** botón en el gate y la fase Evidencia. El Markdown contiene tu decisión, los cuatro controles, tu ADR escrito y estados externos `NOT_RUN` sin afirmar pruebas ficticias.
-- **Senior Gate estructural reforzado:** requiere secciones de diagnóstico, decisión, riesgos, evidencia y rollback con contenido; la evidencia indica `PASS`, `FAIL`, `BLOCKED` o `NOT_RUN`. Sigue siendo autoevaluación, no revisión semántica.
-- **Simuladores corregidos:** CIDR S09, integridad de commits S11 y réplicas/costos S14 ahora usan realmente los valores escritos por el alumno.
-- **Pruebas adicionales:** suite Node, servidor HTTP real y pruebas de interacción Chromium con módulos embebidos (limitaciones documentadas en `docs/SENIOR_MODE_AUDIT_V1_2.md`).
-
-### Verificación rápida
-
-```bash
-npm start              # versión ya compilada, no requiere npm install
-npm run qa             # typecheck y tests Node (requiere TypeScript instalado/global)
-npm run build          # reconstruir y preparar dist/ (requiere TypeScript)
-python3 scripts/release-audit.py # integridad de contenido/ZIPs internos
-```
-
-La prueba opcional `python3 tests/browser-embedded.py` requiere Playwright Python y Chromium preinstalados. Su modalidad embebida prueba interacciones sin visitar localhost; **no sustituye E2E HTTP, persistencia ni carga de imágenes**.
-
-### Pendientes obligatorios antes de aprobación
-
-En v1.2 no estaban resueltos **Preact ni CodeMirror**; en v1.5.1 ya existen el montaje Preact y CodeMirror 5, pero faltan CodeMirror 6, migración completa a componentes, el **lockfile npm**, la **ejecución de Terraform CLI para 36 labs** ni un **E2E HTTP Chromium completo**. El equipo no debe interpretar que `dist/` constituye build Vite ni que las 18 autoevaluaciones equivalen a revisión técnica real.
-
-## Cómo arrancar de inmediato (SIN instalar dependencias)
-
-1. Descomprime el ZIP.
-2. Instala o usa Node.js 20.19+.
-3. Abre una terminal en la carpeta `TerraPixel-Academy` (o usa `INICIAR-WINDOWS.cmd` / `INICIAR-LINUX-MAC.sh`).
-4. Ejecuta:
+### Opción A · Arranque Offline Inmediato (sin `npm install`)
 
 ```bash
 npm start
+# Abre http://127.0.0.1:4173 (o usa INICIAR-WINDOWS.cmd / INICIAR-LINUX-MAC.sh)
 ```
 
-5. Abre **http://localhost:4173** en tu navegador.
+> **Importante:** No abras `index.html` mediante `file://`; la aplicación usa módulos ES y requiere un servidor HTTP local.
 
-`npm start` usa un servidor Node incluido en `scripts/server.mjs` (sin instalar nada con npm). **No abras `index.html` directamente por `file://`**: utiliza módulos ES de JavaScript y necesita un servidor HTTP local.
-
-También puedes ejecutar `python3 -m http.server 4173` si tienes Python y prefieres ese método.
-
-## Qué incluye (operativo en navegador)
-
-| Área | Contenido |
-|---|---|
-| Inicio | Hero pixel art, mascota Terra, rutas, progreso y CTA |
-| Aprender | 12 Básico + 12 Intermedio + 12 Avanzado = **36 lecciones** |
-| Ejercicios | Editor HCL de texto con 36 reglas específicas y tests de muestras |
-| Preguntas | Quiz por lección con respuesta correcta y retroalimentación |
-| Minijuegos | **5 juegos** y **21 preguntas** con explicaciones |
-| Senior Mode | **18 casos** con misión, decisión, review, checklist, ADR y operaciones |
-| Simuladores Senior | CIDR, costo estimado, plan integrity, locking, drift y for_each |
-| Plan Explorer | Cuatro planes **sintéticos** y evaluación de riesgo de cambios |
-| Grafo | Tres visualizadores y selección de nodos, dependencias y riesgo |
-| Laboratorios | **36 packs ZIP** locales con `.tf`, `.tftest.hcl`, README y referencia. **Advertencia:** 36 configuraciones HCL diferenciadas, con 36 pruebas `.tftest.hcl` específicas. Pendiente ejecutar la CLI para comprobar su validez real. |
-| Senior assets | **18 ZIP** con incidentes sintéticos, diff, ADR, runbook y checklist |
-| Capstone S18 | Ocho hitos, módulos `terraform_data` offline y entornos demostrativos |
-| Progreso | XP, insignias, favoritos en datos, autosave de código y ADR, backup JSON |
-| Ajustes | Oscuro/claro, reducido movimiento, tamaño de texto, importar y borrar datos |
-| Otros | 12 sprites Terra PNG, glosario, recursos, responsive, navegación por teclado |
-
-### Importante: límites de la implementación
-
-- El botón **Evaluar reglas** usa patrones didácticos sobre texto y una verificación básica de delimitadores. **No es el compilador HCL**, no sustituye `terraform fmt`, `terraform validate`, `terraform plan`, ni comprueba infraestructura remota.
-- **No existe un `terraform apply` remoto desde el navegador**. Por seguridad tampoco se solicitan credenciales cloud.
-- Los planes, costos, grafos y los incidentes Senior son **fixtures sintéticos**; se etiquetan dentro de la app.
-- Los tests de `practice.tftest.hcl` se incluyen para correrlos en el equipo del estudiante. **Ahora cada carpeta comprueba un resultado asociado al tema propio. Las 36 pruebas siguen NO EJECUTADAS con Terraform CLI.** **No fueron ejecutados con Terraform CLI en este entorno**; su estado inicial es `NOT_RUN`.
-- La finalización de Senior Mode es **autoevaluación guiada**, no validación semántica de ADR, una certificación oficial ni un indicador de experiencia laboral.
-- No hay login, backend, API remota, pagos, gestión de múltiples usuarios ni cloud sandbox: esas fases no se entregan. Los retos Senior exigen cinco apartados de ADR y 120 caracteres como comprobación estructural, no una evaluación experta del contenido.
-- En v1.5.1 el editor HCL utiliza **CodeMirror 5 real vendorizado** con `textarea` como fallback. Mantiene evaluaciones didácticas, no un parser HCL completo ni CodeMirror 6.
-
-## Tecnología y arquitectura
-
-- **Frontend:** TypeScript estricto + Preact ESM en el montaje + vistas HTML con DOM delegado, ECMAScript modules, CodeMirror 5 HCL offline, CSS tokens y pixel art original.
-- **Build estático comprobado:** `npm run build` utiliza TypeScript + copia de assets; no depende del bundling de Vite. **Vite opcional:** `npm run build:vite` requiere dependencias npm que este entorno no pudo resolver.
-- **Ejecutable offline:** carpeta `app/` con JavaScript compilado de `src/`, sin dependencia npm para ejecutar `npm start`.
-- **Estado local:** `localStorage` versionado, exportación/importación con sanitización de IDs y longitud.
-- **Tests:** Node Test Runner (sin Jest ni Vitest) + chequeo de tipos, carpetas y ZIPs.
-- **Assets:** sprites Terra PNG hechos específicamente para el proyecto; referencia visual aprobada guardada en `assets/reference`.
-
-**Desviación vigente frente a la especificación V1.1:** se usa Preact como shell y CodeMirror 5 offline, pero faltan las vistas declarativas completas, CodeMirror 6 y el build Vite/lockfile verificado. `npm run build` compila TypeScript y copia assets, no construye con Vite. Este límite no se presenta como implementado.
-
-## Desarrollo con npm y Vite (opcional; requiere Internet)
+### Opción B · Entorno Completo de Desarrollo, Build Vite y Testing
 
 ```bash
-npm install
-npm run dev        # Vite + recompilador TS en modo watch
-npm run typecheck  # TypeScript estricto
-npm test           # Test Runner de Node
-npm run build      # Compila TS y genera dist/ estático (probado)
-npm run build:vite # Alternativa Vite (requiere npm install; NO probada aquí)
+npm ci --ignore-scripts      # Instala dependencias exactas del lockfile sin lifecycle scripts
+npm run build:vite           # Compila TypeScript, genera bundle Vite y valida presupuesto
+npm run qa                   # Typecheck + 101 tests Node/BDD + 10 tests Vitest + security:local
+npm run test:e2e             # Playwright E2E HTTP + Strict CSP + 30 auditorías WCAG 2.2 AA
 ```
 
-Si no puedes usar Internet pero tienes una CLI global de TypeScript, reconstruye el JS con:
+---
 
-```bash
-tsc -p tsconfig.json
-npm test
-npm start
-```
-
-### Carpetas principales
+## 4. Arquitectura y Estructura del Repositorio
 
 ```text
 TerraPixel-Academy/
-├── index.html, styles.css, package.json, vite.config.js
-├── src/
-│   ├── main.ts             # UI, rutas e interacciones
-│   ├── curriculum.ts       # 36 lecciones
-│   ├── senior.ts           # 18 casos y ocho hitos capstone
-│   ├── seniorSnippets.ts   # ejemplos de revisión de código
-│   ├── simulators.ts       # CIDR, costo e integridad de fixture
-│   ├── fixtures.ts         # planes/grafos sintéticos
-│   ├── games.ts            # juegos y preguntas
-│   └── engine.ts           # reglas, estado, import/export y XP
-├── app/                   # ES modules compilados, listos para ejecutar
+├── index.html                  # Punto de entrada SPA
+├── styles.css                  # Design system tokens (dark/light), WCAG AA, layout responsive
+├── src/                        # Fuente TypeScript estricto (Preact, store, CM6, motores IaC)
+├── app/                        # Módulos ESM compilados para ejecución offline sin bundler
 ├── assets/
-│   ├── terra/              # 12 poses + spritesheet PNG
-│   ├── reference/          # PNG aprobado por el usuario
-│   ├── labs/               # 36 ZIP descargables
-│   └── senior/             # 18 ZIP de incidentes
+│   ├── icons/mark.svg          # Emblema original pixel-art de TerraPixel
+│   ├── terra/                  # 12 sprites PNG originales + terra-spritesheet.png
+│   ├── labs/ & assets/senior/  # 54 paquetes ZIP descargables (B01..A12 + S01..S18)
+│   └── examples/               # Manifiestos sintéticos y cli-evidence-v1.10.5.json
 ├── labs/
-│   ├── offline/            # 36 proyectos locales, seguros por defecto
-│   └── senior/             # 18 casos con ADR/runbooks
-├── docs/                  # spec auditada y reporte QA
-├── tests/                 # tests unitarios/integridad
-├── scripts/               # servidor, dev y utilidades
-└── .github/workflows/     # web QA, labs CLI y despliegue manual
+│   ├── offline/B01..A12/       # 36 laboratorios Terraform reales + .tftest.hcl + STATUS.md
+│   └── senior/S01..S18/        # 18 incidentes, políticas OPA (S13/S18) y capstone multi-módulo
+├── scripts/                    # Servidor HTTP CSP estricta, builders, verificadores y runners SHA-256
+├── tests/                      # Suites Node/BDD, Vitest Preact (components/) y Playwright E2E (e2e/)
+├── docs/                       # Auditorías históricas v1.2–v2.0, A11Y_MATRIX.md, BRAND_AND_LICENSE_AUDIT.md
+└── .github/workflows/          # Pipelines SHA-pinned (quality, devsecops, terraform-labs, deploy-pages)
 ```
 
-## Ejecutar laboratorios reales
+---
 
-Por ejemplo B04:
+## 5. Límites de Seguridad y Ejecución
 
-```bash
-cd labs/offline/B04
-terraform version
-terraform fmt -check
-terraform init -backend=false
-terraform validate
-terraform test
-```
+- **Navegador sin Terraform real:** El botón **Evaluar reglas** aplica comprobaciones léxicas didácticas (`src/engine.ts`), **no** ejecuta `terraform plan`/`apply` ni accede a cuentas cloud.
+- **Privacidad de `plan.json`:** `src/planInspector.ts` procesa el JSON localmente en memoria y descarta `before`, `after`, `variables` y `outputs`. Nunca sube archivos ni logs a servidores externos.
+- **CSP estricta (`scripts/server.mjs`):** `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-ancestors 'none'`.
+- **Variables de entorno locales:** El servidor HTTP admite únicamente `HOST` (default `127.0.0.1`) y `PORT` (default `4173`). No existen secretos ni variables `TF_VAR_*` requeridas.
 
-El `test` usa `command = apply` **solo con `terraform_data`**, un recurso incorporado sin provider cloud. Genera state efímero local de tests; no se ejecutan proveedores AWS/Azure/GCP. Los ejemplos `.tf.txt` son referencias y deliberadamente no forman parte de los archivos `.tf` ejecutados.
+---
 
-**Para laboratorios con AWS real** (no implementados como ejecución remota), habilita únicamente sandboxes con cuenta dedicada, cuota, presupuesto, revisión de planes, bloqueo de state y limpieza programada.
+## 6. Testing y Verificación Local
 
-## Auditoría posterior
+| Comando | Qué verifica |
+|---|---|
+| `npm run typecheck` | TypeScript estricto (`--noEmit`) con `tools/typescript` |
+| `npm run lint:biome` | Reglas Biome (`recommended` + `a11y` + formateo) |
+| `npm run qa` | `typecheck` + Node Test Runner (`tests/*.test.mjs`) + `Vitest` (`tests/components/`) + `devsecops-audit.mjs` |
+| `npm run test:e2e` | Suite Playwright HTTP real (recorridos alumno/Senior, `dist/`, CSP estricta y 30 auditorías Axe WCAG 2.2 AA) |
+| `npm run setup:terraform && npm run verify:terraform:local` | Instala `Terraform v1.10.5` con SHA-256 y ejecuta los 37 escenarios reales en copias temporales aisladas |
+| `npm run setup:scanners && npm run verify:iac:scanners` | Instala `tflint`, `trivy` y `conftest` con SHA-256 y valida `S13` + `S18/capstone` |
+| `npm run lint:workflows` | Valida `.github/workflows/*.yml` con `actionlint` verificado por SHA-256 |
+| `npm run verify:preservation` | Garantiza la conservación de las 587 rutas `v1.4` y 704 rutas `v1.5.1` |
+| `python scripts/release-audit.py` | 1.446+ controles de integridad, PNGs y paridad CRC/byte de los 54 ZIPs |
+| `python scripts/verify-release.py` | Comprueba cada archivo del árbol contra `SHA256SUMS.txt` |
 
-La auditoría Zero Omissions detectó desviaciones P1 en stack y cobertura semántica de laboratorios. El paquete no debe anunciarse como completo. Consulta `docs/AUDITORIA_TOTAL_ZERO_OMISSIONS.md` y `docs/QA_REPORT.md`.
+---
 
-## Verificaciones y estado de evidencia
+## 7. CI/CD y Supply Chain
 
-Consulta [`docs/QA_REPORT.md`](docs/QA_REPORT.md) para la evidencia ejecutada de TypeScript/Node y los bloqueos de browser/CLI de esta sesión. Los workflows están preparados, **no se afirma que GitHub Actions haya corrido o aprobado**.
+Los 4 workflows en `.github/workflows/` (`quality.yml`, `devsecops.yml`, `terraform-labs.yml`, `deploy-pages.yml`) fijan todas las acciones externas por **commit SHA completo de 40 caracteres**, desactivan `persist-credentials`, ejecutan `npm ci --ignore-scripts` sobre Node 24 LTS, separan permisos OIDC únicamente al job `deploy` y están validados con `actionlint`. La ejecución remota en la nube de GitHub Actions y la sesión manual humana con lector de pantalla se mantienen explícitamente como `NOT_RUN` hasta ejecutarse en sus entornos respectivos.
 
-## Fuentes de diseño
+---
 
-- Imagen aprobada del usuario: `assets/reference/concepto-aprobado.png`.
-- Inspira su composición en GoPixel Academy: navegación, rutas, aula, juegos, senior, progreso y tema.
-- Se ha creado una **mascota propia** (Terra) en 12 poses para no reutilizar la mascota Gopher del proyecto Go.
-- Especificación técnica: `docs/TERRAFORM_ACADEMY_MASTER_SPEC_V1_1_AUDITADA.md`.
+## 8. Troubleshooting
 
-## Privacidad y marca
+- **Error `file://` o página en blanco al abrir `index.html`:** Inicia con `npm start` y accede a `http://127.0.0.1:4173`.
+- **Error `BLOCKED` al correr `verify:terraform:local` o `verify:iac:scanners`:** Ejecuta primero `npm run setup:terraform` o `npm run setup:scanners` (requiere red para descargar binarios oficiales verificados por SHA-256 en `.tools/`).
+- **Fallo de Playwright por falta de navegador:** Ejecuta `npx playwright install chromium`.
 
-- La aplicación no incluye analítica, trackers ni APIs en producción. Los enlaces de recursos externos se abren solo cuando el usuario los pulsa.
-- El backup local contiene código, texto de ADR, decisiones y progreso. Revísalo antes de compartirlo.
-- TerraPixel es un **proyecto independiente** que enseña Terraform, no Terraform oficial. No uses la imagen conceptual (que contiene símbolos de terceros) como logotipo comercial sin una revisión jurídica y de marca.
+---
 
-## Siguientes gates antes de producción pública
+## 9. Documentación Normativa e Histórica
 
-1. Correr el navegador E2E en un entorno que permita Chromium local, revisar mobile y contraste/a11y.
-2. Correr las 36 pruebas Terraform con CLI real, guardar versiones y salidas.
-3. Ejecutar `npm install`, resolver lockfile, `npm run build` y pipeline CI en repositorio propio.
-4. Revisar contenidos HCL y pruebas con expertos de plataforma; incluir políticas, datos y control de derechos de autor.
-5. Confirmar marca comercial, política de privacidad y licencia de distribución.
+- Contrato maestro de requisitos: [`TODO_LO_QUE_DEBE_TENER_ESTA_APP.md`](./TODO_LO_QUE_DEBE_TENER_ESTA_APP.md)
+- Hoja de ruta y cierre: [`LO_QUE_FALTA_PARA_100_PORCIENTO.md`](./LO_QUE_FALTA_PARA_100_PORCIENTO.md)
+- Inventario de entrega: [`RELEASE_MANIFEST.md`](./RELEASE_MANIFEST.md)
+- Auditoría final `v2.0.0`: [`docs/AUDITORIA_FINAL_V2_0.md`](./docs/AUDITORIA_FINAL_V2_0.md) (se preservan intactos los informes históricos `v1.2–v1.7` en `docs/`)
+- Matriz de accesibilidad WCAG 2.2 AA: [`docs/A11Y_MATRIX.md`](./docs/A11Y_MATRIX.md)
+- Auditoría de marca y licencias: [`docs/BRAND_AND_LICENSE_AUDIT.md`](./docs/BRAND_AND_LICENSE_AUDIT.md)
 
-## Actualización v1.5 — Senior Mode, DevSecOps y Biome
+---
 
-Esta entrega **preserva las rutas de la base v1.4** (comprobar con `npm run verify:preservation`) y añade gates de QA, dependencia, contenido y seguridad. Se incluyen `biome.json`, workflow `.github/workflows/devsecops.yml`, Dependabot, la auditoría local `npm run security:local`, playbook Senior y un checklist DevSecOps dentro del capstone S18.
+## 10. Licencia y Marca
 
-Pruebas locales: `npm run qa`, `python3 scripts/release-audit.py`, `npm run build` y `python3 scripts/verify-release.py`. Para comprobar cobertura: `npm run test:coverage`. La prueba con Terraform CLI no se ha ejecutado en el entorno de empaquetado; los controles Biome/npm audit/Vite requieren instalar dependencias con red. **La versión incluida es CodeMirror 5, no 6**, y Preact solo monta el shell HTML; esa deuda sigue abierta según la especificación.
-
-Consulta `docs/DEVSECOPS.md` y `docs/AUDITORIA_FINAL_V1_5.md` antes de publicar.
+Distribuido bajo licencia [`MIT`](./LICENSE). **TerraPixel Academy** es un proyecto educativo independiente; HashiCorp, Terraform, AWS, Azure, Google Cloud y Kubernetes son marcas registradas de sus respectivos titulares.

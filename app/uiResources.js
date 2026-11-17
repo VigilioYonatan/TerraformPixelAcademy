@@ -102,7 +102,7 @@ export function ResourcesPage({ glossarySearch }) {
     const visibleGlossary = filterGlossary(GLOSSARY_ENTRIES, glossarySearch);
     return h('div', { id: 'resources-page' }, h('div', { className: 'breadcrumb' }, h('a', { href: ROUTES.home }, 'Inicio'), ' / ', h('span', {}, 'Recursos')), h('div', { className: 'eyebrow' }, 'BIBLIOTECA IAC'), h('h1', { className: 'page-title' }, 'Recursos para aprender mejor'), h('p', { className: 'page-lead' }, 'Enlaces a documentación oficial, guías técnicas y un glosario de conceptos clave para revisar antes de usar infraestructura real.'), h('section', { className: 'section' }, sectionHead('BIBLIOTECA', 'Documentación y herramientas'), h('div', { className: 'resource-grid' }, ...RESOURCE_LINKS.map((r) => {
         const external = r.href.startsWith('https:');
-        return h('div', { key: r.title, className: 'resource-card' }, chip(r.tag, 'purple'), h('h3', { style: 'margin-top:11px' }, r.title), h('p', {}, r.description), h('a', {
+        return h('div', { key: r.title, className: 'resource-card' }, chip(r.tag, 'purple'), h('h3', { className: 'mt-11' }, r.title), h('p', {}, r.description), h('a', {
             href: r.href,
             target: external ? '_blank' : undefined,
             rel: external ? 'noopener noreferrer' : undefined
@@ -115,7 +115,7 @@ export function ResourcesPage({ glossarySearch }) {
         placeholder: '⌕ Buscar un término…',
         'aria-label': 'Buscar glosario'
     }), h('div', { className: 'space16' }), visibleGlossary.length > 0
-        ? h('div', { className: 'cards-3', id: 'glossary-list' }, ...visibleGlossary.map(([term, description]) => h('div', { key: term, className: 'card glossary-tile' }, h('h3', { style: 'font-size:18px;color:var(--purple-bright)' }, term), h('p', { className: 'card-desc', style: 'margin-top:9px' }, description))))
+        ? h('div', { className: 'cards-3', id: 'glossary-list' }, ...visibleGlossary.map(([term, description]) => h('div', { key: term, className: 'card glossary-tile' }, h('h3', { className: 'glossary-term' }, term), h('p', { className: 'card-desc mt-9' }, description))))
         : h('div', { className: 'card', role: 'status' }, h('h3', { className: 'card-title' }, 'Sin términos coincidentes'), h('p', { className: 'card-desc' }, 'No se encontraron conceptos en el glosario para esa búsqueda.'))));
 }
 export function NotFoundPage() {
@@ -123,6 +123,6 @@ export function NotFoundPage() {
         src: mascotUrl('pensando'),
         alt: 'Terra confuso',
         width: 210,
-        style: 'margin:auto'
+        className: 'mx-auto'
     }), h('h1', { className: 'page-title' }, 'No encontré esta ruta'), h('p', {}, 'Revisa la URL o regresa al inicio.'), h('div', { className: 'space24' }), h('a', { href: ROUTES.home, className: 'btn btn-primary' }, 'Volver a la academia →'));
 }

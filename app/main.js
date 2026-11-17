@@ -69,7 +69,7 @@ function render() {
     const state = s.academy;
     document.body.dataset.theme = state.theme;
     document.body.classList.toggle('reduce-motion', state.reducedMotion);
-    document.documentElement.style.fontSize = `${16 * state.fontScale}px`;
+    document.documentElement.dataset.fontScale = String(state.fontScale);
     const { page, param, query } = parseCurrentRoute();
     if (page === 'aprender') {
         const from = query.get('nivel');

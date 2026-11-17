@@ -53,7 +53,7 @@ export function analyzeGraphNode(nodes, targetId) {
 }
 export function GraphExplorer({ graphs, selectedGraphId, selectedNodeId }) {
     if (graphs.length === 0) {
-        return h('div', { id: 'graph-explorer-empty', className: 'empty-state', role: 'status' }, h('img', { src: mascotUrl('descanso'), alt: 'Terra en pausa', width: 180, style: 'margin:auto' }), h('h1', { className: 'page-title' }, 'Sin topologías disponibles'), h('p', {}, 'No se encontraron definiciones de grafos para visualizar en este momento.'), h('div', { className: 'space24' }), h('a', { href: ROUTES.home, className: 'btn btn-primary' }, 'Volver al inicio →'));
+        return h('div', { id: 'graph-explorer-empty', className: 'empty-state', role: 'status' }, h('img', { src: mascotUrl('descanso'), alt: 'Terra en pausa', width: 180, className: 'mx-auto' }), h('h1', { className: 'page-title' }, 'Sin topologías disponibles'), h('p', {}, 'No se encontraron definiciones de grafos para visualizar en este momento.'), h('div', { className: 'space24' }), h('a', { href: ROUTES.home, className: 'btn btn-primary' }, 'Volver al inicio →'));
     }
     const graph = graphs.find((g) => g.id === selectedGraphId) || graphs[0];
     if (graph.nodes.length === 0) {
@@ -85,8 +85,8 @@ export function GraphExplorer({ graphs, selectedGraphId, selectedNodeId }) {
         'data-action': 'graph',
         'data-id': g.id,
         'aria-pressed': String(graph.id === g.id)
-    }, g.title))), h('div', { className: 'content-panel' }, h('div', { className: 'flex space-between', style: 'align-items:start' }, h('div', {}, h('h2', {}, graph.title), h('p', { className: 'prose' }, graph.description)), chip('SIMULACIÓN VISUAL', 'yellow')), analysis.hasCycle
-        ? h('div', { className: 'alert', role: 'status', style: 'margin-top:14px' }, h('strong', {}, '⚠ Dependencia circular detectada: '), 'Terraform rechazará construir el grafo acíclico dirigido (DAG) hasta romper esta referencia mutua entre módulos/recursos.')
+    }, g.title))), h('div', { className: 'content-panel' }, h('div', { className: 'flex space-between items-start' }, h('div', {}, h('h2', {}, graph.title), h('p', { className: 'prose' }, graph.description)), chip('SIMULACIÓN VISUAL', 'yellow')), analysis.hasCycle
+        ? h('div', { className: 'alert mt-14', role: 'status' }, h('strong', {}, '⚠ Dependencia circular detectada: '), 'Terraform rechazará construir el grafo acíclico dirigido (DAG) hasta romper esta referencia mutua entre módulos/recursos.')
         : null, h('div', { className: 'space16' }), h('div', { className: 'graph-frame' }, h('svg', {
         viewBox: '0 0 930 350',
         role: 'group',
@@ -122,5 +122,5 @@ export function GraphExplorer({ graphs, selectedGraphId, selectedNodeId }) {
         role: 'region',
         'aria-live': 'polite',
         'aria-label': 'Detalle del nodo seleccionado'
-    }, h('div', { className: 'flex-wrap' }, chip(activeNode.category, 'purple'), chip(activeNode.level, activeNode.level === 'Error' ? 'red' : 'cyan')), h('h3', { style: 'margin:10px 0' }, activeNode.label), h('p', { className: 'prose' }, activeNode.description), h('p', { className: 'small-note' }, `Depende de: ${analysis.upstreamIds.length ? analysis.upstreamIds.map((id) => labelById.get(id) || id).join(', ') : 'ningún otro nodo'}.`), h('p', { className: 'small-note', style: 'margin-top:4px' }, `Radio de impacto aguas abajo: ${analysis.downstreamIds.length ? analysis.downstreamIds.map((id) => labelById.get(id) || id).join(', ') : 'sin consumidores dependientes'}.`)), h('div', { className: 'notice' }, 'Estos diagramas no provienen de terraform graph real. Son casos de estudio para aprender modelado, propiedad y dependencias.')), h('div', { className: 'space24' }), h('a', { href: ROUTES.plan, className: 'btn btn-primary' }, 'Explorar cambios de plan →'));
+    }, h('div', { className: 'flex-wrap' }, chip(activeNode.category, 'purple'), chip(activeNode.level, activeNode.level === 'Error' ? 'red' : 'cyan')), h('h3', { className: 'my-10' }, activeNode.label), h('p', { className: 'prose' }, activeNode.description), h('p', { className: 'small-note' }, `Depende de: ${analysis.upstreamIds.length ? analysis.upstreamIds.map((id) => labelById.get(id) || id).join(', ') : 'ningún otro nodo'}.`), h('p', { className: 'small-note mt-4' }, `Radio de impacto aguas abajo: ${analysis.downstreamIds.length ? analysis.downstreamIds.map((id) => labelById.get(id) || id).join(', ') : 'sin consumidores dependientes'}.`)), h('div', { className: 'notice' }, 'Estos diagramas no provienen de terraform graph real. Son casos de estudio para aprender modelado, propiedad y dependencias.')), h('div', { className: 'space24' }), h('a', { href: ROUTES.plan, className: 'btn btn-primary' }, 'Explorar cambios de plan →'));
 }

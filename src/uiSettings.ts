@@ -129,7 +129,7 @@ export function SettingsPage({ state }: SettingsPageProps) {
             type: 'file',
             id: 'progress-file',
             accept: 'application/json,.json',
-            style: 'display:none',
+            className: 'file-input-hidden',
             'aria-label': 'Cargar archivo de progreso'
           })
         ),
@@ -146,7 +146,7 @@ export function SettingsPage({ state }: SettingsPageProps) {
           'Eliminar todo mi progreso'
         ),
         h('div', { className: 'space24' }),
-        h('h3', { style: 'font-size:17px' }, 'Sobre los laboratorios'),
+        h('h3', { className: 'heading-17' }, 'Sobre los laboratorios'),
         h(
           'p',
           { className: 'prose' },
@@ -160,23 +160,14 @@ export function SettingsPage({ state }: SettingsPageProps) {
       h(
         'div',
         { className: 'card' },
-        h('h3', {}, 'Diseño e identidad original'),
+        h('h3', {}, 'Diseño, marca independiente y licencias'),
         h(
           'p',
           { className: 'card-desc' },
-          'TerraPixel emplea identidad visual propia e independiente con 12 poses pixel-art originales de Terra; se archiva localmente la referencia conceptual inicial del proyecto.'
+          'TerraPixel Academy utiliza arte original independiente (12 poses pixel-art de Terra con emblema de rombo propio y símbolo DAG en mark.svg), sin logotipos oficiales de HashiCorp ni de proveedores cloud. El boceto histórico de referencia permanece archivado fuera de exposición pública HTTP.'
         ),
         h('div', { className: 'space16' }),
-        h(
-          'a',
-          {
-            href: './assets/reference/concepto-aprobado.png',
-            target: '_blank',
-            rel: 'noopener noreferrer',
-            className: 'btn btn-soft'
-          },
-          '↗ Ver boceto de referencia archivado'
-        )
+        h('a', { href: ROUTES.resources, className: 'btn btn-soft' }, 'Consultar recursos y avisos de marca →')
       )
     )
   );

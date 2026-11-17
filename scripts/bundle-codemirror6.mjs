@@ -33,7 +33,20 @@ try {
     }
   });
 
-  const compiled = await readFile(join(tempOutDir, 'codemirror6.raw.mjs'), 'utf8');
+  let compiled = await readFile(join(tempOutDir, 'codemirror6.raw.mjs'), 'utf8');
+  // Enforce strict `style-src 'self'` compatibility (zero `<style>` tag injection and zero `.style.cssText` parsing):
+  // 1) Allow `style-mod` to use W3C Constructable Stylesheets (`document.adoptedStyleSheets`) on `Document` as well as `ShadowRoot`.
+  compiled = compiled.replace(/!([A-Za-z_$][\w$]*)\.head\s*&&\s*\1\.adoptedStyleSheets/g, '$1.adoptedStyleSheets');
+  // 2) Replace `style.cssText` string assignments in gutter spacer & fallback clipboard helpers with CSSOM property setters.
+  compiled = compiled.replace(
+    /this\.spacer\.dom\.style\.cssText\s*\+=\s*"visibility:\s*hidden;\s*pointer-events:\s*none"/g,
+    '(this.spacer.dom.style.visibility="hidden",this.spacer.dom.style.pointerEvents="none")'
+  );
+  compiled = compiled.replace(
+    /([A-Za-z_$][\w$]*)\.style\.cssText\s*=\s*"position:\s*fixed;\s*left:\s*-10000px;\s*top:\s*10px"/g,
+    '($1.style.position="fixed",$1.style.left="-10000px",$1.style.top="10px")'
+  );
+
   const banner = [
     '// CodeMirror 6 ESM Bundle (@codemirror/state 6.7.6, @codemirror/view 6.43.15, @codemirror/commands 6.11.1,',
     '// @codemirror/language 6.13.1, @codemirror/autocomplete 6.20.4, @lezer/highlight 1.2.5)',

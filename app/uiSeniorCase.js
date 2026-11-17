@@ -121,9 +121,9 @@ function Simulator({ scenario, state, simResult, simInputs }) {
     const control = buildCaseSimulatorControls(id, inputs);
     if (!drill)
         return null;
-    return h('section', { className: 'content-panel', style: 'margin-top:20px' }, h('div', { className: 'flex space-between' }, h('div', {}, h('div', { className: 'eyebrow' }, `SIMULADOR DETERMINISTA · ${id}`), h('h3', { style: 'margin-top:8px' }, 'Prueba una hipótesis')), tag('SIMULADO', 'yellow')), spacer(), control, simResult ? h('div', { className: 'alert', role: 'status', style: 'margin-top:14px' }, simResult) : null, h('div', { className: 'what-if' }, h('div', { className: 'eyebrow' }, `DESAFÍO WHAT-IF · ${id}`), h('h3', { className: 'what-if-title' }, drill.prompt), h('div', { className: 'what-if-choices' }, ...drill.options.map((option, i) => action(`${String.fromCharCode(65 + i)}. ${option}`, 'what-if-answer', id, `btn btn-soft ${selected === i ? 'selected' : ''}`.trim(), i))), result
+    return h('section', { className: 'content-panel mt-20' }, h('div', { className: 'flex space-between' }, h('div', {}, h('div', { className: 'eyebrow' }, `SIMULADOR DETERMINISTA · ${id}`), h('h3', { className: 'mt-8' }, 'Prueba una hipótesis')), tag('SIMULADO', 'yellow')), spacer(), control, simResult ? h('div', { className: 'alert mt-14', role: 'status' }, simResult) : null, h('div', { className: 'what-if' }, h('div', { className: 'eyebrow' }, `DESAFÍO WHAT-IF · ${id}`), h('h3', { className: 'what-if-title' }, drill.prompt), h('div', { className: 'what-if-choices' }, ...drill.options.map((option, i) => action(`${String.fromCharCode(65 + i)}. ${option}`, 'what-if-answer', id, `btn btn-soft ${selected === i ? 'selected' : ''}`.trim(), i))), result
         ? h('div', { className: `what-if-result ${result.ok ? 'ok' : 'unsafe'}`, role: 'status' }, h('b', {}, result.ok ? '✓ Decisión defendible' : '⚠ Riesgo no resuelto'), h('p', {}, result.message), h('p', {}, h('b', {}, 'Evidencia que exigirías: '), result.next), h('small', {}, 'Ejercicio sintético, no Terraform real.'))
-        : null), h('p', { className: 'small-note', style: 'margin-top:15px' }, 'No se lee state remoto ni se ejecuta Terraform. Datos sintéticos.'));
+        : null), h('p', { className: 'small-note mt-15' }, 'No se lee state remoto ni se ejecuta Terraform. Datos sintéticos.'));
 }
 function ReviewSnippet({ scenario, showFix }) {
     const snip = seniorSnippets[scenario.id];
@@ -132,7 +132,7 @@ function ReviewSnippet({ scenario, showFix }) {
     return h('div', {}, h('div', { className: 'space24' }), h('div', { className: 'flex space-between' }, h('div', {}, h('div', { className: 'eyebrow' }, 'FRAGMENTO DIDÁCTICO · NO EJECUTAR'), h('h3', {}, snip.file)), action(showFix ? 'Mostrar riesgo' : 'Mostrar enfoque seguro', 'review-fix', '', 'btn btn-sm btn-soft')), h('pre', { className: 'code-preview' }, h('code', {}, showFix ? snip.after : snip.before)), reviewBox('Revisión', snip.review));
 }
 function Capstone({ state }) {
-    return h('div', {}, h('div', { className: 'space24' }), h('div', { className: 'eyebrow' }, 'CAPSTONE · 8 HITOS'), h('h3', { style: 'margin:12px 0' }, 'Checklist de entregables'), ...capstoneSteps.map((step, i) => {
+    return h('div', {}, h('div', { className: 'space24' }), h('div', { className: 'eyebrow' }, 'CAPSTONE · 8 HITOS'), h('h3', { className: 'my-12' }, 'Checklist de entregables'), ...capstoneSteps.map((step, i) => {
         const note = state.capstoneEvidence[String(i)] || '';
         const valid = capstoneNoteValid(note);
         return h('div', { className: 'capstone-stage', key: step.name }, h('label', { className: 'check-row' }, h('input', {
@@ -212,7 +212,7 @@ export function SeniorCasePage(props) {
         ['evidencia', 'Evidencia'],
         ['operaciones', 'Operaciones']
     ];
-    return h('div', { id: 'preact-senior-case' }, h('div', { className: 'breadcrumb' }, h('a', { href: '#/inicio' }, 'Inicio'), ' / ', h('a', { href: '#/senior' }, 'Senior Mode'), ` / ${c.id}`), h('div', { className: 'flex-wrap' }, tag(c.id), tag(c.severity, c.severity === 'Crítico' ? 'red' : 'yellow'), tag(c.pillar, 'cyan'), h('span', { id: 'current-case-status' }, tag(done ? '✓ Autoevaluado' : 'Caso abierto', done ? 'green' : 'purple'))), h('h1', { className: 'page-title', style: 'max-width:1080px' }, c.title), h('p', { className: 'page-lead', style: 'max-width:1100px' }, c.subtitle), h('div', { className: 'space24' }), h('div', { className: 'case-details' }, h('div', {}, h('nav', { className: 'case-steps', 'aria-label': 'Fases del caso' }, ...tabs.map(([id, title], i) => h('button', {
+    return h('div', { id: 'preact-senior-case' }, h('div', { className: 'breadcrumb' }, h('a', { href: '#/inicio' }, 'Inicio'), ' / ', h('a', { href: '#/senior' }, 'Senior Mode'), ` / ${c.id}`), h('div', { className: 'flex-wrap' }, tag(c.id), tag(c.severity, c.severity === 'Crítico' ? 'red' : 'yellow'), tag(c.pillar, 'cyan'), h('span', { id: 'current-case-status' }, tag(done ? '✓ Autoevaluado' : 'Caso abierto', done ? 'green' : 'purple'))), h('h1', { className: 'page-title case-title-max' }, c.title), h('p', { className: 'page-lead case-lead-max' }, c.subtitle), h('div', { className: 'space24' }), h('div', { className: 'case-details' }, h('div', {}, h('nav', { className: 'case-steps', 'aria-label': 'Fases del caso' }, ...tabs.map(([id, title], i) => h('button', {
         key: id,
         type: 'button',
         className: `tab ${props.tab === id ? 'active' : ''}`.trim(),

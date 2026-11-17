@@ -31,6 +31,7 @@ const server = createServer(async (req, res) => {
     const path = decodeURIComponent(new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`).pathname);
     const publicPath = path === '/' ? '/index.html' : path;
     if (
+      publicPath.startsWith('/assets/reference/') ||
       !(
         /^\/(?:index\.html|styles\.css)$/.test(publicPath) ||
         /^\/app\/[a-zA-Z0-9_-]+\.js$/.test(publicPath) ||
@@ -62,7 +63,7 @@ const server = createServer(async (req, res) => {
       'X-Frame-Options': 'DENY',
       'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
       'Content-Security-Policy':
-        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+        "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
     });
     if (req.method === 'HEAD') res.end();
     else res.end(bytes);

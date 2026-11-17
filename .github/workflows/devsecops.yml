@@ -14,14 +14,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          node-version: '22'
-      # npm ci must replace this after a verified package-lock.json is committed.
-      - name: Install dependencies (lockfile unavailable in offline authoring environment)
-        run: npm install --no-audit --no-fund
-      - name: TypeScript and unit/integration tests
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install frozen dependencies
+        run: npm ci --ignore-scripts
+      - name: TypeScript, Node BDD/unit, Vitest components and local security
         run: npm run qa
       - name: Local DevSecOps file and secret gate
         run: npm run security:local
@@ -29,10 +31,12 @@ jobs:
         run: npm run lint:biome
       - name: Dependency vulnerabilities, high and critical
         run: npm audit --audit-level=high
-      - name: Static release and offline build
-        run: npm run release:gate
+      - name: Static release and Vite bundle budget gate
+        run: npm run release:gate && npm run build:vite
+      - name: Validate GitHub Actions workflows with actionlint
+        run: node scripts/run-actionlint.mjs
       - name: Upload build for manual review
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: terrapixel-dist
           path: dist/

@@ -32,10 +32,10 @@ export function LearningCatalog({ lessons, tracks, state, level, searchQuery = '
     h('div', { className: 'space24' }),
     h(
       'div',
-      { className: 'flex space-between', style: 'flex-wrap:wrap' },
+      { className: 'flex space-between wrap' },
       h(
         'div',
-        { className: 'tabs', style: 'margin-bottom:0;border-bottom:0' },
+        { className: 'tabs tabs-flush' },
         ...levels.map((name) =>
           h(
             'button',
