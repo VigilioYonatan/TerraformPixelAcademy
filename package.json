@@ -46,7 +46,7 @@
     "@testing-library/preact": "3.2.6",
     "@types/three": "0.187.0",
     "jsdom": "31.0.1",
-    "preact": "10.29.8",
+    "preact": "11.2.0",
     "three": "0.187.0",
     "typescript": "5.8.3",
     "vite": "8.3.8",
