@@ -42,7 +42,7 @@
     "@codemirror/state": "6.7.6",
     "@codemirror/view": "6.43.15",
     "@lezer/highlight": "1.2.5",
-    "@playwright/test": "1.64.1",
+    "@playwright/test": "1.65.1",
     "@testing-library/preact": "3.2.6",
     "@types/three": "0.187.0",
     "jsdom": "31.0.1",
