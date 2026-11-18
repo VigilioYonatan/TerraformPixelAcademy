@@ -3,24 +3,19 @@ import { capstoneNoteValid, seniorGate } from './seniorProgress.js';
 import { seniorSnippets } from './seniorSnippets.js';
 import { evaluateSeniorDrill, getSeniorDrill } from './seniorWhatIf.js';
 import { defaultSimulatorInputs } from './simulators.js';
+import { renderInlineText } from './uiShared.js';
 import { h } from './vendor/preact.mjs';
 const tag = (value, color = 'purple') => h('span', { className: `chip chip-${color}` }, value);
-function renderInlineText(text) {
-    const parts = text.split(/(`[^`]+`)/g);
-    return parts.map((part, idx) => part.startsWith('`') && part.endsWith('`') && part.length > 2
-        ? h('code', { key: `ic-${idx}`, className: 'inline-code' }, part.slice(1, -1))
-        : part);
-}
 const action = (label, name, id = '', klass = 'btn btn-primary', index) => h('button', {
     type: 'button',
     className: klass,
     'data-action': name,
     'data-id': id,
     'data-index': index
-}, label);
+}, ...renderInlineText(label));
 const spacer = () => h('div', { className: 'space16' });
-const reviewBox = (title, body) => h('div', { className: 'case-review' }, h('b', {}, title), h('p', {}, body));
-const stage = (text) => h('div', { className: 'side-step' }, text);
+const reviewBox = (title, body) => h('div', { className: 'case-review' }, h('b', {}, title), h('p', {}, ...renderInlineText(body)));
+const stage = (text) => h('div', { className: 'side-step' }, ...renderInlineText(text));
 function simTextField(label, key, value, ariaLabel) {
     return h('div', {}, h('label', { className: 'field-label' }, label), h('input', {
         className: 'search-bar',
@@ -127,8 +122,8 @@ function Simulator({ scenario, state, simResult, simInputs }) {
     const control = buildCaseSimulatorControls(id, inputs);
     if (!drill)
         return null;
-    return h('section', { className: 'content-panel mt-20' }, h('div', { className: 'flex space-between' }, h('div', {}, h('div', { className: 'eyebrow' }, `SIMULADOR DETERMINISTA · ${id}`), h('h3', { className: 'mt-8' }, 'Prueba una hipótesis')), tag('SIMULADO', 'yellow')), spacer(), control, simResult ? h('div', { className: 'alert mt-14', role: 'status' }, simResult) : null, h('div', { className: 'what-if' }, h('div', { className: 'eyebrow' }, `DESAFÍO WHAT-IF · ${id}`), h('h3', { className: 'what-if-title' }, drill.prompt), h('div', { className: 'what-if-choices' }, ...drill.options.map((option, i) => action(`${String.fromCharCode(65 + i)}. ${option}`, 'what-if-answer', id, `btn btn-soft ${selected === i ? 'selected' : ''}`.trim(), i))), result
-        ? h('div', { className: `what-if-result ${result.ok ? 'ok' : 'unsafe'}`, role: 'status' }, h('b', {}, result.ok ? '✓ Decisión defendible' : '⚠ Riesgo no resuelto'), h('p', {}, result.message), h('p', {}, h('b', {}, 'Evidencia que exigirías: '), result.next), h('small', {}, 'Ejercicio sintético, no Terraform real.'))
+    return h('section', { className: 'content-panel mt-20' }, h('div', { className: 'flex space-between' }, h('div', {}, h('div', { className: 'eyebrow' }, `SIMULADOR DETERMINISTA · ${id}`), h('h3', { className: 'mt-8' }, 'Prueba una hipótesis')), tag('SIMULADO', 'yellow')), spacer(), control, simResult ? h('div', { className: 'alert mt-14', role: 'status' }, simResult) : null, h('div', { className: 'what-if' }, h('div', { className: 'eyebrow' }, `DESAFÍO WHAT-IF · ${id}`), h('h3', { className: 'what-if-title' }, ...renderInlineText(drill.prompt)), h('div', { className: 'what-if-choices' }, ...drill.options.map((option, i) => action(`${String.fromCharCode(65 + i)}. ${option}`, 'what-if-answer', id, `btn btn-soft ${selected === i ? 'selected' : ''}`.trim(), i))), result
+        ? h('div', { className: `what-if-result ${result.ok ? 'ok' : 'unsafe'}`, role: 'status' }, h('b', {}, result.ok ? '✓ Decisión defendible' : '⚠ Riesgo no resuelto'), h('p', {}, ...renderInlineText(result.message)), h('p', {}, h('b', {}, 'Evidencia que exigirías: '), ...renderInlineText(result.next)), h('small', {}, 'Ejercicio sintético, no Terraform real.'))
         : null), h('p', { className: 'small-note mt-15' }, 'No se lee state remoto ni se ejecuta Terraform. Datos sintéticos.'));
 }
 function ReviewSnippet({ scenario, showFix }) {
@@ -148,7 +143,7 @@ function Capstone({ state }) {
             'data-index': i,
             checked: state.capstoneDone.includes(i),
             disabled: !valid
-        }), h('span', {}, h('b', {}, `${i + 1}. ${step.name}`), h('span', { className: 'small-note' }, ` — ${step.detail}`))), h('label', { className: 'field-label', htmlFor: `capstone-note-${i}` }, `Evidencia del hito ${i + 1} (autodeclarada)`), h('textarea', {
+        }), h('span', {}, h('b', {}, `${i + 1}. ${step.name}`), h('span', { className: 'small-note' }, ' — ', ...renderInlineText(step.detail)))), h('label', { className: 'field-label', htmlFor: `capstone-note-${i}` }, `Evidencia del hito ${i + 1} (autodeclarada)`), h('textarea', {
             id: `capstone-note-${i}`,
             className: 'capstone-note',
             'data-input': 'capstone-note',
@@ -216,15 +211,15 @@ function TabContent(props) {
     if (props.tab === 'investigar')
         return h('section', { className: 'case-panel' }, h('div', { className: 'eyebrow' }, 'ETAPA 01 · INVESTIGACIÓN'), h('h2', {}, '¿Qué está ocurriendo?'), h('p', {}, ...renderInlineText(c.subtitle)), h(SeniorIncidentDiagram, { scenario: c }), reviewBox('Tu misión', c.mission), h('h3', {}, 'Artefactos del incidente'), h('p', {}, ...renderInlineText(c.artifacts)), spacer(), h('a', { className: 'btn btn-sm btn-soft', href: `./assets/senior/${c.id}.zip`, download: `${c.id}-incident.zip` }, '↓ Descargar artefactos del incidente'), spacer(), h('div', { className: 'alert' }, h('b', {}, 'Prueba negativa: '), ...renderInlineText(c.negative)), h(Simulator, props), h('div', { className: 'space24' }), h('div', { className: 'flex-wrap' }, h('a', { className: 'btn btn-sm btn-soft', href: '#/planes' }, 'Explorar un plan ficticio →'), h('a', { className: 'btn btn-sm btn-soft', href: '#/grafo' }, 'Explorar dependencias →'), action('Tomar una decisión →', 'case-tab', 'decision', 'btn btn-primary btn-sm')));
     if (props.tab === 'decision')
-        return h('section', { className: 'case-panel' }, h('div', { className: 'eyebrow' }, 'ETAPA 02 · DECISIÓN'), h('h2', {}, 'Escoge una respuesta defendible'), h('p', {}, c.mission), spacer(), ...c.choices.map((choice, i) => h('button', {
+        return h('section', { className: 'case-panel' }, h('div', { className: 'eyebrow' }, 'ETAPA 02 · DECISIÓN'), h('h2', {}, 'Escoge una respuesta defendible'), h('p', {}, ...renderInlineText(c.mission)), spacer(), ...c.choices.map((choice, i) => h('button', {
             key: `${c.id}-choice-${i}`,
             type: 'button',
             className: `quiz-answer ${decision === i ? (correct ? 'correct' : 'incorrect') : ''}`.trim(),
             'data-action': 'case-decision',
             'data-id': c.id,
             'data-index': i
-        }, h('span', { className: 'quiz-letter' }, String.fromCharCode(65 + i)), choice)), decision !== undefined
-            ? h('div', { className: `feedback ${correct ? '' : 'fail'}`.trim(), role: 'status' }, h('h3', {}, correct ? '✓ Decisión defendible' : '○ Se requiere una opción más segura'), h('p', {}, c.explanation))
+        }, h('span', { className: 'quiz-letter' }, String.fromCharCode(65 + i)), h('span', {}, ...renderInlineText(choice)))), decision !== undefined
+            ? h('div', { className: `feedback ${correct ? '' : 'fail'}`.trim(), role: 'status' }, h('h3', {}, correct ? '✓ Decisión defendible' : '○ Se requiere una opción más segura'), h('p', {}, ...renderInlineText(c.explanation)))
             : null, h('div', { className: 'space24' }), action('Continuar al review →', 'case-tab', 'review'));
     if (props.tab === 'review')
         return h('section', { className: 'case-panel' }, h('div', { className: 'eyebrow' }, 'ETAPA 03 · CODE / ARCHITECTURE REVIEW'), h('h2', {}, 'Hallazgos y límites de prueba'), h('p', {}, 'Revisa el peligro antes de recomendar cambios. Los artefactos de este caso son sintéticos; se exige una hipótesis verificable.'), reviewBox(`Hallazgo principal (${c.pillar})`, c.negative), reviewBox('Acción profesional esperada', c.mission), reviewBox('Qué revisar en un PR / RFC', c.artifacts), h(ReviewSnippet, { scenario: c, showFix: props.showFix }), h('h3', {}, 'Rúbrica de revisión'), ...[
@@ -278,7 +273,7 @@ export function SeniorCasePage(props) {
         'data-action': 'finish-case',
         'data-id': c.id,
         disabled: !gate.ok
-    }, done ? '✓ Revalidar caso' : '♛ Marcar autoevaluación completa')), h('div', { className: 'case-evidence-bar' }, h('a', { href: '#/evidencias', className: 'btn btn-soft' }, 'Ver evidencia CLI real →')), h('div', { className: 'lesson-footer' }, h('a', { className: 'btn', href: prev ? `#/senior/${prev.id}` : '#/senior' }, prev ? `← ${prev.id} · ${prev.title}` : '← Todos los casos'), h('a', { className: 'btn btn-primary', href: next ? `#/senior/${next.id}` : '#/senior' }, next ? `${next.id} →` : 'Volver al dashboard'))), h('aside', { className: 'case-sidebar' }, h('div', { className: 'content-panel' }, h('div', { className: 'flex space-between' }, h('h3', {}, 'Ficha del incidente'), tag('FICTICIO', 'yellow')), h('img', {
+    }, done ? '✓ Revalidar caso' : '♛ Marcar autoevaluación completa')), h('div', { className: 'case-evidence-bar' }, h('a', { href: '#/evidencias', className: 'btn btn-soft' }, 'Ver evidencia CLI real →')), h('div', { className: 'lesson-footer' }, h('a', { className: 'btn', href: prev ? `#/senior/${prev.id}` : '#/senior' }, ...(prev ? [`← ${prev.id} · `, ...renderInlineText(prev.title)] : ['← Todos los casos'])), h('a', { className: 'btn btn-primary', href: next ? `#/senior/${next.id}` : '#/senior' }, next ? `${next.id} →` : 'Volver al dashboard'))), h('aside', { className: 'case-sidebar' }, h('div', { className: 'content-panel' }, h('div', { className: 'flex space-between' }, h('h3', {}, 'Ficha del incidente'), tag('FICTICIO', 'yellow')), h('img', {
         className: 'side-terra',
         src: `./assets/terra/${done ? 'exito' : 'arquitectura'}.png`,
         alt: 'Terra analizando arquitectura'
@@ -288,5 +283,5 @@ export function SeniorCasePage(props) {
         'data-id': c.id,
         'data-index': i,
         checked: checked.includes(i)
-    }), text)), h('p', { className: 'small-note' }, 'Estas casillas son declaraciones del estudiante, no pruebas automatizadas.')))));
+    }), h('span', {}, ...renderInlineText(text)))), h('p', { className: 'small-note' }, 'Estas casillas son declaraciones del estudiante, no pruebas automatizadas.')))));
 }

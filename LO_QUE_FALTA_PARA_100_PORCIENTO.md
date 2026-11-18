@@ -17,13 +17,13 @@ TerraPixel Academy `v2.0.0` (`MIT`) ha completado las fases `F0` a `F8`: **14/14
 |---|---|---|
 | `git status` | `PASS` | Repositorio Git en `main` con historial limpio e higiene `.gitignore` |
 | `npm run typecheck` | `PASS` | TypeScript `5.8.3` estricto (`tools/typescript`) compila sin errores |
-| `npm test` (`tests/*.test.mjs`) | **`PASS` (101/101)** | 26 suites / 101 tests en verde (`0 FAIL`): `F0-01..F6-03`, paridad de `STATUS.md`, escáneres estáticos IaC fail-closed, componentes y matriz A11y |
+| `npm test` (`tests/*.test.mjs`) | **`PASS` (105/105)** | 31 suites / 105 tests en verde (`0 FAIL`): `F0-01..F8-03`, paridad de `STATUS.md`, escáneres estáticos IaC fail-closed, Arenas 3D Three.js, componentes y matriz A11y |
 | `npm run test:components` (`vitest run`) | **`PASS` (10/10)** | **10 suites/tests de componentes Preact** con `@testing-library/preact` (`jsdom`) cubriendo las 14 vistas + `AppShell` + `NotFoundPage` |
-| `npm run test:e2e` (`playwright test`) | **`PASS` (18/18)** | **18 escenarios E2E en Chromium real por HTTP** (`127.0.0.1:4179` + smoke de `dist/`) cubriendo los 5 recorridos de `F6-02` y los **30 escaneos Axe WCAG 2.2 AA** (`dark` + `light`) |
-| `npm run security:local` | `PASS` (acotado) | 622 archivos escaneados localmente; complementado con `npm audit --audit-level=high` (`0` vulnerabilidades) |
+| `npm run test:e2e` (`playwright test`) | **`PASS` (20/20)** | **20 escenarios E2E en Chromium real por HTTP** (`127.0.0.1:4179` + smoke de `dist/`) cubriendo los 5 recorridos de `F6-02`, Arenas 3D WebGL (`Three.js`), CSP estricta y los **30 escaneos Axe WCAG 2.2 AA** (`dark` + `light`) |
+| `npm run security:local` | `PASS` (acotado) | 630 archivos escaneados localmente; `npm audit --omit=dev` con `0` vulnerabilidades de runtime (en `devDependencies` existe advisory upstream sin parche publicado `GHSA-fc5q-39xc-vjpf` sobre `picomatch@4.0.7` transitivo de `vite`/`vitest`, `0` críticos) |
 | `npm run verify:preservation` | `PASS` | Conserva 587/587 rutas de `v1.4` y 704/704 rutas de `v1.5.1` (tanto en `build` como en `build:vite`) |
 | `python scripts/release-audit.py` | **`PASS` (1.446/1.446)** | 1.446 validaciones estructurales, PNGs y paridad exacta CRC/ZIP de los 54 paquetes aprobadas |
-| `python scripts/verify-release.py` | `NOT_RUN` (cierre F8) | Protegido con `IGNORED_ROOTS`; `SHA256SUMS.txt` se regenera al cierre final de Fase 8 (§13.6) |
+| `python scripts/verify-release.py` | **`PASS` (988/988)** | Verificación íntegra de los 988 archivos del árbol contra `SHA256SUMS.txt` (`0 problems; PASS`) |
 | `npm ci --ignore-scripts` | `PASS` | `package-lock.json` (`lockfileVersion: 3`, SHA-512) + `.npmrc` reproducibles, `0` vulnerabilidades |
 | `npm run build:vite` + `bundle:budget` | `PASS` | Vite `8.3.8` con lazy chunk CM6 (`EntryJS 82.68 KB gzip`, `LazyJS 93.25 KB gzip`, `CSS 10.40 KB gzip`), `.vite/manifest.json` y `check-bundle-budget.mjs` en `PASS` |
 | `npm run lint:biome` | **`PASS`** | Biome CLI `2.6.8` completo (`recommended` + `a11y` + `formatter` + `noExplicitAny`) sobre 85 archivos con `0` errores y `0` warnings |
@@ -43,24 +43,26 @@ En `src/main.ts` y `src/uiShell.ts`, **las 14 de 14 rutas + `404` + el shell usa
 | Ruta | Pantalla | Estado Actual en Código | Qué Falta para el 100 % |
 |---|---|---|---|
 | Shell global | Header / Nav / Footer | ✅ Preact (`src/uiShell.ts` — `F3-08`) | Completado: 9 enlaces desktop (`Inicio`..`Recursos`) sin overflow y `0` `dangerouslySetInnerHTML` |
-| `#/inicio` | Landing | ✅ Preact (`src/uiHome.ts` — `F3-02`) | Migrar estilos inline residuales cuando se endurezca CSP en `F7-02` |
+| `#/inicio` | Landing | ✅ Preact (`src/uiHome.ts` — `F3-02` / `F7-01`) | Completado: CSP estricta sin estilos inline, showcase en vivo, hero centrado, stats-strip y numerales `Silkscreen` |
 | `#/aprender` | Catálogo (36 lecciones + 8 rutas) | ✅ Preact (`src/uiCatalog.ts` — `F3-08`) | Completado con `iconFor(t.icon)` real por especialidad |
-| `#/leccion/:id` | Aula HCL (36 lecciones) | ✅ Preact + CM6 (`src/uiLesson.ts` — `F3-03` / `F4-02`) | Completado con CodeMirror 6 y contexto Senior único por lección (`src/lessonSeniorContext.ts`) |
-| `#/juegos` | Hub de 5 minijuegos | ✅ Preact (`src/uiGames.ts` — `F3-04`) | Completado en Preact con estados accesibles |
-| `#/juego/:id` | Partida interactiva (21 preguntas) | ✅ Preact (`src/uiGames.ts` — `F3-04`) | Completado en Preact con `gameSession` encapsulado en `src/store.ts` y sin inflación de XP al rejugar |
+| `#/leccion/:id` | Aula HCL (36 lecciones) | ✅ Preact + CM6 (`src/uiLesson.ts` — `F3-03` / `F4-02`) | Completado con CodeMirror 6, diagramas SVG y contexto Senior único por lección (`src/lessonSeniorContext.ts`) |
+| `#/juegos` | Hub de 5 minijuegos | ✅ Preact (`src/uiGames.ts` — `F3-04`) | Completado en Preact con estados accesibles y acceso a las 5 Arenas 3D |
+| `#/juego/:id` | Partida interactiva (21 preguntas) | ✅ Preact + Three.js (`src/uiGames.ts`, `src/gameScene3d.ts`) | Completado con topologías 3D WebGL (`three@0.187.0`), atajos `1/2/3` y cero inflación de XP al rejugar |
 | `#/laboratorios` | Centro de descargas (54 ZIPs) | ✅ Preact (`src/uiLabs.ts` — `F3-05`) | Completado con los **54 paquetes ZIP** (36 `B/I/A` + 18 `S01–S18`), filtros por categoría y buscador reactivo |
 | `#/grafo` | Explorador de grafos SVG | ✅ Preact (`src/uiGraph.ts` — `F3-06`) | Completado con SVG `tabindex="0"`, navegación por flechas/`Home`/`End`, blast radius BFS, alerta de ciclo y estados vacío/error |
 | `#/planes` | Plan Explorer + `plan.json` + Release Gate | ✅ Preact (`src/uiPlans.ts` — `F3-07` / `F4-03`) | Completado con `forget` (`STATE_FORGET`) y orden explícito `delete-then-create` vs `create-before-destroy` |
-| `#/senior` | Senior Hub | ✅ Preact (`src/uiSeniorHub.ts` — `F4-02`) | Completado con filtros reactivos por severidad (`Crítico`/`Alto`), dominio técnico y búsqueda |
-| `#/senior/:id` | Caso Senior (`S01–S18`) | ✅ Preact (`src/uiSeniorCase.ts` — `F4-01`) | Completado con **18/18 simuladores deterministas parametrizables** |
+| `#/senior` | Senior Hub | ✅ Preact (`src/uiSeniorHub.ts` — `F4-02`) | Completado con filtros reactivos por severidad (`Crítico`/`Alto`), dominio técnico, búsqueda y tarjetas codificadas por severidad |
+| `#/senior/:id` | Caso Senior (`S01–S18`) | ✅ Preact (`src/uiSeniorCase.ts` — `F4-01`) | Completado con **18/18 simuladores deterministas parametrizables**, diagramas SVG de incidente y checklist 2 columnas |
 | `#/evidencias` | Dashboard Evidencias CLI | ✅ Preact (`src/uiCliEvidence.ts` — `F5-01`) | Completado y probado con manifiesto real `37/37 PASS` de `Terraform v1.10.5` |
 | `#/progreso` | Perfil, XP, 3 niveles y 8 itinerarios | ✅ Preact (`src/uiProfile.ts` — `F3-08`) | Completado con `computeTrackProgress` para las 8 especialidades y galería de insignias |
-| `#/ajustes` | Preferencias, backup y privacidad | ✅ Preact (`src/uiSettings.ts` — `F3-08`) | Auditar referencia visual en `F7-03` |
+| `#/ajustes` | Preferencias, backup y privacidad | ✅ Preact (`src/uiSettings.ts` — `F3-08` / `F7-03`) | Completado: referencia `concepto-aprobado.png` retirada y bloqueada con HTTP 404 |
 | `#/recursos` + `404` | Biblioteca, glosario y ruta desconocida | ✅ Preact (`src/uiResources.ts` — `F3-08`) | Completado con filtrado reactivo de glosario sin pérdida de foco y `NotFoundPage` |
 
 ---
 
-### 2.2. Componentes, Editor y Arquitectura Frontend (`src/`)
+### 2.2. Registro Histórico de Diagnóstico Inicial (`v1.7.0` — Resuelto 100 % en §4 `F0–F8`)
+
+> **Nota de trazabilidad:** Las subsecciones `2.2`, `2.3` y `2.4` conservan íntegro el diagnóstico inicial detectado sobre el baseline `v1.7.0` (2026-11-16) para preservar el rastro de auditoría (`origen -> resolución`). Todos los hallazgos listados aquí abajo quedaron cerrados y verificados en `PASS` en el Checklist Maestro de la Sección 4 (`F0-01` a `F8-03`).
 
 1. **Editor CodeMirror 6 obligatorio (`APP-04` — Pendiente P1):**
    - Actualmente `src/editor.ts` carga **CodeMirror 5.58.3** mediante inyección de `<script>` globales (`window.CodeMirror`) desde `assets/vendor/codemirror5/`.

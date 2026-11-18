@@ -7,7 +7,7 @@
 import type { Lesson } from './curriculum.js';
 import type { Case } from './senior.js';
 import { filterLabPacks, type LabsCategory } from './store.js';
-import { ROUTES } from './uiShared.js';
+import { ROUTES, renderInlineText } from './uiShared.js';
 import { h } from './vendor/preact.mjs';
 
 export interface LabsDirectoryProps {
@@ -181,7 +181,7 @@ export function LabsDirectory({ lessons, seniorCases, category, searchQuery }: L
               h(
                 'div',
                 { className: 'list-card-info' },
-                h('h3', {}, l.title),
+                h('h3', {}, ...renderInlineText(l.title)),
                 h('p', {}, 'main.tf · practice.tftest.hcl · README · STATUS · solución')
               ),
               h(
@@ -229,7 +229,7 @@ export function LabsDirectory({ lessons, seniorCases, category, searchQuery }: L
                     chip(c.severity, c.severity === 'Crítico' ? 'red' : 'yellow'),
                     chip(c.pillar, 'cyan')
                   ),
-                  h('h3', {}, c.title),
+                  h('h3', {}, ...renderInlineText(c.title)),
                   h(
                     'p',
                     {},

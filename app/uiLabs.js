@@ -1,5 +1,5 @@
 import { filterLabPacks } from './store.js';
-import { ROUTES } from './uiShared.js';
+import { ROUTES, renderInlineText } from './uiShared.js';
 import { h } from './vendor/preact.mjs';
 const LAB_CLI_STEPS = [
     'terraform version',
@@ -43,13 +43,13 @@ export function LabsDirectory({ lessons, seniorCases, category, searchQuery }) {
         ? h('section', { className: 'section' }, h('div', { className: 'card', role: 'status' }, h('h3', { className: 'card-title' }, 'Sin paquetes coincidentes'), h('p', { className: 'card-desc' }, 'No hay laboratorios ni bundles Senior para ese criterio de búsqueda.')))
         : null, ...visibleLevels.map((lvl) => {
         const levelItems = matchedLessons.filter((item) => item.level === lvl);
-        return h('section', { key: lvl, className: 'section' }, sectionHead('LAB PACKS · LECCIONES HCL', lvl, `${levelItems.length} ZIP`), h('div', { className: 'lesson-list' }, ...levelItems.map((l) => h('div', { key: l.id, className: 'list-card lab-pack-row' }, h('div', { className: 'lesson-index' }, l.id), h('div', { className: 'list-card-info' }, h('h3', {}, l.title), h('p', {}, 'main.tf · practice.tftest.hcl · README · STATUS · solución')), h('div', { className: 'flex' }, h('a', { className: 'btn btn-sm btn-soft', href: `#/leccion/${l.id}` }, 'Aula →'), h('a', {
+        return h('section', { key: lvl, className: 'section' }, sectionHead('LAB PACKS · LECCIONES HCL', lvl, `${levelItems.length} ZIP`), h('div', { className: 'lesson-list' }, ...levelItems.map((l) => h('div', { key: l.id, className: 'list-card lab-pack-row' }, h('div', { className: 'lesson-index' }, l.id), h('div', { className: 'list-card-info' }, h('h3', {}, ...renderInlineText(l.title)), h('p', {}, 'main.tf · practice.tftest.hcl · README · STATUS · solución')), h('div', { className: 'flex' }, h('a', { className: 'btn btn-sm btn-soft', href: `#/leccion/${l.id}` }, 'Aula →'), h('a', {
             className: 'btn btn-sm btn-primary',
             href: `./assets/labs/${l.id}.zip`,
             download: `${l.id}-lab.zip`
         }, '↓ ZIP'))))));
     }), matchedSenior.length > 0
-        ? h('section', { className: 'section', id: 'senior-lab-packs' }, sectionHead('SENIOR INCIDENT BUNDLES · S01–S18', 'Paquetes de incidentes, ADR y Capstone S18', `${matchedSenior.length} ZIP`), h('div', { className: 'lesson-list' }, ...matchedSenior.map((c) => h('div', { key: c.id, className: 'list-card senior-pack-row' }, h('div', { className: 'lesson-index' }, c.id), h('div', { className: 'list-card-info' }, h('div', { className: 'flex-wrap mb-4' }, chip(c.severity, c.severity === 'Crítico' ? 'red' : 'yellow'), chip(c.pillar, 'cyan')), h('h3', {}, c.title), h('p', {}, c.id === 'S18'
+        ? h('section', { className: 'section', id: 'senior-lab-packs' }, sectionHead('SENIOR INCIDENT BUNDLES · S01–S18', 'Paquetes de incidentes, ADR y Capstone S18', `${matchedSenior.length} ZIP`), h('div', { className: 'lesson-list' }, ...matchedSenior.map((c) => h('div', { key: c.id, className: 'list-card senior-pack-row' }, h('div', { className: 'lesson-index' }, c.id), h('div', { className: 'list-card-info' }, h('div', { className: 'flex-wrap mb-4' }, chip(c.severity, c.severity === 'Crítico' ? 'red' : 'yellow'), chip(c.pillar, 'cyan')), h('h3', {}, ...renderInlineText(c.title)), h('p', {}, c.id === 'S18'
             ? 'incident.json · WHAT-IF · REVIEW-GATES · CASE-REVIEW-SHEET · capstone/ multiambiente (.tf + .tftest.hcl)'
             : 'incident.json · WHAT-IF-SCENARIO · WHAT-IF-WORKSHEET · REVIEW-GATES · CASE-REVIEW-SHEET')), h('div', { className: 'flex' }, h('a', { className: 'btn btn-sm btn-soft', href: `#/senior/${c.id}` }, 'Caso →'), h('a', {
             className: 'btn btn-sm btn-primary',

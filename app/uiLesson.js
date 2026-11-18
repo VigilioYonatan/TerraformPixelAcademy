@@ -1,5 +1,5 @@
 import { getLessonSeniorContext } from './lessonSeniorContext.js';
-import { ROUTES, mascotUrl } from './uiShared.js';
+import { ROUTES, mascotUrl, renderInlineText } from './uiShared.js';
 import { h } from './vendor/preact.mjs';
 const STEP_GUIDE = [
     'Lee el concepto y el resultado esperado.',
@@ -143,14 +143,14 @@ export function LessonClassroom({ lesson, lessons, state, evalResult }) {
         href: `./assets/labs/${lesson.id}.zip`,
         download: `${lesson.id}-lab.zip`,
         className: 'btn btn-soft'
-    }, '⬇ Descargar laboratorio'), h('a', { href: ROUTES.graph, className: 'btn btn-sm' }, 'Ver grafos →')), h('div', { className: 'space16' }), h('a', { href: ROUTES.evidence, className: 'btn btn-soft' }, 'Ver evidencia CLI real →'), h('div', { className: 'lesson-footer' }, prev
-        ? h('a', { href: `#/leccion/${prev.id}`, className: 'btn' }, `← ${prev.id} · ${prev.title}`)
+    }, '⬇ Descargar laboratorio'), h('a', { href: ROUTES.graph, className: 'btn btn-sm' }, 'Ver grafos →')), h('div', { className: 'case-evidence-bar' }, h('a', { href: ROUTES.evidence, className: 'btn btn-soft' }, 'Ver evidencia CLI real →')), h('div', { className: 'lesson-footer' }, prev
+        ? h('a', { href: `#/leccion/${prev.id}`, className: 'btn' }, `← ${prev.id} · `, ...renderInlineText(prev.title))
         : h('a', { href: ROUTES.learn, className: 'btn' }, '← Ver currículo'), next
         ? h('a', { href: `#/leccion/${next.id}`, className: 'btn btn-primary' }, `Siguiente: ${next.id} →`)
         : h('a', { href: ROUTES.senior, className: 'btn btn-primary' }, 'Ir a Senior Mode →')), state.seniorEnabled
         ? (() => {
             const seniorCtx = getLessonSeniorContext(lesson.id);
-            return h('section', { className: 'case-review', id: 'lesson-senior-callout' }, h('div', { className: 'flex space-between wrap gap-8 mb-8' }, h('b', {}, `♛ PREGUNTA DE ARQUITECTURA · ${lesson.id}`), chip(`${seniorCtx.domain} · ${seniorCtx.relatedCaseId}`, 'yellow')), h('p', { className: 'mb-8' }, h('strong', {}, 'Riesgo en producción: '), seniorCtx.productionRisk), h('p', {}, seniorCtx.architecturePrompt), h('div', { className: 'space12' }), h('div', { className: 'flex-wrap' }, h('a', { href: `#/senior/${seniorCtx.relatedCaseId}`, className: 'btn btn-sm btn-primary' }, `Resolver incidente ${seniorCtx.relatedCaseId} →`), h('a', { href: ROUTES.senior, className: 'btn btn-sm btn-soft' }, 'Mapa Senior completo →')));
+            return h('section', { className: 'case-review', id: 'lesson-senior-callout' }, h('div', { className: 'flex space-between wrap gap-8 mb-8' }, h('b', {}, `♛ PREGUNTA DE ARQUITECTURA · ${lesson.id}`), chip(`${seniorCtx.domain} · ${seniorCtx.relatedCaseId}`, 'yellow')), h('p', { className: 'mb-8' }, h('strong', {}, 'Riesgo en producción: '), ...renderInlineText(seniorCtx.productionRisk)), h('p', {}, ...renderInlineText(seniorCtx.architecturePrompt)), h('div', { className: 'space12' }), h('div', { className: 'flex-wrap' }, h('a', { href: `#/senior/${seniorCtx.relatedCaseId}`, className: 'btn btn-sm btn-primary' }, `Resolver incidente ${seniorCtx.relatedCaseId} →`), h('a', { href: ROUTES.senior, className: 'btn btn-sm btn-soft' }, 'Mapa Senior completo →')));
         })()
         : null), h('aside', { className: 'lesson-aside' }, h('div', { className: 'content-panel' }, h('h3', {}, 'Paso a paso'), ...STEP_GUIDE.map((stepText, i) => h('div', { key: stepText, className: `side-step ${i === 0 ? 'active' : ''}`.trim() }, `${i + 1}. ${stepText}`))), h('div', { className: 'content-panel' }, h('img', {
         src: mascotUrl(done ? 'exito' : 'idea'),

@@ -27,6 +27,13 @@
 - Licencia: **MIT**, Copyright © 2010–2026 three.js authors.
 - Subconjunto *tree-shaken* fijado en `package-lock.json` (`three@0.187.0`) y empaquetado determinísticamente mediante `scripts/bundle-three.mjs` en `app/vendor/three.mjs` para ejecución WebGL 100 % offline en `#/juego/:id` (`src/gameScene3d.ts`).
 
+## Silkscreen (Tipografía Pixel Auto-alojada)
+
+- Proyecto: https://github.com/kottke/silkscreen
+- Autor: Copyright (c) 1999–2022 Jason Kottke.
+- Licencia: **SIL Open Font License 1.1 (OFL-1.1)**.
+- Archivo auto-alojado localmente en `assets/fonts/silkscreen-latin.woff2` para ejecución 100 % offline bajo CSP estricta (`font-src 'self'`), sin carga desde CDNs externos.
+
 ## CodeMirror 5.58.3 (Preservado en baseline histórico)
 
 - Origen: paquete MIT CodeMirror incluido por el proyecto open-source nbclassic/Jupyter.

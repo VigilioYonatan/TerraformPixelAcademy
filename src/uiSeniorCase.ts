@@ -10,6 +10,7 @@ import { capstoneNoteValid, seniorGate } from './seniorProgress.js';
 import { seniorSnippets } from './seniorSnippets.js';
 import { evaluateSeniorDrill, getSeniorDrill } from './seniorWhatIf.js';
 import { defaultSimulatorInputs, type SimulatorInputs } from './simulators.js';
+import { renderInlineText } from './uiShared.js';
 import { h } from './vendor/preact.mjs';
 
 export interface SeniorCaseProps {
@@ -23,15 +24,6 @@ export interface SeniorCaseProps {
 }
 
 const tag = (value: string, color = 'purple') => h('span', { className: `chip chip-${color}` }, value);
-
-function renderInlineText(text: string) {
-  const parts = text.split(/(`[^`]+`)/g);
-  return parts.map((part, idx) =>
-    part.startsWith('`') && part.endsWith('`') && part.length > 2
-      ? h('code', { key: `ic-${idx}`, className: 'inline-code' }, part.slice(1, -1))
-      : part
-  );
-}
 const action = (label: string, name: string, id = '', klass = 'btn btn-primary', index?: number) =>
   h(
     'button',
@@ -42,12 +34,12 @@ const action = (label: string, name: string, id = '', klass = 'btn btn-primary',
       'data-id': id,
       'data-index': index
     },
-    label
+    ...renderInlineText(label)
   );
 const spacer = () => h('div', { className: 'space16' });
 const reviewBox = (title: string, body: string) =>
-  h('div', { className: 'case-review' }, h('b', {}, title), h('p', {}, body));
-const stage = (text: string) => h('div', { className: 'side-step' }, text);
+  h('div', { className: 'case-review' }, h('b', {}, title), h('p', {}, ...renderInlineText(body)));
+const stage = (text: string) => h('div', { className: 'side-step' }, ...renderInlineText(text));
 
 function simTextField(label: string, key: keyof SimulatorInputs, value: string, ariaLabel: string) {
   return h(
@@ -464,7 +456,7 @@ function Simulator({ scenario, state, simResult, simInputs }: SeniorCaseProps) {
       'div',
       { className: 'what-if' },
       h('div', { className: 'eyebrow' }, `DESAFÍO WHAT-IF · ${id}`),
-      h('h3', { className: 'what-if-title' }, drill.prompt),
+      h('h3', { className: 'what-if-title' }, ...renderInlineText(drill.prompt)),
       h(
         'div',
         { className: 'what-if-choices' },
@@ -483,8 +475,8 @@ function Simulator({ scenario, state, simResult, simInputs }: SeniorCaseProps) {
             'div',
             { className: `what-if-result ${result.ok ? 'ok' : 'unsafe'}`, role: 'status' },
             h('b', {}, result.ok ? '✓ Decisión defendible' : '⚠ Riesgo no resuelto'),
-            h('p', {}, result.message),
-            h('p', {}, h('b', {}, 'Evidencia que exigirías: '), result.next),
+            h('p', {}, ...renderInlineText(result.message)),
+            h('p', {}, h('b', {}, 'Evidencia que exigirías: '), ...renderInlineText(result.next)),
             h('small', {}, 'Ejercicio sintético, no Terraform real.')
           )
         : null
@@ -539,7 +531,7 @@ function Capstone({ state }: Pick<SeniorCaseProps, 'state'>) {
             'span',
             {},
             h('b', {}, `${i + 1}. ${step.name}`),
-            h('span', { className: 'small-note' }, ` — ${step.detail}`)
+            h('span', { className: 'small-note' }, ' — ', ...renderInlineText(step.detail))
           )
         ),
         h(
@@ -682,7 +674,7 @@ function TabContent(props: SeniorCaseProps) {
       { className: 'case-panel' },
       h('div', { className: 'eyebrow' }, 'ETAPA 02 · DECISIÓN'),
       h('h2', {}, 'Escoge una respuesta defendible'),
-      h('p', {}, c.mission),
+      h('p', {}, ...renderInlineText(c.mission)),
       spacer(),
       ...c.choices.map((choice, i) =>
         h(
@@ -696,7 +688,7 @@ function TabContent(props: SeniorCaseProps) {
             'data-index': i
           },
           h('span', { className: 'quiz-letter' }, String.fromCharCode(65 + i)),
-          choice
+          h('span', {}, ...renderInlineText(choice))
         )
       ),
       decision !== undefined
@@ -704,7 +696,7 @@ function TabContent(props: SeniorCaseProps) {
             'div',
             { className: `feedback ${correct ? '' : 'fail'}`.trim(), role: 'status' },
             h('h3', {}, correct ? '✓ Decisión defendible' : '○ Se requiere una opción más segura'),
-            h('p', {}, c.explanation)
+            h('p', {}, ...renderInlineText(c.explanation))
           )
         : null,
       h('div', { className: 'space24' }),
@@ -907,7 +899,7 @@ export function SeniorCasePage(props: SeniorCaseProps) {
           h(
             'a',
             { className: 'btn', href: prev ? `#/senior/${prev.id}` : '#/senior' },
-            prev ? `← ${prev.id} · ${prev.title}` : '← Todos los casos'
+            ...(prev ? [`← ${prev.id} · `, ...renderInlineText(prev.title)] : ['← Todos los casos'])
           ),
           h(
             'a',
@@ -948,7 +940,7 @@ export function SeniorCasePage(props: SeniorCaseProps) {
                 'data-index': i,
                 checked: checked.includes(i)
               }),
-              text
+              h('span', {}, ...renderInlineText(text))
             )
           ),
           h(

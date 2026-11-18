@@ -1,13 +1,7 @@
 import { filterSeniorCases } from './store.js';
-import { ROUTES } from './uiShared.js';
+import { ROUTES, renderInlineText } from './uiShared.js';
 import { h } from './vendor/preact.mjs';
 const SEVERITY_TABS = ['Todas', 'Crítico', 'Alto'];
-function renderInlineText(text) {
-    const parts = text.split(/(`[^`]+`)/g);
-    return parts.map((part, idx) => part.startsWith('`') && part.endsWith('`') && part.length > 2
-        ? h('code', { key: `ic-${idx}`, className: 'inline-code' }, part.slice(1, -1))
-        : part);
-}
 function chip(value, tone = 'purple') {
     return h('span', { className: `chip chip-${tone}` }, value);
 }

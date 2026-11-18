@@ -11,7 +11,7 @@
 | `README.md`, `LICENSE`, `SECURITY.md` | Onboarding `<10 min`, licencia `MIT` y modelo de seguridad |
 | `src/`, `app/`, `styles.css`, `index.html` | Código TypeScript estricto, ESM offline, Preact declarativo y tokens WCAG AA |
 | `assets/terra/`, `assets/icons/mark.svg` | 12 poses PNG de Terra, spritesheet y emblema SVG propio (referencia histórica `assets/reference/` restringida a HTTP 404) |
-| `assets/vendor/`, `app/vendor/`, `tools/typescript/` | Preact `10.29.8`, CodeMirror 6 offline ESM y TypeScript `5.8.3` con licencias |
+| `assets/vendor/`, `assets/fonts/`, `app/vendor/`, `tools/typescript/` | Preact `10.29.8`, CodeMirror 6 offline ESM, Three.js `0.187.0` offline ESM, Silkscreen `OFL-1.1` y TypeScript `5.8.3` con licencias |
 | `labs/offline/`, `assets/labs/` | 36 laboratorios HCL reales y 36 ZIPs con paridad exacta |
 | `labs/senior/`, `assets/senior/` | 18 casos Senior, políticas OPA (`S13`/`S18`), capstone `S18` y 18 ZIPs |
 | `scripts/`, `tests/`, `.github/` | Build estático y Vite, QA (`node --test`, `Vitest`, `Playwright` + Axe + CSP), runners SHA-256 y workflows SHA-pinned |

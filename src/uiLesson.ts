@@ -7,7 +7,7 @@
 import type { Lesson } from './curriculum.js';
 import type { AcademyState, EvalResult } from './engine.js';
 import { getLessonSeniorContext } from './lessonSeniorContext.js';
-import { ROUTES, mascotUrl } from './uiShared.js';
+import { ROUTES, mascotUrl, renderInlineText } from './uiShared.js';
 import { h } from './vendor/preact.mjs';
 
 export interface LessonClassroomProps {
@@ -369,13 +369,21 @@ export function LessonClassroom({ lesson, lessons, state, evalResult }: LessonCl
           ),
           h('a', { href: ROUTES.graph, className: 'btn btn-sm' }, 'Ver grafos →')
         ),
-        h('div', { className: 'space16' }),
-        h('a', { href: ROUTES.evidence, className: 'btn btn-soft' }, 'Ver evidencia CLI real →'),
+        h(
+          'div',
+          { className: 'case-evidence-bar' },
+          h('a', { href: ROUTES.evidence, className: 'btn btn-soft' }, 'Ver evidencia CLI real →')
+        ),
         h(
           'div',
           { className: 'lesson-footer' },
           prev
-            ? h('a', { href: `#/leccion/${prev.id}`, className: 'btn' }, `← ${prev.id} · ${prev.title}`)
+            ? h(
+                'a',
+                { href: `#/leccion/${prev.id}`, className: 'btn' },
+                `← ${prev.id} · `,
+                ...renderInlineText(prev.title)
+              )
             : h('a', { href: ROUTES.learn, className: 'btn' }, '← Ver currículo'),
           next
             ? h('a', { href: `#/leccion/${next.id}`, className: 'btn btn-primary' }, `Siguiente: ${next.id} →`)
@@ -393,8 +401,13 @@ export function LessonClassroom({ lesson, lessons, state, evalResult }: LessonCl
                   h('b', {}, `♛ PREGUNTA DE ARQUITECTURA · ${lesson.id}`),
                   chip(`${seniorCtx.domain} · ${seniorCtx.relatedCaseId}`, 'yellow')
                 ),
-                h('p', { className: 'mb-8' }, h('strong', {}, 'Riesgo en producción: '), seniorCtx.productionRisk),
-                h('p', {}, seniorCtx.architecturePrompt),
+                h(
+                  'p',
+                  { className: 'mb-8' },
+                  h('strong', {}, 'Riesgo en producción: '),
+                  ...renderInlineText(seniorCtx.productionRisk)
+                ),
+                h('p', {}, ...renderInlineText(seniorCtx.architecturePrompt)),
                 h('div', { className: 'space12' }),
                 h(
                   'div',

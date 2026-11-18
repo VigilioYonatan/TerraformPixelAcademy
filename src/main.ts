@@ -89,6 +89,7 @@ function render(): void {
   const state = s.academy;
   document.body.dataset.theme = state.theme;
   document.body.dataset.motion = state.reducedMotion ? 'reduced' : 'normal';
+  document.body.dataset.reducedMotion = String(state.reducedMotion);
   document.body.classList.toggle('reduce-motion', state.reducedMotion);
   document.documentElement.dataset.fontScale = String(state.fontScale);
 

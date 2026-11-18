@@ -19,7 +19,8 @@
 - **Licencia del repositorio:** [`MIT`](./../LICENSE), declarada también en `package.json` (`"license": "MIT"`), con aviso expreso de no afiliación respecto a HashiCorp, Terraform y proveedores cloud.
 - **Toolchains y librerías empaquetadas:**
   - `tools/typescript/` (`5.8.3`): Licencia `Apache-2.0` / aviso en `tools/typescript/LICENSE.txt`.
-  - `app/vendor/preact.mjs` (`10.29.8`) y `app/vendor/codemirror6.mjs` (`@codemirror/*` + `@lezer/highlight`): Licencia `MIT`, documentada en `assets/vendor/THIRD_PARTY_NOTICES.md`.
+  - `app/vendor/preact.mjs` (`10.29.8`), `app/vendor/codemirror6.mjs` (`@codemirror/*` + `@lezer/highlight`) y `app/vendor/three.mjs` (`three@0.187.0`): Licencia `MIT`, documentada en `assets/vendor/THIRD_PARTY_NOTICES.md`.
+  - `assets/fonts/silkscreen-latin.woff2` (`Silkscreen` por Jason Kottke): Licencia `SIL Open Font License 1.1 (OFL-1.1)`, auto-alojada localmente bajo CSP `font-src 'self'` y documentada en `assets/vendor/THIRD_PARTY_NOTICES.md`.
   - Dependencias de desarrollo (`vite`, `vitest`, `@playwright/test`, `@axe-core/playwright`, `@biomejs/biome`, `@testing-library/preact`): `MIT` / `Apache-2.0`, fijadas en `package-lock.json` (`0` vulnerabilidades).
 
 ---

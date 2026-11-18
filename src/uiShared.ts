@@ -1,7 +1,9 @@
 /**
- * Shared UI route constants, mascot paths, and deterministic icon glyphs
+ * Shared UI route constants, mascot paths, inline code formatter, and deterministic icon glyphs
  * consumed across declarative Preact views.
  */
+import { h, type VNode } from './vendor/preact.mjs';
+
 export const ROUTES = {
   home: '#/inicio',
   learn: '#/aprender',
@@ -37,4 +39,13 @@ export function iconFor(name: string): string {
 
 export function mascotUrl(pose: string): string {
   return `./assets/terra/${pose}.png`;
+}
+
+export function renderInlineText(text: string): Array<string | VNode> {
+  const parts = text.split(/(`[^`]+`)/g);
+  return parts.map((part, idx) =>
+    part.startsWith('`') && part.endsWith('`') && part.length > 2
+      ? h('code', { key: `ic-${idx}`, className: 'inline-code' }, part.slice(1, -1))
+      : part
+  );
 }

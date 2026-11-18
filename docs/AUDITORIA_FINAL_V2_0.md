@@ -1,7 +1,7 @@
 # Auditoría Final v2.0.0 — TerraPixel Academy (`docs/AUDITORIA_FINAL_V2_0.md`)
 
-> **Fecha:** 2026-11-16 · **Versión:** `2.0.0` · **Licencia:** `MIT`  
-> **Fuentes de autoridad:** [`TODO_LO_QUE_DEBE_TENER_ESTA_APP.md`](../TODO_LO_QUE_DEBE_TENER_ESTA_APP.md) + [`LO_QUE_FALTA_PARA_100_PORCIENTO.md`](../LO_QUE_FALTA_100_PORCIENTO) + [`AGENTS.md`](../AGENTS.md).
+> **Fecha:** 2026-11-17 · **Versión:** `2.0.0` · **Licencia:** `MIT`  
+> **Fuentes de autoridad:** [`TODO_LO_QUE_DEBE_TENER_ESTA_APP.md`](../TODO_LO_QUE_DEBE_TENER_ESTA_APP.md) + [`LO_QUE_FALTA_PARA_100_PORCIENTO.md`](../LO_QUE_FALTA_PARA_100_PORCIENTO.md) + [`AGENTS.md`](../AGENTS.md).
 
 ---
 
@@ -39,3 +39,4 @@ TerraPixel Academy `v2.0.0` cierra todas las brechas técnicas implementables en
 | Sandbox cloud AWS/provider real | **`NOT_RUN`** | Fuera de alcance offline-first; los 37 labs se ejecutan con `terraform_data` local |
 | Sesión auditiva manual con lector de pantalla (`NVDA` / `VoiceOver`) | **`NOT_RUN`** | Requiere inspección humana asistiva; cobertura automática WCAG 2.2 AA (`@axe-core/playwright`) en `PASS` (`0` violaciones) |
 | Registro jurídico de marca comercial ante oficina externa | **`NOT_RUN`** | Decisión legal/comercial externa; auditoría técnica de activos propios en `PASS` (`docs/BRAND_AND_LICENSE_AUDIT.md`) |
+| Advisory upstream sin parche en `devDependencies` (`GHSA-fc5q-39xc-vjpf`) | **`OBSERVADO` (`0` runtime)** | `npm audit --omit=dev` reporta `0` vulnerabilidades en `app/` y `dist/`; `picomatch@4.0.7` (transitivo de `vite@8.3.8` / `vitest@5.1.0` solo en desarrollo) aguarda parche upstream sin downgrade destructivo |

@@ -27,7 +27,8 @@
 - **18 escenarios Senior (`S01–S18`) + Capstone `S18` de 8 hitos** con simuladores deterministas parametrizables (`src/simulators.ts`), ejercicios *What-If*, 4 controles por incidente, exportación ADR y portafolio completo.
 - **Inspector local de `terraform show -json` + Senior Release Gate** (`src/planInspector.ts`, `src/releaseGate.ts`) con soporte de semánticas Terraform `>= 1.7` (`forget` / `STATE_FORGET`, `delete-then-create` vs `create-before-destroy`), **cero exposición de `before/after`, variables o secretos**, y estados exclusivos `BLOCKED`, `NEEDS_EVIDENCE` y `READY_FOR_HUMAN_REVIEW`.
 - **54 paquetes ZIP descargables** (`36` laboratorios `B/I/A` + `18` casos Senior `S01–S18`) verificados contra `Terraform v1.10.5`, `TFLint`, `Trivy Config` y `Conftest` OPA Rego en copias temporales aisladas.
-- **Accesibilidad WCAG 2.2 AA automatizada** (`0` violaciones `@axe-core/playwright` en 30 escaneos `dark` + `light`, teclado, zoom `200 %` y `prefers-reduced-motion`).
+- **5 Arenas 3D WebGL interactivas (`Three.js 0.187.0` offline)** (`src/gameScene3d.ts`, `src/uiGames.ts`, `app/vendor/three.mjs`) con topologías raycasted, cámaras tácticas, atajos de teclado `1/2/3`, diagramas SVG minimalistas en aula y casos Senior, e identidad **Pixel Senior UX** (`Silkscreen` local `OFL-1.1` bajo `font-src 'self'` + íconos SVG `16×16` `crispEdges`).
+- **Accesibilidad WCAG 2.2 AA automatizada** (`0` violaciones `@axe-core/playwright` en 30 escaneos `dark` + `light`, teclado, áreas táctiles móviles `>= 44px`, zoom `200 %` y `prefers-reduced-motion`).
 
 ---
 
@@ -63,8 +64,8 @@ npm start
 ```bash
 npm ci --ignore-scripts      # Instala dependencias exactas del lockfile sin lifecycle scripts
 npm run build:vite           # Compila TypeScript, genera bundle Vite y valida presupuesto
-npm run qa                   # Typecheck + 101 tests Node/BDD + 10 tests Vitest + security:local
-npm run test:e2e             # Playwright E2E HTTP + Strict CSP + 30 auditorías WCAG 2.2 AA
+npm run qa                   # Typecheck + 105 tests Node/BDD + 10 tests Vitest + security:local
+npm run test:e2e             # 20 specs Playwright E2E HTTP + Arenas 3D + Strict CSP + 30 auditorías WCAG 2.2 AA
 ```
 
 ---
