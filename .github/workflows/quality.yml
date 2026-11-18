@@ -26,14 +26,14 @@ jobs:
         run: node tools/typescript/bin/tsc --version
       - name: Lint and format (Biome)
         run: npm run lint:biome
+      - name: Build offline and Vite production bundle
+        run: npm run build && npm run build:vite
       - name: Typecheck, unit/BDD, Vitest components and local security
         run: npm run qa
       - name: Baseline route preservation
         run: npm run verify:preservation
       - name: Structural and archive parity audit
         run: python3 scripts/release-audit.py
-      - name: Build offline and Vite production bundle
-        run: npm run build && npm run build:vite
       - name: Confirm generated artifacts
         run: test -f dist/index.html && test -f dist/assets/terra/hola.png && test -f dist/.vite/manifest.json
   e2e-http:

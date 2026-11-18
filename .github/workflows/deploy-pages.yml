@@ -1,5 +1,7 @@
-name: Publish academy (manual)
+name: Publish academy (GitHub Pages)
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,10 +24,12 @@ jobs:
           cache: npm
       - name: Install frozen dependencies
         run: npm ci --ignore-scripts
-      - name: Lint and QA gates
-        run: npm run lint:biome && npm run qa
       - name: Build Vite static site
         run: npm run build:vite
+      - name: Lint and QA gates
+        run: npm run lint:biome && npm run qa
+      - name: Harden public Pages artifact (.nojekyll + strip internal reference)
+        run: rm -rf dist/assets/reference && touch dist/.nojekyll
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:

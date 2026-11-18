@@ -21,6 +21,7 @@ export default defineConfig({
   testDir: './tests/e2e',
   timeout: 30_000,
   fullyParallel: false,
+  workers: 2,
   retries: 0,
   reporter: 'list',
   use: {
@@ -28,7 +29,10 @@ export default defineConfig({
     headless: true,
     trace: 'on-first-retry',
     viewport: { width: 1280, height: 860 },
-    launchOptions: executablePath ? { executablePath } : undefined
+    launchOptions: {
+      ...(executablePath ? { executablePath } : {}),
+      args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist']
+    }
   },
   webServer: {
     command: 'node scripts/server.mjs',
